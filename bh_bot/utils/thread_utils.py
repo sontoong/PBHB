@@ -3,6 +3,7 @@
 import threading
 from datetime import datetime
 from typing import Callable, Any, Tuple, List, Optional
+from bh_bot.decorators.sleep import stop_monitoring
 
 # Dictionary to store stop events for each thread
 stop_events = {}
@@ -46,6 +47,7 @@ def cancel_thread(thread_id: str):
     """Set the stop signal to stop the specific thread."""
     if thread_id in stop_events:
         stop_events[thread_id].set()
+        stop_monitoring()
         print("Canceling task...")
     else:
         pass

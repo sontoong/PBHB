@@ -1,6 +1,7 @@
 # pylint: disable=C0114,C0116,C0301
 import os
 import sys
+import itertools
 
 
 def path_prefix(image_list, prefix):
@@ -17,7 +18,7 @@ def path_prefix(image_list, prefix):
 def extract_file_name(image_path):
     image_name = image_path.split(
         '/')[-1] if '/' in image_path else image_path.split('\\')[-1]
-    image_name = image_name.replace('_', ' ').rsplit('.', 1)[0]
+    image_name = image_name.rsplit('.', 1)[0]
     return image_name
 
 
@@ -26,12 +27,16 @@ def resource_path(resource_folder_path, resource_name):
     try:
         # PyInstaller creates a temp folder (_MEIPASS) in --onefile mode
         base_path = sys._MEIPASS  # pylint: disable=protected-access,no-member
-        print(f"PATH INFO: {os.path.join(
-            base_path, resource_folder_path, resource_name)}")
+        # print(f"PATH INFO: {os.path.join(
+        #     base_path, resource_folder_path, resource_name)}")
     except AttributeError:
         # In --onedir mode or development, base_path will be the directory where the script is located
         base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        print(f"PATH INFO: {os.path.join(
-            base_path, resource_folder_path, resource_name)}")
+        # print(f"PATH INFO: {os.path.join(
+        #     base_path, resource_folder_path, resource_name)}")
 
     return os.path.join(base_path, resource_folder_path, resource_name)
+
+
+def list_flattern(list_of_lists):
+    return list(itertools.chain.from_iterable(list_of_lists))

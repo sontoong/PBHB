@@ -9,12 +9,17 @@ SETTING_FILE = "user_settings.json"
 
 DEFAULT_SETTINGS = {
     # general
-    "dark_mode": False,
-    "fancy_mouse": False,
+    "G_dark_mode": False,
+    "G_fancy_mouse": False,
+    "G_auto_close_dm": True,
 
-    # text_format
-    "num_of_loop": 1,
-    "last_used_color": "#ffffff",
+    # re_run
+    "RR_num_of_loop": 1,
+    "RR_auto_catch_by_gold": True,
+
+    # invasion
+    "I_num_of_loop": 1,
+    "I_increase_wave": False
 }
 
 

@@ -16,12 +16,13 @@ class UserSettingsFrame(ttk.Frame):
             username=self.username)
 
         # Define the number of columns per row
-        columns_per_row = 2
+        columns_per_row = 3
 
         # Grid for settings
         self.setting_frames = {
             "Mouse": ttk.LabelFrame(self, text="Mouse"),
             "Theme": ttk.LabelFrame(self, text="Theme"),
+            "Bot": ttk.LabelFrame(self, text="Bot"),
         }
 
         # Loop through the frames and position them
@@ -41,8 +42,11 @@ class UserSettingsFrame(ttk.Frame):
     def create_checkbuttons(self):
         # Define Checkbutton configurations
         options = [
-            {"frame": "Theme", "text": "Dark Mode", "setting_key": "dark_mode"},
-            {"frame": "Mouse", "text": "Slow Mouse", "setting_key": "fancy_mouse"}
+            {"frame": "Bot", "text": "Auto close direct messages",
+                "setting_key": "G_auto_close_dm"},
+            {"frame": "Theme", "text": "Dark Mode",
+                "setting_key": "G_dark_mode"},
+            {"frame": "Mouse", "text": "Slow Mouse", "setting_key": "G_fancy_mouse"}
         ]
 
         # Create Checkbuttons using a loop

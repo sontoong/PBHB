@@ -4,7 +4,7 @@ import tkinter as tk
 import pyautogui
 from bh_bot.windows.user_management import UserManagementScreen
 
-pyautogui.PAUSE = 0
+pyautogui.PAUSE = 0.1
 pyautogui.FAILSAFE = True
 
 

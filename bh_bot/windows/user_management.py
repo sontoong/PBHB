@@ -9,7 +9,7 @@ from bh_bot.utils.window_utils import center_window_absolute
 from bh_bot.windows.main_window import MainWindow
 
 DATA_FOLDER = "data"
-WINDOW_TITLE_KEYWORDS = ["Document"]
+WINDOW_TITLE_KEYWORDS = ["Bit Heroes"]
 
 
 class UserManagementScreen:

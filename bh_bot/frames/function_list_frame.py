@@ -3,10 +3,15 @@
 from tkinter import *
 from tkinter import ttk, messagebox
 from functools import partial
-from bh_bot.functions.text_format.windows.text_format_window import TextFormatWindow
+from bh_bot.functions.re_run.windows.re_run import ReRunWindow
+from bh_bot.functions.invasion.windows.invasion import InvasionWindow
 
-text_funtions = {
-    "Text Format": TextFormatWindow, "function2": None}
+general_functions = {
+    "Rerun": ReRunWindow,
+}
+invasion_functions = {
+    "Invasion": InvasionWindow
+}
 other_functions = {"name": None}
 
 
@@ -15,7 +20,7 @@ class FunctionListFrame(ttk.Frame):
         super().__init__(master=notebook, **kwargs)
         self.parent = parent
         self.functions = {
-            "Text Format": text_funtions, "Other": other_functions}
+            "General": general_functions, "Invasion": invasion_functions, "Other": other_functions}
 
         # Define the number of columns per row
         columns_per_row = 2

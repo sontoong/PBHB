@@ -1,11 +1,12 @@
 # pylint: disable=C0114,C0116,C0301
 
-import os
 import difflib
 import pyautogui
 import pygetwindow as gw
+import time
 from bh_bot.utils.helpers import extract_file_name, resource_path
 from bh_bot.decorators.sleep import sleep
+from bh_bot.utils.window_utils import force_activate_window
 
 
 def get_window(title_contains):
@@ -38,23 +39,39 @@ def get_active_windows(keywords=None):
 
 def click(x, y, clicks=1, user_settings=None):
     if user_settings:
-        animated = user_settings.get('fancy_mouse')
+        animated = user_settings.get('G_fancy_mouse')
 
         if animated:
             pyautogui.moveTo(x=x, y=y, duration=0.2,
                              tween=pyautogui.easeInOutQuad)
             pyautogui.click(clicks=clicks)
         else:
-            pyautogui.click(x=x, y=y, clicks=clicks)
+            pyautogui.moveTo(x=x, y=y)
+            time.sleep(0.1)
+            pyautogui.click(clicks=clicks)
     else:
-        pyautogui.click(x=x, y=y, clicks=clicks)
+        pyautogui.moveTo(x=x, y=y)
+        time.sleep(0.1)
+        pyautogui.click(clicks=clicks)
 
+
+def move_to(x, y, user_settings=None):
+    if user_settings:
+        animated = user_settings.get('G_fancy_mouse')
+
+        if animated:
+            pyautogui.moveTo(x=x, y=y, duration=0.2,
+                             tween=pyautogui.easeInOutQuad)
+        else:
+            pyautogui.moveTo(x=x, y=y)
+    else:
+        pyautogui.moveTo(x=x, y=y)
 
 # Use functools.partial to create a partially-applied version of the callback
 
 
-@sleep(timeout=5, retry=99)
-def locate_image(*, image_path_relative, resource_folder, confidence=0.8, region, optional=False):
+@sleep(timeout=1, retry=2)
+def locate_image(*, running_window, image_path_relative, resource_folder, confidence=0.8, region, optional=True):
     """
     Locates an image on the screen using image recognition.
 
@@ -65,15 +82,24 @@ def locate_image(*, image_path_relative, resource_folder, confidence=0.8, region
     :return: The location of the image if found, otherwise None.
     """
     try:
-        # image_path = os.path.join(base_path, image_path_relative)
+        force_activate_window(running_window)
+
+        # Construct the image path
         image_path = resource_path(
             resource_folder_path=resource_folder, resource_name=image_path_relative)
+
+        # Locate the image
         location = pyautogui.locateOnScreen(
             image_path, confidence=confidence, region=region)
         return location
     except pyautogui.ImageNotFoundException as err:
+        image_name = extract_file_name(image_path)
+        if optional:
+            # print("Optional:")
+            # print(f"'{image_name}' not found")
+            return None
         if not optional:
-            image_name = extract_file_name(image_path)
+            # print("Not Optional:")
             print(f"'{image_name}' not found, retrying...")
             raise pyautogui.ImageNotFoundException(f"Could not locate '{
                 image_name}' on screen. Make sure the window is clearly visible.") from err
