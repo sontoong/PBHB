@@ -72,6 +72,10 @@ class ReRunWindow:
                 "RR_auto_catch_by_gold": auto_catch
             })
 
+        # Reload the settings from the JSON file to ensure self.settings is up-to-date
+        self.settings = settings_manager.load_user_settings(
+            username=self.username)
+
         # Disable closing
         self.execute_button.config(state=DISABLED)
         self.window.wm_protocol("WM_DELETE_WINDOW", self.disable_close)

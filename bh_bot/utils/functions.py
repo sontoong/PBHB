@@ -7,13 +7,12 @@ from bh_bot.utils.actions import click, locate_image, move_to
 from bh_bot.classes.image_info import ImageInfo
 
 
-def click_images_in_sequence(*, running_window, user_settings, image_info_list: List[ImageInfo], resource_folder, confidence=0.8, interval=1, region):
+def click_images_in_sequence(*, running_window, user_settings, image_info_list: List[ImageInfo], resource_folder, interval=1, region):
     """
     Clicks on each image in the provided list one by one, with optional offsets.
 
     :param image_info_list: List of tuples containing name of folder containing the image, and optional offsets (image_path, offset_x, offset_y, clicks).
     :param resource_folder: Base path of function executing.
-    :param confidence: Confidence level for image recognition (default is 0.8).
     :param interval: Time in seconds to wait between clicks (default is 1 second).
     :param region: A tuple representing the region of the running window. The tuple contains (left, top, width, height).
     """
@@ -23,6 +22,7 @@ def click_images_in_sequence(*, running_window, user_settings, image_info_list: 
         offset_y = image_info.offset_y
         clicks = image_info.clicks
         optional = image_info.optional
+        confidence = image_info.confidence
 
         location = locate_image(running_window=running_window,
                                 image_path_relative=image_path, resource_folder=resource_folder, confidence=confidence, optional=optional, region=region)

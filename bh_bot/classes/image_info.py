@@ -10,3 +10,4 @@ class ImageInfo:
     offset_y: int = 0
     clicks: int = 1
     optional: bool = True
+    confidence: int = 0.8

@@ -9,6 +9,7 @@ from bh_bot.utils.wrappers import stop_checking_wrapper
 from bh_bot.classes.image_info import ImageInfo
 from bh_bot.decorators.sleep import sleep
 from bh_bot.utils.helpers import list_flattern
+from bh_bot.functions.global_functions.global_sequences import get_global_click_sequence
 
 GLOBAL_RESOURCE_FOLDER = "images/global"
 RESOURCE_FOLDER = "images/invasion"
@@ -20,7 +21,7 @@ def invasion(*, user_settings, user, stop_event: threading.Event):
     running_window.activate()
     time.sleep(1)
 
-    # Define region for pyautogui (adjust for margins if needed)
+    # Define region for pyautogui
     region = (running_window.left, running_window.top,
               running_window.width, running_window.height)
 
@@ -30,32 +31,8 @@ def invasion(*, user_settings, user, stop_event: threading.Event):
 
     # Global click sequence
     # -----------------------------------------------------------
-    global_sequence = []
-
-    # Case: Disconnected from the game
-    reconnect_sequence: List[ImageInfo] = [
-        ImageInfo(image_path='reconnect_button.png',
-                  offset_x=30, offset_y=20),
-    ]
-
-    global_sequence.append(reconnect_sequence)
-
-    # Case: Chat Window
-    if user_settings["G_auto_close_dm"] is True and locate_image(running_window=running_window, image_path_relative="dm_msg_box.png", resource_folder=GLOBAL_RESOURCE_FOLDER, region=region) is not None:
-        close_dm_sequence: List[ImageInfo] = [
-            ImageInfo(image_path='close_icon_button.png',
-                      offset_x=30, offset_y=20),
-        ]
-
-        global_sequence.append(close_dm_sequence)
-
-    # Case: Friend/wb request
-    ignore_request_sequence: List[ImageInfo] = [
-        ImageInfo(image_path='ignore_button.png',
-                  offset_x=5, offset_y=5),
-    ]
-
-    global_sequence.append(ignore_request_sequence)
+    global_sequence = get_global_click_sequence(
+        user_settings=user_settings, running_window=running_window, region=region)
 
     click_images_in_sequence_wrapped(
         running_window=running_window,
@@ -67,9 +44,9 @@ def invasion(*, user_settings, user, stop_event: threading.Event):
     # Case: Exit and re-enter invasion
     exit_and_enter_sequence: List[ImageInfo] = [
         ImageInfo(image_path='town_button.png',
-                  offset_x=30, offset_y=20),
-        ImageInfo(image_path='invasion_label.bmp',
-                  offset_x=30, offset_y=-20),
+                  offset_x=10, offset_y=10),
+        ImageInfo(image_path='invasion_label.png',
+                  offset_x=10, offset_y=-10),
     ]
 
     click_images_in_sequence_wrapped(
@@ -80,9 +57,9 @@ def invasion(*, user_settings, user, stop_event: threading.Event):
     if user_settings["I_increase_wave"] is True:
         increase_wave_sequence: List[ImageInfo] = [
             ImageInfo(image_path='wave_counter.png',
-                      offset_x=30, offset_y=40),
+                      offset_x=20, offset_y=40),
             ImageInfo(image_path='difficulty_picker.png',
-                      offset_x=30, offset_y=100, optional=False),
+                      offset_x=20, offset_y=100, optional=False),
         ]
 
         click_images_in_sequence_wrapped(
@@ -91,21 +68,21 @@ def invasion(*, user_settings, user, stop_event: threading.Event):
 
         if locate_image(running_window=running_window, image_path_relative="difficulty_picker.png", resource_folder=RESOURCE_FOLDER, region=region) is not None:
             exit_difficulty_picker_sequence: List[ImageInfo] = [
-                ImageInfo(image_path='close_button.bmp',
+                ImageInfo(image_path='close_icon_button.png',
                           offset_x=15, offset_y=15)
             ]
             click_images_in_sequence_wrapped(
                 running_window=running_window,
-                image_info_list=exit_difficulty_picker_sequence, resource_folder=RESOURCE_FOLDER, user_settings=user_settings, region=region)
+                image_info_list=exit_difficulty_picker_sequence, resource_folder=GLOBAL_RESOURCE_FOLDER, user_settings=user_settings, region=region)
 
     # Final: Play
     play_sequence: List[ImageInfo] = [
         ImageInfo(image_path='play_button.png',
-                  offset_x=30, offset_y=20),
+                  offset_x=10, offset_y=10),
         ImageInfo(image_path='accept_button.png',
-                  offset_x=30, offset_y=20, optional=False),
+                  offset_x=10, offset_y=10, optional=False),
         ImageInfo(image_path='yes_button.png',
-                  offset_x=30, offset_y=20),
+                  offset_x=10, offset_y=10),
     ]
 
     click_images_in_sequence_wrapped(

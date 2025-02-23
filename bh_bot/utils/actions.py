@@ -100,7 +100,7 @@ def locate_image(*, running_window, image_path_relative, resource_folder, confid
             return None
         if not optional:
             # print("Not Optional:")
-            print(f"'{image_name}' not found, retrying...")
+            # print(f"'{image_name}' not found, retrying...")
             raise pyautogui.ImageNotFoundException(f"Could not locate '{
                 image_name}' on screen. Make sure the window is clearly visible.") from err
         return None
