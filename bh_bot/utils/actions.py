@@ -1,12 +1,13 @@
 # pylint: disable=C0114,C0116,C0301
 
 import difflib
+import time
 import pyautogui
 import pygetwindow as gw
-import time
 from bh_bot.utils.helpers import extract_file_name, resource_path
 from bh_bot.decorators.sleep import sleep
 from bh_bot.utils.window_utils import force_activate_window
+# from bh_bot.utils.image_utils import highlight_location
 
 
 def get_window(title_contains):
@@ -40,6 +41,9 @@ def get_active_windows(keywords=None):
 def click(x, y, clicks=1, user_settings=None):
     if user_settings:
         animated = user_settings.get('G_fancy_mouse')
+
+        # Debug
+        # highlight_location(x=x, y=y)
 
         if animated:
             pyautogui.moveTo(x=x, y=y, duration=0.2,
