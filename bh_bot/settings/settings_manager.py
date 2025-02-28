@@ -23,7 +23,10 @@ DEFAULT_SETTINGS = {
 
     # tg
     "TG_num_of_loop": 1,
-    "TG_increase_difficulty": False
+    "TG_increase_difficulty": False,
+
+    # pvp
+    "PVP_num_of_loop": 1
 }
 
 

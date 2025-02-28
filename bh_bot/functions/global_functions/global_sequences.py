@@ -14,6 +14,19 @@ def get_global_click_sequence(user_settings: dict, running_window, region) -> Li
         ImageInfo(image_path='reconnect_button.png', offset_x=5, offset_y=5),
     ]
 
+    # Case: Are you still there
+    confirm_still_here_sequence: List[ImageInfo] = []
+    if locate_image(
+        running_window=running_window,
+        image_path_relative="are_you_still_there.png",
+        resource_folder=GLOBAL_RESOURCE_FOLDER,
+        region=region
+    ) is not None:
+        confirm_still_here_sequence = [
+            ImageInfo(image_path='yes_button.png',
+                      offset_x=5, offset_y=5)
+        ]
+
     # Case: Chat Window
     close_dm_sequence: List[ImageInfo] = []
     if user_settings["G_auto_close_dm"] is True and locate_image(
@@ -36,23 +49,26 @@ def get_global_click_sequence(user_settings: dict, running_window, region) -> Li
     ]
 
     # Case: Auto is not on
+    turn_on_auto: List[ImageInfo] = []
     if locate_image(
         running_window=running_window,
         image_path_relative="auto_red.png",
         resource_folder=GLOBAL_RESOURCE_FOLDER,
         region=region
     ) is not None:
-        ignore_request_sequence.append(
+        turn_on_auto = [
             ImageInfo(image_path='auto_red.png',
                       offset_x=5, offset_y=5)
-        )
+        ]
 
     # ---------------------------------------------------
 
     global_sequence = [
         reconnect_sequence,
+        confirm_still_here_sequence,
         close_dm_sequence,
         ignore_request_sequence,
+        turn_on_auto
     ]
 
     # Filter out empty sequences
