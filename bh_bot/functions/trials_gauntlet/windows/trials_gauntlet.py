@@ -5,25 +5,25 @@ from tkinter import messagebox
 from tkinter import ttk
 import keyboard
 from bh_bot.ui.custom_entry import NumberEntry
-from bh_bot.functions.re_run.threads.threaded_scripts import thread_re_run
+from bh_bot.functions.trials_gauntlet.threads.threaded_scripts import thread_trials_gauntlet
 from bh_bot.settings import settings_manager
 from bh_bot.utils.thread_utils import cancel_thread
 from bh_bot.utils.window_utils import center_window_relative
 
 
-class ReRunWindow:
+class TrialsGauntletWindow:
     def __init__(self, parent, user):
         # Init window
         self.parent = parent
         self.window = Toplevel(parent=None)
-        self.window.title("Re-run")
+        self.window.title("Trials/Gauntlet")
         center_window_relative(
             window=self.window, parent=self.parent, window_width=250, window_height=250)
         self.window.protocol("WM_DELETE_WINDOW", self.close_window)
 
         # Bind the Escape key to the stop_execute function
         keyboard.add_hotkey(
-            'esc', lambda: self.stop_execute("re_run"))
+            'esc', lambda: self.stop_execute("trials_gauntlet"))
 
         # Load settings
         self.user = user
@@ -37,17 +37,19 @@ class ReRunWindow:
             self.window, label_text="Number of loop", min_value=1)
         self.num_of_loop_entry.pack(fill=X, padx=(5, 0), pady=5, anchor=W)
         self.num_of_loop_entry.set(
-            self.settings["RR_num_of_loop"])
+            self.settings["TG_num_of_loop"])
 
-        # Checkbutton for auto catch by gold
-        self.auto_catch_var = BooleanVar()
-        self.auto_catch_var.set(self.settings["RR_auto_catch_by_gold"])
-        self.auto_catch_checkbox = ttk.Checkbutton(
+        # Checkbutton for auto increase wave
+        self.auto_increase_difficulty_var = BooleanVar()
+        self.auto_increase_difficulty_var.set(
+            self.settings["TG_increase_difficulty"])
+        self.auto_increase_difficulty_checkbox = ttk.Checkbutton(
             self.window,
-            text="Auto catch fams by gold",
-            variable=self.auto_catch_var
+            text="Auto increase difficulty",
+            variable=self.auto_increase_difficulty_var
         )
-        self.auto_catch_checkbox.pack(fill=X, padx=(5, 0), pady=5, anchor=W)
+        self.auto_increase_difficulty_checkbox.pack(
+            fill=X, padx=(5, 0), pady=5, anchor=W)
 
         # Footer Buttons
         button_frame = Frame(self.window)
@@ -57,19 +59,19 @@ class ReRunWindow:
             button_frame, text="Execute", command=self.start_execute)
         self.execute_button.pack(side=LEFT, pady=5)
         # Stop button
-        ttk.Button(button_frame, text="Stop (Esc)", command=lambda: self.stop_execute("re_run")).pack(
+        ttk.Button(button_frame, text="Stop (Esc)", command=lambda: self.stop_execute("trials_gauntlet")).pack(
             side=LEFT, pady=5)
 
     def start_execute(self):
         num_of_loop = int(self.num_of_loop_entry.get())
-        auto_catch = self.auto_catch_var.get()
+        auto_increase_difficulty = self.auto_increase_difficulty_var.get()
 
         # Update settings
         settings_manager.update_user_setting(
             username=self.username,
             updates={
-                "RR_num_of_loop": num_of_loop,
-                "RR_auto_catch_by_gold": auto_catch
+                "TG_num_of_loop": num_of_loop,
+                "TG_increase_difficulty": auto_increase_difficulty
             })
 
         # Reload the settings from the JSON file to ensure self.settings is up-to-date
@@ -81,8 +83,8 @@ class ReRunWindow:
         self.window.wm_protocol("WM_DELETE_WINDOW", self.disable_close)
 
         # Start thread
-        thread_re_run(user_settings=self.settings,
-                      callback=self.on_task_complete, user=self.user)
+        thread_trials_gauntlet(user_settings=self.settings,
+                               callback=self.on_task_complete, user=self.user)
 
     # Required
     def stop_execute(self, thread_id):

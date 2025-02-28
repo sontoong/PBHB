@@ -34,7 +34,7 @@ class InvasionWindow:
         # UI start
         # Entry for loop count
         self.num_of_loop_entry = NumberEntry(
-            self.window, label_text="Number of loop", min_value=1, max_value=100)
+            self.window, label_text="Number of loop", min_value=1)
         self.num_of_loop_entry.pack(fill=X, padx=(5, 0), pady=5, anchor=W)
         self.num_of_loop_entry.set(
             self.settings["I_num_of_loop"])
@@ -42,12 +42,13 @@ class InvasionWindow:
         # Checkbutton for auto increase wave
         self.auto_increase_wave_var = BooleanVar()
         self.auto_increase_wave_var.set(self.settings["I_increase_wave"])
-        self.auto_catch_checkbox = ttk.Checkbutton(
+        self.auto_increase_wave_checkbox = ttk.Checkbutton(
             self.window,
             text="Auto increase wave",
             variable=self.auto_increase_wave_var
         )
-        self.auto_catch_checkbox.pack(fill=X, padx=(5, 0), pady=5, anchor=W)
+        self.auto_increase_wave_checkbox.pack(
+            fill=X, padx=(5, 0), pady=5, anchor=W)
 
         # Footer Buttons
         button_frame = Frame(self.window)

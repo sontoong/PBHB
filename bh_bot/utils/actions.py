@@ -7,7 +7,7 @@ import pygetwindow as gw
 from bh_bot.utils.helpers import extract_file_name, resource_path
 from bh_bot.decorators.sleep import sleep
 from bh_bot.utils.window_utils import force_activate_window
-# from bh_bot.utils.image_utils import highlight_location
+from bh_bot.utils.image_utils import highlight_location
 
 
 def get_window(title_contains):

@@ -5,12 +5,16 @@ from tkinter import ttk, messagebox
 from functools import partial
 from bh_bot.functions.re_run.windows.re_run import ReRunWindow
 from bh_bot.functions.invasion.windows.invasion import InvasionWindow
+from bh_bot.functions.trials_gauntlet.windows.trials_gauntlet import TrialsGauntletWindow
 
 general_functions = {
     "Rerun": ReRunWindow,
 }
 invasion_functions = {
-    "Invasion": InvasionWindow
+    "Play": InvasionWindow
+}
+trials_gauntlet_functions = {
+    "Play": TrialsGauntletWindow
 }
 other_functions = {"name": None}
 
@@ -20,10 +24,10 @@ class FunctionListFrame(ttk.Frame):
         super().__init__(master=notebook, **kwargs)
         self.parent = parent
         self.functions = {
-            "General": general_functions, "Invasion": invasion_functions, "Other": other_functions}
+            "General": general_functions, "Invasion": invasion_functions, "Trials/Gauntlet": trials_gauntlet_functions, "Other": other_functions}
 
         # Define the number of columns per row
-        columns_per_row = 2
+        columns_per_row = 5
 
         # Create frames, buttons and position them
         self.setting_frames = {}
