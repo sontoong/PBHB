@@ -48,5 +48,5 @@ def thread_trials_gauntlet(*, callback, user, **kwargs) -> None:
         run_with_retries(func=trials_gauntlet, thread_id=thread_id,
                          username=user["username"], **kwargs)
 
-    thread_function(apply_loop, callback=callback, user=user,
+    thread_function(func=apply_loop, callback=callback, user=user,
                     thread_id=thread_id, **kwargs)

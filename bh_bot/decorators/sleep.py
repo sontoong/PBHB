@@ -4,29 +4,14 @@ import time
 import functools
 import threading
 import pyautogui
-import keyboard
 
 # Thread-safe stop event for Esc monitoring
 stop_event = threading.Event()
 
 
-def monitor_esc_key():
-    """Monitor for the Esc key press and set the stop event."""
-    while not stop_event.is_set():
-        if keyboard.is_pressed('esc'):  # Detect if 'Esc' key is pressed
-            stop_event.set()
-        time.sleep(0.1)  # Prevent busy-wait loop
-
-
-# Start the Esc key monitor in a separate thread
-monitor_thread = threading.Thread(target=monitor_esc_key, daemon=True)
-monitor_thread.start()
-
-
-def stop_monitoring():
+def stop_sleep():
     """Signal the monitor thread to stop."""
     stop_event.set()
-    monitor_thread.join()
 
 
 def sleep(timeout, retry=3):

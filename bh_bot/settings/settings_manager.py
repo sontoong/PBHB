@@ -26,7 +26,10 @@ DEFAULT_SETTINGS = {
     "TG_increase_difficulty": False,
 
     # pvp
-    "PVP_num_of_loop": 1
+    "PVP_num_of_loop": 1,
+
+    # run_all
+    "RA_functions": {"pvp": True, "tg": True, "invasion": True}
 }
 
 

@@ -40,3 +40,16 @@ def resource_path(resource_folder_path, resource_name):
 
 def list_flattern(list_of_lists):
     return list(itertools.chain.from_iterable(list_of_lists))
+
+
+def get_true_keys(dictionary):
+    """
+    Returns a list of keys from the dictionary that have a True value.
+
+    Args:
+        dictionary (dict): Input dictionary to search for True values
+
+    Returns:
+        list: List of keys with True values
+    """
+    return [key for key, value in dictionary.items() if value is True]

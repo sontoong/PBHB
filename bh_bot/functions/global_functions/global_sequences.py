@@ -27,6 +27,19 @@ def get_global_click_sequence(user_settings: dict, running_window, region) -> Li
                       offset_x=5, offset_y=5)
         ]
 
+    # Case: Are you sure you want to quit Bit Heroes
+    confirm_playing_bh_sequence: List[ImageInfo] = []
+    if locate_image(
+        running_window=running_window,
+        image_path_relative="exit_bh.png",
+        resource_folder=GLOBAL_RESOURCE_FOLDER,
+        region=region
+    ) is not None:
+        confirm_playing_bh_sequence = [
+            ImageInfo(image_path='no_button.png',
+                      offset_x=5, offset_y=5)
+        ]
+
     # Case: Chat Window
     close_dm_sequence: List[ImageInfo] = []
     if user_settings["G_auto_close_dm"] is True and locate_image(
@@ -49,26 +62,33 @@ def get_global_click_sequence(user_settings: dict, running_window, region) -> Li
     ]
 
     # Case: Auto is not on
-    turn_on_auto: List[ImageInfo] = []
+    turn_on_auto_sequence: List[ImageInfo] = []
     if locate_image(
         running_window=running_window,
         image_path_relative="auto_red.png",
         resource_folder=GLOBAL_RESOURCE_FOLDER,
         region=region
     ) is not None:
-        turn_on_auto = [
+        turn_on_auto_sequence = [
             ImageInfo(image_path='auto_red.png',
                       offset_x=5, offset_y=5)
         ]
+
+    # Case: Battle victory screen
+    close_battle_victory_screen_sequence: List[ImageInfo] = [
+        ImageInfo(image_path='continue_button.png', offset_x=5, offset_y=5),
+    ]
 
     # ---------------------------------------------------
 
     global_sequence = [
         reconnect_sequence,
         confirm_still_here_sequence,
+        confirm_playing_bh_sequence,
         close_dm_sequence,
         ignore_request_sequence,
-        turn_on_auto
+        turn_on_auto_sequence,
+        close_battle_victory_screen_sequence
     ]
 
     # Filter out empty sequences

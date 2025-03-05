@@ -4,6 +4,7 @@ from typing import List
 import time
 import threading
 from bh_bot.utils.functions import click_images_in_sequence
+from bh_bot.utils.actions import locate_image, pyautogui
 from bh_bot.utils.wrappers import stop_checking_wrapper
 from bh_bot.classes.image_info import ImageInfo
 from bh_bot.decorators.sleep import sleep
@@ -39,6 +40,11 @@ def pvp(*, user_settings, user, stop_event: threading.Event):
 
     # Function click sequence
     # -----------------------------------------------------------
+
+    # Case: Out of tickets
+    if locate_image(running_window=running_window, image_path_relative="not_enough_tickets.png", resource_folder=GLOBAL_RESOURCE_FOLDER, region=region) is not None:
+        pyautogui.press("esc", presses=2, interval=1)
+        stop_event.set()
 
     # Case: Exit and re-enter pvp
     exit_and_enter_sequence: List[ImageInfo] = [
