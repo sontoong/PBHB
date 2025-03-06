@@ -3,12 +3,10 @@
 import time
 from bh_bot.functions.trials_gauntlet.scripts.trials_gauntlet import trials_gauntlet
 from bh_bot.utils.thread_utils import get_break_signal, thread_function
-from bh_bot.settings import settings_manager
 
 
-def run_with_retries(*, func, thread_id, username, **kwargs):
-    settings = settings_manager.load_user_settings(username=username)
-    num_of_retries = settings["TG_num_of_loop"]
+def run_with_retries(*, func, thread_id, user_settings, user, **kwargs):
+    num_of_retries = user_settings["TG_num_of_loop"]
     delay = 1
 
     loop = 0
@@ -25,7 +23,7 @@ def run_with_retries(*, func, thread_id, username, **kwargs):
                     f" (Previous loop duration: {previous_loop_duration:.2f} seconds)", end="")
             print()
 
-            func(**kwargs)
+            func(user_settings=user_settings, user=user, **kwargs)
 
             if get_break_signal(thread_id=thread_id):
                 break
@@ -41,12 +39,12 @@ def run_with_retries(*, func, thread_id, username, **kwargs):
             previous_loop_duration = loop_end_time - loop_start_time
 
 
-def thread_trials_gauntlet(*, callback, user, **kwargs) -> None:
+def thread_trials_gauntlet(*, callback, user, user_settings) -> None:
     thread_id = f"{trials_gauntlet.__name__}"
 
     def apply_loop(**kwargs):
         run_with_retries(func=trials_gauntlet, thread_id=thread_id,
-                         username=user["username"], **kwargs)
+                         user_settings=user_settings, user=user, **kwargs)
 
     thread_function(func=apply_loop, callback=callback, user=user,
-                    thread_id=thread_id, **kwargs)
+                    thread_id=thread_id)
