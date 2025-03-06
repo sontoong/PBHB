@@ -10,6 +10,8 @@ from bh_bot.settings import settings_manager
 from bh_bot.utils.thread_utils import cancel_thread
 from bh_bot.utils.window_utils import center_window_relative
 
+THREAD_ID = "re_run"
+
 
 class ReRunWindow:
     def __init__(self, parent, user):
@@ -23,7 +25,7 @@ class ReRunWindow:
 
         # Bind the Escape key to the stop_execute function
         keyboard.add_hotkey(
-            'esc', lambda: self.stop_execute("re_run"))
+            'esc', self.stop_execute)
 
         # Load settings
         self.user = user
@@ -57,7 +59,7 @@ class ReRunWindow:
             button_frame, text="Execute", command=self.start_execute)
         self.execute_button.pack(side=LEFT, pady=5)
         # Stop button
-        ttk.Button(button_frame, text="Stop (Esc)", command=lambda: self.stop_execute("re_run")).pack(
+        ttk.Button(button_frame, text="Stop (Esc)", command=self.stop_execute).pack(
             side=LEFT, pady=5)
 
     def start_execute(self):
@@ -85,8 +87,8 @@ class ReRunWindow:
                       callback=self.on_task_complete, user=self.user)
 
     # Required
-    def stop_execute(self, thread_id):
-        cancel_thread(thread_id)
+    def stop_execute(self):
+        cancel_thread(THREAD_ID)
 
     def on_task_complete(self, error=None, result=None):
         if self.execute_button.winfo_exists():

@@ -5,20 +5,20 @@ from tkinter import messagebox
 from tkinter import ttk
 import keyboard
 from bh_bot.ui.custom_entry import NumberEntry
-from bh_bot.functions.invasion.threads.threaded_scripts import thread_invasion
+from bh_bot.functions.raid.threads.threaded_scripts import thread_raid
 from bh_bot.settings import settings_manager
 from bh_bot.utils.thread_utils import cancel_thread
 from bh_bot.utils.window_utils import center_window_relative
 
-THREAD_ID = "invasion"
+THREAD_ID = "raid"
 
 
-class InvasionWindow:
+class RaidWindow:
     def __init__(self, parent, user):
         # Init window
         self.parent = parent
         self.window = Toplevel(parent=None)
-        self.window.title("Invasion")
+        self.window.title("Raid")
         center_window_relative(
             window=self.window, parent=self.parent, window_width=250, window_height=250)
         self.window.protocol("WM_DELETE_WINDOW", self.close_window)
@@ -39,18 +39,7 @@ class InvasionWindow:
             self.window, label_text="Number of loop", min_value=1)
         self.num_of_loop_entry.pack(fill=X, padx=(5, 0), pady=5, anchor=W)
         self.num_of_loop_entry.set(
-            self.settings["I_num_of_loop"])
-
-        # Checkbutton for auto increase wave
-        self.auto_increase_wave_var = BooleanVar()
-        self.auto_increase_wave_var.set(self.settings["I_increase_wave"])
-        self.auto_increase_wave_checkbox = ttk.Checkbutton(
-            self.window,
-            text="Auto increase wave",
-            variable=self.auto_increase_wave_var
-        )
-        self.auto_increase_wave_checkbox.pack(
-            fill=X, padx=(5, 0), pady=5, anchor=W)
+            self.settings["PVP_num_of_loop"])
 
         # Footer Buttons
         button_frame = Frame(self.window)
@@ -65,14 +54,12 @@ class InvasionWindow:
 
     def start_execute(self):
         num_of_loop = int(self.num_of_loop_entry.get())
-        auto_increase_wave = self.auto_increase_wave_var.get()
 
         # Update settings
         settings_manager.update_user_setting(
             username=self.username,
             updates={
-                "I_num_of_loop": num_of_loop,
-                "I_increase_wave": auto_increase_wave
+                "PVP_num_of_loop": num_of_loop,
             })
 
         # Reload the settings from the JSON file to ensure self.settings is up-to-date
@@ -84,8 +71,8 @@ class InvasionWindow:
         self.window.wm_protocol("WM_DELETE_WINDOW", self.disable_close)
 
         # Start thread
-        thread_invasion(user_settings=self.settings,
-                        callback=self.on_task_complete, user=self.user)
+        thread_raid(user_settings=self.settings,
+                    callback=self.on_task_complete, user=self.user)
 
     # Required
     def stop_execute(self):

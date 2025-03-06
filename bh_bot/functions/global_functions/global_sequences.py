@@ -1,11 +1,12 @@
 from typing import List
 from bh_bot.classes.image_info import ImageInfo
 from bh_bot.utils.actions import locate_image
+from bh_bot.utils.image_utils import capture_screenshot
 
 GLOBAL_RESOURCE_FOLDER = "images/global"
 
 
-def get_global_click_sequence(user_settings: dict, running_window, region) -> List[List[ImageInfo]]:
+def get_global_click_sequence(*, user, user_settings: dict, running_window, region) -> List[List[ImageInfo]]:
     """
     Returns the global click sequence for handling common scenarios.
     """
@@ -48,10 +49,21 @@ def get_global_click_sequence(user_settings: dict, running_window, region) -> Li
         resource_folder=GLOBAL_RESOURCE_FOLDER,
         region=region
     ) is not None:
+        capture_screenshot(
+            region=region,
+            save_directory=f"data/{user["username"]}/images",
+            add_timestamp=True
+        )
+
         close_dm_sequence = [
             ImageInfo(image_path='send_msg_button.png',
                       offset_x=100, offset_y=-250),
         ]
+
+    # Case: Claim daily reward
+    claim_daily_reward_sequence: List[ImageInfo] = [
+        ImageInfo(image_path='claim_button.png', offset_x=5, offset_y=5),
+    ]
 
     # Case: Friend/duel/wb request
     ignore_request_sequence: List[ImageInfo] = [
@@ -86,6 +98,7 @@ def get_global_click_sequence(user_settings: dict, running_window, region) -> Li
         confirm_still_here_sequence,
         confirm_playing_bh_sequence,
         close_dm_sequence,
+        claim_daily_reward_sequence,
         ignore_request_sequence,
         turn_on_auto_sequence,
         close_battle_victory_screen_sequence

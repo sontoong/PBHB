@@ -1,13 +1,13 @@
 # pylint: disable=C0114,C0115,C0116,C0301
 
 import time
-from bh_bot.functions.pvp.scripts.pvp import pvp
+from bh_bot.functions.raid.scripts.raid import raid
 from bh_bot.utils.thread_utils import get_break_signal, thread_function
 
 
 def run_with_retries(*, func, thread_id, user_settings, user, **kwargs):
     num_of_retries = user_settings["PVP_num_of_loop"]
-    delay = 2
+    delay = 1
 
     loop = 0
     previous_loop_duration = None
@@ -39,11 +39,11 @@ def run_with_retries(*, func, thread_id, user_settings, user, **kwargs):
             previous_loop_duration = loop_end_time - loop_start_time
 
 
-def thread_pvp(*, callback, user, user_settings) -> None:
-    thread_id = f"{pvp.__name__}"
+def thread_raid(*, callback, user, user_settings) -> None:
+    thread_id = f"{raid.__name__}"
 
     def apply_loop(**kwargs):
-        run_with_retries(func=pvp, thread_id=thread_id,
+        run_with_retries(func=raid, thread_id=thread_id,
                          user_settings=user_settings, user=user, **kwargs)
 
     thread_function(func=apply_loop, callback=callback,

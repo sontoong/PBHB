@@ -1,4 +1,5 @@
 import time
+import os
 import pyautogui
 from PIL import ImageDraw
 
@@ -35,3 +36,48 @@ def highlight_location(x, y, radius=20, color="red", duration=3):
 
     # Keep the image displayed for a few seconds
     time.sleep(duration)
+
+
+def capture_screenshot(*, region=None, save_path=None, save_directory=None, add_timestamp=False):
+    """
+    Captures a screenshot and saves it to the specified path.
+
+    Parameters:
+        region (tuple): The region to capture (left, top, right, bottom). If None, captures the entire screen.
+        save_path (str): The full path where the image should be saved. If specified, this overrides save_directory.
+        save_directory (str): The directory where the image should be saved with automatic naming.
+        add_timestamp (bool): Whether to add a timestamp to the filename to avoid overwriting.
+
+    Returns:
+        str: The path where the screenshot was saved
+    """
+    # Capture the screenshot
+    if region:
+        screenshot = pyautogui.screenshot(region=region)
+    else:
+        screenshot = pyautogui.screenshot()
+
+    # Determine where to save the image
+    if save_path:
+        # Make sure the directory exists
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        screenshot.save(save_path)
+        return save_path
+
+    elif save_directory:
+        # Create directory if it doesn't exist
+        os.makedirs(save_directory, exist_ok=True)
+
+        # Generate filename
+        timestamp = int(time.time()) if add_timestamp else ""
+        timestamp_str = f"_{timestamp}" if timestamp else ""
+        filename = f"screenshot{timestamp_str}.png"
+
+        # Full save path
+        full_save_path = os.path.join(save_directory, filename)
+        screenshot.save(full_save_path)
+        return full_save_path
+
+    else:
+        raise ValueError(
+            "Either save_path or save_directory must be specified")

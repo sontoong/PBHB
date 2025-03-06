@@ -12,11 +12,11 @@ from bh_bot.utils.helpers import list_flattern
 from bh_bot.functions.global_functions.global_sequences import get_global_click_sequence
 
 GLOBAL_RESOURCE_FOLDER = "images/global"
-RESOURCE_FOLDER = "images/pvp"
+RESOURCE_FOLDER = "images/raid"
 
 
 @sleep(timeout=5, retry=999)
-def pvp(*, user_settings, user, stop_event: threading.Event):
+def raid(*, user_settings, user, stop_event: threading.Event):
     running_window = user["running_window"]
     running_window.activate()
     time.sleep(1)
