@@ -6,7 +6,7 @@ from bh_bot.utils.thread_utils import get_break_signal, thread_function
 
 
 def run_with_retries(*, func, thread_id, user_settings, user, **kwargs):
-    num_of_retries = user_settings["PVP_num_of_loop"]
+    num_of_retries = user_settings["R_num_of_loop"]
     delay = 1
 
     loop = 0

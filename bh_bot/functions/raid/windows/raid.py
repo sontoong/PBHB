@@ -39,7 +39,17 @@ class RaidWindow:
             self.window, label_text="Number of loop", min_value=1)
         self.num_of_loop_entry.pack(fill=X, padx=(5, 0), pady=5, anchor=W)
         self.num_of_loop_entry.set(
-            self.settings["PVP_num_of_loop"])
+            self.settings["R_num_of_loop"])
+
+        # Checkbutton for auto catch by gold
+        self.auto_catch_var = BooleanVar()
+        self.auto_catch_var.set(self.settings["R_auto_catch_by_gold"])
+        self.auto_catch_checkbox = ttk.Checkbutton(
+            self.window,
+            text="Auto catch fams by gold",
+            variable=self.auto_catch_var
+        )
+        self.auto_catch_checkbox.pack(fill=X, padx=(5, 0), pady=5, anchor=W)
 
         # Footer Buttons
         button_frame = Frame(self.window)
@@ -54,12 +64,14 @@ class RaidWindow:
 
     def start_execute(self):
         num_of_loop = int(self.num_of_loop_entry.get())
+        auto_catch = self.auto_catch_var.get()
 
         # Update settings
         settings_manager.update_user_setting(
             username=self.username,
             updates={
-                "PVP_num_of_loop": num_of_loop,
+                "R_num_of_loop": num_of_loop,
+                "R_auto_catch_by_gold": auto_catch
             })
 
         # Reload the settings from the JSON file to ensure self.settings is up-to-date

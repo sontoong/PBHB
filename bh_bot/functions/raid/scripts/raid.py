@@ -41,35 +41,68 @@ def raid(*, user_settings, user, stop_event: threading.Event):
     # Function click sequence
     # -----------------------------------------------------------
 
-    # Case: Out of tickets
-    if locate_image(running_window=running_window, image_path_relative="not_enough_tickets.png", resource_folder=GLOBAL_RESOURCE_FOLDER, region=region) is not None:
-        pyautogui.press("esc", presses=2, interval=1)
+    # Case: Out of shards
+    if locate_image(running_window=running_window, image_path_relative="not_enough_shards.png", resource_folder=GLOBAL_RESOURCE_FOLDER, region=region) is not None:
+        pyautogui.press("esc", presses=3, interval=1)
         stop_event.set()
 
-    # Case: Exit and re-enter pvp
-    exit_and_enter_sequence: List[ImageInfo] = [
-        ImageInfo(image_path='town_button.png',
-                  offset_x=10, offset_y=10),
-        ImageInfo(image_path='pvp_label.png',
+    # Case: Enter raid
+    enter_raid_sequence: List[ImageInfo] = [
+        ImageInfo(image_path='raid_label.png',
                   offset_x=10, offset_y=-10),
-    ]
-
-    click_images_in_sequence_wrapped(
-        running_window=running_window,
-        image_info_list=exit_and_enter_sequence, resource_folder=RESOURCE_FOLDER, user_settings=user_settings, region=region)
-
-    # Final: Play
-    play_sequence: List[ImageInfo] = [
-        ImageInfo(image_path='play_button.png',
-                  offset_x=10, offset_y=10),
-        ImageInfo(image_path='fight_button.png',
+        ImageInfo(image_path='summon_button.png',
+                  offset_x=5, offset_y=5),
+        ImageInfo(image_path='heroic_button.png',
                   offset_x=5, offset_y=5),
         ImageInfo(image_path='accept_button.png',
-                  offset_x=10, offset_y=10, optional=False),
-        ImageInfo(image_path='yes_button.png',
-                  offset_x=10, offset_y=10),
+                  offset_x=5, offset_y=5),
     ]
 
     click_images_in_sequence_wrapped(
         running_window=running_window,
-        image_info_list=play_sequence, resource_folder=RESOURCE_FOLDER, user_settings=user_settings, region=region)
+        image_info_list=enter_raid_sequence, resource_folder=RESOURCE_FOLDER, user_settings=user_settings, region=region)
+
+    # Case: Not full team
+    if locate_image(running_window=running_window, image_path_relative="confirm_start_not_full_team.png", resource_folder=GLOBAL_RESOURCE_FOLDER, region=region) is not None:
+        confirm_start_not_full_team: List[ImageInfo] = [
+            ImageInfo(image_path='yes_button.png',
+                      offset_x=5, offset_y=5)
+        ]
+        click_images_in_sequence_wrapped(
+            running_window=running_window,
+            image_info_list=confirm_start_not_full_team, resource_folder=RESOURCE_FOLDER, user_settings=user_settings, region=region)
+
+    # Case: Persuade fam window
+    if user_settings["R_auto_catch_by_gold"] is True:
+        persuade_fam_sequence: List[ImageInfo] = [
+            ImageInfo(image_path='persuade_rate.png',
+                      offset_x=75, offset_y=100),
+            ImageInfo(image_path='yes_button.png',
+                      offset_x=5, offset_y=5),
+        ]
+
+        click_images_in_sequence_wrapped(
+            running_window=running_window,
+            image_info_list=persuade_fam_sequence, resource_folder=RESOURCE_FOLDER, user_settings=user_settings, region=region)
+
+    if user_settings["R_auto_catch_by_gold"] is False:
+        decline_fam_sequence: List[ImageInfo] = [
+            ImageInfo(image_path='decline_button.png',
+                      offset_x=5, offset_y=5),
+            ImageInfo(image_path='yes_button.png',
+                      offset_x=5, offset_y=5),
+        ]
+
+        click_images_in_sequence_wrapped(
+            running_window=running_window,
+            image_info_list=decline_fam_sequence, resource_folder=RESOURCE_FOLDER, user_settings=user_settings, region=region)
+
+    # Final: Rerun raid
+    re_run_sequence: List[ImageInfo] = [
+        ImageInfo(image_path='rerun_button.png',
+                  offset_x=10, offset_y=10, optional=False),
+    ]
+
+    click_images_in_sequence_wrapped(
+        running_window=running_window,
+        image_info_list=re_run_sequence, resource_folder=RESOURCE_FOLDER, user_settings=user_settings, region=region)

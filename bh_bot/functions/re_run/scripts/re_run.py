@@ -32,7 +32,7 @@ def re_run(*, user_settings, user, stop_event: threading.Event):
     # Global click sequence
     # -----------------------------------------------------------
     global_sequence = get_global_click_sequence(
-        user_settings=user_settings, running_window=running_window, region=region)
+        user_settings=user_settings, running_window=running_window, region=region, user=user)
 
     click_images_in_sequence_wrapped(
         running_window=running_window,

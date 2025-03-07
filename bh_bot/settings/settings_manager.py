@@ -28,8 +28,12 @@ DEFAULT_SETTINGS = {
     # pvp
     "PVP_num_of_loop": 1,
 
+    # raid
+    "R_num_of_loop": 1,
+    "R_auto_catch_by_gold": True,
+
     # run_all
-    "RA_functions": {"pvp": True, "tg": True, "invasion": True}
+    "RA_functions": {"pvp": True, "tg": True, "invasion": True, "raid": True}
 }
 
 

@@ -3,6 +3,7 @@
 thread_id: The name of function in the thread
 
 Todo: gvg, wb, raid? & dungeon?, exped?, fishing
+fix persuade rate capture
 
 Hard coded positions:
 send_msg_button

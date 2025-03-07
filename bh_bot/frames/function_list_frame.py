@@ -7,6 +7,7 @@ from bh_bot.functions.re_run.windows.re_run import ReRunWindow
 from bh_bot.functions.invasion.windows.invasion import InvasionWindow
 from bh_bot.functions.trials_gauntlet.windows.trials_gauntlet import TrialsGauntletWindow
 from bh_bot.functions.pvp.windows.pvp import PvpWindow
+from bh_bot.functions.raid.windows.raid import RaidWindow
 from bh_bot.functions.run_all.windows.run_all import RunAllWindow
 
 general_functions = {
@@ -22,6 +23,9 @@ trials_gauntlet_functions = {
 pvp_functions = {
     "Play": PvpWindow
 }
+raid_functions = {
+    "Play": RaidWindow
+}
 
 
 class FunctionListFrame(ttk.Frame):
@@ -29,10 +33,10 @@ class FunctionListFrame(ttk.Frame):
         super().__init__(master=notebook, **kwargs)
         self.parent = parent
         self.functions = {
-            "General": general_functions, "Pvp": pvp_functions, "Trials/Gauntlet": trials_gauntlet_functions, "Invasion": invasion_functions, }
+            "General": general_functions, "Pvp": pvp_functions, "Trials/Gauntlet": trials_gauntlet_functions, "Raid": raid_functions, "Invasion": invasion_functions, }
 
         # Define the number of columns per row
-        columns_per_row = 5
+        columns_per_row = 4
 
         # Create frames, buttons and position them
         self.setting_frames = {}

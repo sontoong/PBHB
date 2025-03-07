@@ -7,6 +7,7 @@ from bh_bot.utils.helpers import get_true_keys
 from bh_bot.functions.pvp.scripts.pvp import pvp
 from bh_bot.functions.trials_gauntlet.scripts.trials_gauntlet import trials_gauntlet
 from bh_bot.functions.invasion.scripts.invasion import invasion
+from bh_bot.functions.raid.scripts.raid import raid
 
 
 def child_thread_pvp(*, callback, user, user_settings) -> None:
@@ -21,6 +22,11 @@ def child_thread_trials_gauntlet(*, callback, user, user_settings) -> None:
 
 def child_thread_invasion(*, callback, user, user_settings) -> None:
     create_child_thread(func=invasion, callback=callback,
+                        user=user, user_settings=user_settings)
+
+
+def child_thread_raid(*, callback, user, user_settings) -> None:
+    create_child_thread(func=raid, callback=callback,
                         user=user, user_settings=user_settings)
 
 
@@ -53,6 +59,9 @@ def thread_worker(*, callback, user, user_settings) -> None:
                     case "invasion":
                         child_thread_invasion(callback=thread_callback, user=user,
                                               user_settings=user_settings)
+                    case "raid":
+                        child_thread_raid(callback=thread_callback, user=user,
+                                          user_settings=user_settings)
 
                 # Wait for the thread to complete
                 completion_event.wait()
