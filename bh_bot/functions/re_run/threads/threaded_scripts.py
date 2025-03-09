@@ -17,16 +17,19 @@ def run_with_retries(*, func, thread_id, user_settings, user, **kwargs):
         loop_start_time = time.time()
 
         try:
+            if get_break_signal(thread_id=thread_id):
+                break
+
             print(f"Loop {loop} of {num_of_retries}")
             if previous_loop_duration is not None:
                 print(
-                    f" (Previous loop duration: {previous_loop_duration:.2f} seconds)", end="")
-            print()
+                    f"(Previous loop duration: {previous_loop_duration:.2f} seconds)")
+            else:
+                print(
+                    "(Previous loop duration: N/A)")
 
             func(user_settings=user_settings, user=user, **kwargs)
 
-            if get_break_signal(thread_id=thread_id):
-                break
         except Exception as e:
             print(f"Loop {loop} failed: {e}")
             if loop < num_of_retries:
@@ -46,5 +49,5 @@ def thread_re_run(*, callback, user, user_settings) -> None:
         run_with_retries(func=re_run, thread_id=thread_id,
                          user_settings=user_settings, user=user, **kwargs)
 
-    thread_function(func=apply_loop, callback=callback, user=user,
+    thread_function(func=apply_loop, callback=callback,
                     thread_id=thread_id)

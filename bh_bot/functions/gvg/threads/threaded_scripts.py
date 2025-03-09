@@ -1,13 +1,13 @@
 # pylint: disable=C0114,C0115,C0116,C0301
 
 import time
-from bh_bot.functions.trials_gauntlet.scripts.trials_gauntlet import trials_gauntlet
+from bh_bot.functions.gvg.scripts.gvg import gvg
 from bh_bot.utils.thread_utils import get_break_signal, thread_function
 
 
 def run_with_retries(*, func, thread_id, user_settings, user, **kwargs):
-    num_of_retries = user_settings["TG_num_of_loop"]
-    delay = 1
+    num_of_retries = user_settings["GVG_num_of_loop"]
+    delay = 2
 
     loop = 0
     previous_loop_duration = None
@@ -42,11 +42,11 @@ def run_with_retries(*, func, thread_id, user_settings, user, **kwargs):
             previous_loop_duration = loop_end_time - loop_start_time
 
 
-def thread_trials_gauntlet(*, callback, user, user_settings) -> None:
-    thread_id = f"{trials_gauntlet.__name__}"
+def thread_gvg(*, callback, user, user_settings) -> None:
+    thread_id = f"{gvg.__name__}"
 
     def apply_loop(**kwargs):
-        run_with_retries(func=trials_gauntlet, thread_id=thread_id,
+        run_with_retries(func=gvg, thread_id=thread_id,
                          user_settings=user_settings, user=user, **kwargs)
 
     thread_function(func=apply_loop, callback=callback,

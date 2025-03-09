@@ -8,6 +8,7 @@ from bh_bot.functions.pvp.scripts.pvp import pvp
 from bh_bot.functions.trials_gauntlet.scripts.trials_gauntlet import trials_gauntlet
 from bh_bot.functions.invasion.scripts.invasion import invasion
 from bh_bot.functions.raid.scripts.raid import raid
+from bh_bot.functions.gvg.scripts.gvg import gvg
 
 
 def child_thread_pvp(*, callback, user, user_settings) -> None:
@@ -27,6 +28,11 @@ def child_thread_invasion(*, callback, user, user_settings) -> None:
 
 def child_thread_raid(*, callback, user, user_settings) -> None:
     create_child_thread(func=raid, callback=callback,
+                        user=user, user_settings=user_settings)
+
+
+def child_thread_gvg(*, callback, user, user_settings) -> None:
+    create_child_thread(func=gvg, callback=callback,
                         user=user, user_settings=user_settings)
 
 
@@ -59,6 +65,9 @@ def thread_worker(*, callback, user, user_settings) -> None:
                     case "invasion":
                         child_thread_invasion(callback=thread_callback, user=user,
                                               user_settings=user_settings)
+                    case "gvg":
+                        child_thread_gvg(callback=thread_callback, user=user,
+                                         user_settings=user_settings)
                     case "raid":
                         child_thread_raid(callback=thread_callback, user=user,
                                           user_settings=user_settings)
@@ -98,6 +107,9 @@ def run_with_retries(*, func, thread_id, user_settings, user, **kwargs):
         loop_start_time = time.time()
 
         try:
+            if get_break_signal(thread_id=thread_id):
+                break
+
             print(f"Loop {loop} of {num_of_retries}")
             if previous_loop_duration is not None:
                 print(
@@ -108,8 +120,6 @@ def run_with_retries(*, func, thread_id, user_settings, user, **kwargs):
 
             func(user_settings=user_settings, user=user, **kwargs)
 
-            if get_break_signal(thread_id=thread_id):
-                break
         except Exception as e:
             print(f"Loop {loop} failed: {e}")
             if loop < num_of_retries:

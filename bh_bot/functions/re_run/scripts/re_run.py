@@ -55,24 +55,26 @@ def re_run(*, user_settings, user, stop_event: threading.Event):
 
     # Case: Persuade fam window
     if user_settings["RR_auto_catch_by_gold"] is True:
-        persuade_fam_sequence: List[ImageInfo] = [
-            ImageInfo(image_path='persuade_rate.png',
-                      offset_x=75, offset_y=100),
-            ImageInfo(image_path='yes_button.png',
-                      offset_x=5, offset_y=5),
-        ]
+        if locate_image(running_window=running_window, image_path_relative="persuade_button.png", resource_folder=RESOURCE_FOLDER, region=region) is not None:
+            persuade_fam_sequence: List[ImageInfo] = [
+                ImageInfo(image_path='persuade_button.png',
+                          offset_x=5, offset_y=5),
+                ImageInfo(image_path='yes_button.png',
+                          offset_x=5, offset_y=5),
+            ]
 
-        final_sequence.append(persuade_fam_sequence)
+            final_sequence.append(persuade_fam_sequence)
 
     if user_settings["RR_auto_catch_by_gold"] is False:
-        decline_fam_sequence: List[ImageInfo] = [
-            ImageInfo(image_path='decline_button.png',
-                      offset_x=5, offset_y=5),
-            ImageInfo(image_path='yes_button.png',
-                      offset_x=5, offset_y=5),
-        ]
+        if locate_image(running_window=running_window, image_path_relative="persuade_button.png", resource_folder=RESOURCE_FOLDER, region=region) is not None:
+            decline_fam_sequence: List[ImageInfo] = [
+                ImageInfo(image_path='decline_button.png',
+                          offset_x=5, offset_y=5),
+                ImageInfo(image_path='yes_button.png',
+                          offset_x=5, offset_y=5),
+            ]
 
-        final_sequence.append(decline_fam_sequence)
+            final_sequence.append(decline_fam_sequence)
 
     # Final: Rerun
     rerun_sequence: List[ImageInfo] = [

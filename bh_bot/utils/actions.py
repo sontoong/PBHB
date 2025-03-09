@@ -7,7 +7,7 @@ import pygetwindow as gw
 from bh_bot.utils.helpers import extract_file_name, resource_path
 from bh_bot.decorators.sleep import sleep
 from bh_bot.utils.window_utils import force_activate_window
-# from bh_bot.utils.image_utils import highlight_location
+from bh_bot.utils.image_utils import highlight_location
 
 
 def get_window(title_contains):
@@ -42,9 +42,6 @@ def click(x, y, clicks=1, user_settings=None):
     if user_settings:
         animated = user_settings.get('G_fancy_mouse')
 
-        # Debug
-        # highlight_location(x=x, y=y)
-
         if animated:
             pyautogui.moveTo(x=x, y=y, duration=0.2,
                              tween=pyautogui.easeInOutQuad)
@@ -57,6 +54,9 @@ def click(x, y, clicks=1, user_settings=None):
         pyautogui.moveTo(x=x, y=y)
         time.sleep(0.1)
         pyautogui.click(clicks=clicks)
+
+    # Debug
+    # highlight_location(x=x, y=y)
 
 
 def move_to(x, y, user_settings=None):
@@ -108,3 +108,5 @@ def locate_image(*, running_window, image_path_relative, resource_folder, confid
             raise pyautogui.ImageNotFoundException(f"Could not locate '{
                 image_name}' on screen. Make sure the window is clearly visible.") from err
         return None
+    except Exception as general_err:
+        raise general_err

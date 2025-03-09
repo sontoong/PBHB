@@ -61,9 +61,18 @@ def get_global_click_sequence(*, user, user_settings: dict, running_window, regi
         ]
 
     # Case: Claim daily reward
-    claim_daily_reward_sequence: List[ImageInfo] = [
-        ImageInfo(image_path='claim_button.png', offset_x=5, offset_y=5),
-    ]
+    claim_daily_reward_sequence: List[ImageInfo] = []
+    if locate_image(
+        running_window=running_window,
+        image_path_relative="claim_button.png",
+        resource_folder=GLOBAL_RESOURCE_FOLDER,
+        region=region
+    ) is not None:
+        claim_daily_reward_sequence: List[ImageInfo] = [
+            ImageInfo(image_path='claim_button.png', offset_x=5, offset_y=5),
+            ImageInfo(image_path='close_icon_button.png',
+                      offset_x=5, offset_y=5)
+        ]
 
     # Case: Friend/duel/wb request
     ignore_request_sequence: List[ImageInfo] = [

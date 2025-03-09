@@ -2,8 +2,7 @@
 
 thread_id: The name of function in the thread
 
-Todo: gvg, wb, raid? & dungeon?, exped?, fishing
-fix persuade rate capture
+Todo: wb, dungeon?, exped?, fishing
 
 Hard coded positions:
 send_msg_button
@@ -11,4 +10,3 @@ send_msg_button
 /world_boss_request
 wave_counter
 difficulty_picker
-/persuade_rate

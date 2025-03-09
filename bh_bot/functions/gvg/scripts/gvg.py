@@ -11,13 +11,12 @@ from bh_bot.decorators.sleep import sleep
 from bh_bot.utils.helpers import list_flattern
 from bh_bot.functions.global_functions.global_sequences import get_global_click_sequence
 
-
 GLOBAL_RESOURCE_FOLDER = "images/global"
-RESOURCE_FOLDER = "images/trials_gauntlet"
+RESOURCE_FOLDER = "images/gvg"
 
 
 @sleep(timeout=5, retry=999)
-def trials_gauntlet(*, user_settings, user, stop_event: threading.Event):
+def gvg(*, user_settings, user, stop_event: threading.Event):
     running_window = user["running_window"]
     running_window.activate()
     time.sleep(1)
@@ -42,18 +41,16 @@ def trials_gauntlet(*, user_settings, user, stop_event: threading.Event):
     # Function click sequence
     # -----------------------------------------------------------
 
-    # Case: Out of tokens
-    if locate_image(running_window=running_window, image_path_relative="not_enough_tokens.png", resource_folder=GLOBAL_RESOURCE_FOLDER, region=region) is not None:
+    # Case: Out of tickets
+    if locate_image(running_window=running_window, image_path_relative="not_enough_badges.png", resource_folder=GLOBAL_RESOURCE_FOLDER, region=region) is not None:
         pyautogui.press("esc", presses=2, interval=1)
         stop_event.set()
 
-    # Case: Exit and re-enter trials/gauntlet
+    # Case: Exit and re-enter gvg
     exit_and_enter_sequence: List[ImageInfo] = [
         ImageInfo(image_path='town_button.png',
                   offset_x=10, offset_y=10),
-        ImageInfo(image_path='gauntlet_label.png',
-                  offset_x=10, offset_y=-10),
-        ImageInfo(image_path='trials_label.png',
+        ImageInfo(image_path='gvg_label.png',
                   offset_x=10, offset_y=-10),
     ]
 
@@ -61,40 +58,12 @@ def trials_gauntlet(*, user_settings, user, stop_event: threading.Event):
         running_window=running_window,
         image_info_list=exit_and_enter_sequence, resource_folder=RESOURCE_FOLDER, user_settings=user_settings, region=region)
 
-    # Case: Auto increase difficulty
-    if user_settings["TG_increase_difficulty"] is True:
-        increase_wave_sequence: List[ImageInfo] = [
-            ImageInfo(image_path='difficulty_counter.png',
-                      offset_x=20, offset_y=40),
-            ImageInfo(image_path='difficulty_picker.png',
-                      offset_x=20, offset_y=100, optional=False),
-            ImageInfo(image_path='difficulty_picker.png',
-                      offset_x=20, offset_y=100, optional=False),
-        ]
-
-        click_images_in_sequence_wrapped(
-            running_window=running_window,
-            image_info_list=increase_wave_sequence, resource_folder=RESOURCE_FOLDER, user_settings=user_settings, region=region)
-
-        if locate_image(running_window=running_window, image_path_relative="difficulty_picker.png", resource_folder=RESOURCE_FOLDER, region=region) is not None:
-            exit_difficulty_picker_sequence: List[ImageInfo] = [
-                ImageInfo(image_path='close_icon_button.png',
-                          offset_x=15, offset_y=15)
-            ]
-            click_images_in_sequence_wrapped(
-                running_window=running_window,
-                image_info_list=exit_difficulty_picker_sequence, resource_folder=GLOBAL_RESOURCE_FOLDER, user_settings=user_settings, region=region)
-
     # Final: Play
-    current_play_button = ImageInfo(image_path='play_button.png',
-                                               offset_x=10, offset_y=10)
-
-    if locate_image(running_window=running_window, image_path_relative="play_button.png", resource_folder=RESOURCE_FOLDER, region=region) is None:
-        current_play_button = ImageInfo(image_path='play_button2.png',
-                                        offset_x=10, offset_y=10)
-
     play_sequence: List[ImageInfo] = [
-        current_play_button,
+        ImageInfo(image_path='play_button.png',
+                  offset_x=10, offset_y=10),
+        ImageInfo(image_path='fight_button.png',
+                  offset_x=5, offset_y=5),
         ImageInfo(image_path='accept_button.png',
                   offset_x=10, offset_y=10, optional=False),
     ]

@@ -43,7 +43,7 @@ def raid(*, user_settings, user, stop_event: threading.Event):
 
     # Case: Out of shards
     if locate_image(running_window=running_window, image_path_relative="not_enough_shards.png", resource_folder=GLOBAL_RESOURCE_FOLDER, region=region) is not None:
-        pyautogui.press("esc", presses=3, interval=1)
+        pyautogui.press("esc", presses=4, interval=1)
         stop_event.set()
 
     # Case: Enter raid
@@ -64,38 +64,50 @@ def raid(*, user_settings, user, stop_event: threading.Event):
 
     # Case: Not full team
     if locate_image(running_window=running_window, image_path_relative="confirm_start_not_full_team.png", resource_folder=GLOBAL_RESOURCE_FOLDER, region=region) is not None:
-        confirm_start_not_full_team: List[ImageInfo] = [
+        confirm_start_not_full_team_sequence: List[ImageInfo] = [
             ImageInfo(image_path='yes_button.png',
                       offset_x=5, offset_y=5)
         ]
         click_images_in_sequence_wrapped(
             running_window=running_window,
-            image_info_list=confirm_start_not_full_team, resource_folder=RESOURCE_FOLDER, user_settings=user_settings, region=region)
+            image_info_list=confirm_start_not_full_team_sequence, resource_folder=RESOURCE_FOLDER, user_settings=user_settings, region=region)
+
+    # Case: Collect button
+    if locate_image(running_window=running_window, image_path_relative="collect_button.png", resource_folder=RESOURCE_FOLDER, region=region) is not None:
+        click_collect_button_sequence: List[ImageInfo] = [
+            ImageInfo(image_path='collect_button.png',
+                      offset_x=5, offset_y=5)
+        ]
+        click_images_in_sequence_wrapped(
+            running_window=running_window,
+            image_info_list=click_collect_button_sequence, resource_folder=RESOURCE_FOLDER, user_settings=user_settings, region=region)
 
     # Case: Persuade fam window
     if user_settings["R_auto_catch_by_gold"] is True:
-        persuade_fam_sequence: List[ImageInfo] = [
-            ImageInfo(image_path='persuade_rate.png',
-                      offset_x=75, offset_y=100),
-            ImageInfo(image_path='yes_button.png',
-                      offset_x=5, offset_y=5),
-        ]
+        if locate_image(running_window=running_window, image_path_relative="persuade_button.png", resource_folder=RESOURCE_FOLDER, region=region) is not None:
+            persuade_fam_sequence: List[ImageInfo] = [
+                ImageInfo(image_path='persuade_button.png',
+                          offset_x=5, offset_y=5),
+                ImageInfo(image_path='yes_button.png',
+                          offset_x=5, offset_y=5),
+            ]
 
-        click_images_in_sequence_wrapped(
-            running_window=running_window,
-            image_info_list=persuade_fam_sequence, resource_folder=RESOURCE_FOLDER, user_settings=user_settings, region=region)
+            click_images_in_sequence_wrapped(
+                running_window=running_window,
+                image_info_list=persuade_fam_sequence, resource_folder=RESOURCE_FOLDER, user_settings=user_settings, region=region)
 
     if user_settings["R_auto_catch_by_gold"] is False:
-        decline_fam_sequence: List[ImageInfo] = [
-            ImageInfo(image_path='decline_button.png',
-                      offset_x=5, offset_y=5),
-            ImageInfo(image_path='yes_button.png',
-                      offset_x=5, offset_y=5),
-        ]
+        if locate_image(running_window=running_window, image_path_relative="persuade_button.png", resource_folder=RESOURCE_FOLDER, region=region) is not None:
+            decline_fam_sequence: List[ImageInfo] = [
+                ImageInfo(image_path='decline_button.png',
+                          offset_x=5, offset_y=5),
+                ImageInfo(image_path='yes_button.png',
+                          offset_x=5, offset_y=5),
+            ]
 
-        click_images_in_sequence_wrapped(
-            running_window=running_window,
-            image_info_list=decline_fam_sequence, resource_folder=RESOURCE_FOLDER, user_settings=user_settings, region=region)
+            click_images_in_sequence_wrapped(
+                running_window=running_window,
+                image_info_list=decline_fam_sequence, resource_folder=RESOURCE_FOLDER, user_settings=user_settings, region=region)
 
     # Final: Rerun raid
     re_run_sequence: List[ImageInfo] = [
