@@ -64,7 +64,7 @@ def get_global_click_sequence(*, user, user_settings: dict, running_window, regi
     claim_daily_reward_sequence: List[ImageInfo] = []
     if locate_image(
         running_window=running_window,
-        image_path_relative="claim_button.png",
+        image_path_relative="daily_rewards.png",
         resource_folder=GLOBAL_RESOURCE_FOLDER,
         region=region
     ) is not None:
@@ -72,6 +72,18 @@ def get_global_click_sequence(*, user, user_settings: dict, running_window, regi
             ImageInfo(image_path='claim_button.png', offset_x=5, offset_y=5),
             ImageInfo(image_path='close_icon_button.png',
                       offset_x=5, offset_y=5)
+        ]
+
+    # Case: Disconnected from dungeon
+    reconnect_to_dungeon_sequence: List[ImageInfo] = []
+    if locate_image(
+        running_window=running_window,
+        image_path_relative="disconnected_from_dungeon.png",
+        resource_folder=GLOBAL_RESOURCE_FOLDER,
+        region=region
+    ) is not None:
+        reconnect_to_dungeon_sequence: List[ImageInfo] = [
+            ImageInfo(image_path='yes_button.png', offset_x=5, offset_y=5),
         ]
 
     # Case: Friend/duel/wb request
@@ -110,7 +122,8 @@ def get_global_click_sequence(*, user, user_settings: dict, running_window, regi
         claim_daily_reward_sequence,
         ignore_request_sequence,
         turn_on_auto_sequence,
-        close_battle_victory_screen_sequence
+        close_battle_victory_screen_sequence,
+        reconnect_to_dungeon_sequence
     ]
 
     # Filter out empty sequences

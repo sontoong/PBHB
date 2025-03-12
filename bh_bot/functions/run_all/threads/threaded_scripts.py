@@ -9,6 +9,7 @@ from bh_bot.functions.trials_gauntlet.scripts.trials_gauntlet import trials_gaun
 from bh_bot.functions.invasion.scripts.invasion import invasion
 from bh_bot.functions.raid.scripts.raid import raid
 from bh_bot.functions.gvg.scripts.gvg import gvg
+from bh_bot.functions.world_boss.scripts.world_boss import world_boss
 
 
 def child_thread_pvp(*, callback, user, user_settings) -> None:
@@ -33,6 +34,11 @@ def child_thread_raid(*, callback, user, user_settings) -> None:
 
 def child_thread_gvg(*, callback, user, user_settings) -> None:
     create_child_thread(func=gvg, callback=callback,
+                        user=user, user_settings=user_settings)
+
+
+def child_thread_world_boss(*, callback, user, user_settings) -> None:
+    create_child_thread(func=world_boss, callback=callback,
                         user=user, user_settings=user_settings)
 
 
@@ -71,6 +77,9 @@ def thread_worker(*, callback, user, user_settings) -> None:
                     case "raid":
                         child_thread_raid(callback=thread_callback, user=user,
                                           user_settings=user_settings)
+                    case "world_boss":
+                        child_thread_world_boss(callback=thread_callback, user=user,
+                                                user_settings=user_settings)
 
                 # Wait for the thread to complete
                 completion_event.wait()

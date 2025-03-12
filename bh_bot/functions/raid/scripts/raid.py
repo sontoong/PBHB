@@ -109,6 +109,17 @@ def raid(*, user_settings, user, stop_event: threading.Event):
                 running_window=running_window,
                 image_info_list=decline_fam_sequence, resource_folder=RESOURCE_FOLDER, user_settings=user_settings, region=region)
 
+    # Case: Defeat
+    if locate_image(running_window=running_window, image_path_relative="defeat_label.png", resource_folder=GLOBAL_RESOURCE_FOLDER, region=region) is not None:
+        exit_raid_sequence: List[ImageInfo] = [
+            ImageInfo(image_path='town_button.png',
+                      offset_x=5, offset_y=5),
+        ]
+
+        click_images_in_sequence_wrapped(
+            running_window=running_window,
+            image_info_list=exit_raid_sequence, resource_folder=RESOURCE_FOLDER, user_settings=user_settings, region=region)
+
     # Final: Rerun raid
     re_run_sequence: List[ImageInfo] = [
         ImageInfo(image_path='rerun_button.png',
