@@ -1,6 +1,6 @@
 # pylint: disable=C0114,C0115,C0116,C0301
 
-from tkinter import OptionMenu, StringVar, simpledialog
+from tkinter import StringVar, simpledialog, OptionMenu
 
 
 class WindowSelectionDialog(simpledialog.Dialog):

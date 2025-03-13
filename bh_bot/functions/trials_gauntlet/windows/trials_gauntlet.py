@@ -54,7 +54,7 @@ class TrialsGauntletWindow:
             fill=X, padx=(5, 0), pady=5, anchor=W)
 
         # Footer Buttons
-        button_frame = Frame(self.window)
+        button_frame = ttk.Frame(self.window)
         button_frame.pack(pady=10, side=BOTTOM)
         # Execute button
         self.execute_button = ttk.Button(

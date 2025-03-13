@@ -7,6 +7,7 @@ from bh_bot.functions.run_all.threads.threaded_scripts import thread_worker
 from bh_bot.settings import settings_manager
 from bh_bot.utils.thread_utils import cancel_thread
 from bh_bot.utils.window_utils import center_window_relative
+from bh_bot.windows.settings_window import SettingsWindow
 
 THREAD_ID = "run_all"
 
@@ -57,14 +58,18 @@ class RunAllWindow:
 
         # Footer Buttons
         button_frame = Frame(self.window)
-        button_frame.pack(pady=10, side=BOTTOM)
+        button_frame.place(relx=0, rely=1.0, relwidth=1.0, anchor=SW)
         # Execute button
         self.execute_button = ttk.Button(
             button_frame, text="Execute", command=self.start_execute)
-        self.execute_button.pack(side=LEFT, pady=5)
+        self.execute_button.pack(side=LEFT, padx=10, pady=10)
         # Stop button
         ttk.Button(button_frame, text="Stop (Esc)", command=self.stop_execute).pack(
-            side=LEFT, pady=5)
+            side=LEFT, padx=0, pady=10)
+        # Floating Button for Settings
+        self.float_button = ttk.Button(
+            button_frame, text="⚙️", command=lambda: SettingsWindow(parent=self.window, user=self.user).view_function_settings())
+        self.float_button.pack(side=RIGHT, padx=10, pady=10)
 
     def start_execute(self):
         functions = {key: var.get() for key, var in self.checkbox_vars.items()}
