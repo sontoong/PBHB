@@ -11,3 +11,4 @@ send_msg_button
 /world_boss_request
 wave_counter
 difficulty_picker
+wave_counter_box_left

@@ -57,18 +57,17 @@ def invasion(*, user_settings, user, stop_event: threading.Event):
     if location is not None:
         wave_text = grab_text(running_window=running_window, window_region=region,
                               box_offset_top=location.top-running_window.top+10, box_offset_left=location.left-running_window.left+10, box_width=90, box_height=25)
-        print(f"Current wave: {wave_text}")
         if MAX_WAVE is None and wave_text != "":
             MAX_WAVE = int(wave_text) + user_settings["I_max_num_of_wave"]
+            print(f"Current wave: {wave_text}")
+            print(f"Exit at wave: {MAX_WAVE}")
 
         if MAX_WAVE is not None:
-            print(f"Exit at wave: {MAX_WAVE}")
             if int(wave_text) >= MAX_WAVE:
                 pyautogui.press("esc", presses=1, interval=1)
                 pyautogui.press("space", presses=1, interval=1)
                 time.sleep(1)
-                pyautogui.press("esc", presses=2, interval=1)
-                stop_event.set()
+                pyautogui.press("esc", presses=1, interval=1)
 
     # Case: Exit and re-enter invasion
     exit_and_enter_sequence: List[ImageInfo] = [
