@@ -20,6 +20,7 @@ DEFAULT_SETTINGS = {
     # invasion
     "I_num_of_loop": 1,
     "I_increase_wave": False,
+    "I_max_wave": 10,
 
     # tg
     "TG_num_of_loop": 1,
@@ -33,6 +34,7 @@ DEFAULT_SETTINGS = {
 
     # world_boss
     "WB_num_of_loop": 1,
+    "WB_num_of_player": 1,
 
     # raid
     "R_num_of_loop": 1,
@@ -62,6 +64,10 @@ def load_user_settings(*, username):
 def save_user_settings(*, username, settings):
     """Save settings for a specific user."""
     user_settings_path = get_user_settings_file_path(username)
+
+    # Ensure the directory exists
+    if not os.path.exists(user_settings_path):
+        os.makedirs(os.path.dirname(user_settings_path), exist_ok=True)
 
     with open(user_settings_path, "w", encoding="utf-8") as file:
         json.dump(settings, file, indent=4)

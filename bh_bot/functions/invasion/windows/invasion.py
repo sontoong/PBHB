@@ -52,6 +52,13 @@ class InvasionWindow:
         self.auto_increase_wave_checkbox.pack(
             fill=X, padx=(5, 0), pady=5, anchor=W)
 
+        # Entry for max wave
+        self.max_wave_entry = NumberEntry(
+            self.window, label_text="Max wave", min_value=1)
+        self.max_wave_entry.pack(fill=X, padx=(5, 0), pady=5, anchor=W)
+        self.max_wave_entry.set(
+            self.settings["I_max_wave"])
+
         # Footer Buttons
         button_frame = Frame(self.window)
         button_frame.pack(pady=10, side=BOTTOM)
@@ -66,13 +73,15 @@ class InvasionWindow:
     def start_execute(self):
         num_of_loop = int(self.num_of_loop_entry.get())
         auto_increase_wave = self.auto_increase_wave_var.get()
+        max_wave = int(self.max_wave_entry.get())
 
         # Update settings
         settings_manager.update_user_setting(
             username=self.username,
             updates={
                 "I_num_of_loop": num_of_loop,
-                "I_increase_wave": auto_increase_wave
+                "I_increase_wave": auto_increase_wave,
+                "I_max_wave": max_wave
             })
 
         # Reload the settings from the JSON file to ensure self.settings is up-to-date

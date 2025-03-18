@@ -14,7 +14,7 @@ fi
 # Build the executable using PyInstaller with images folder
 echo "Building executable..."
 # pyinstaller --clean --onefile --noconsole --name "Bit Heroes Bot" --add-data "$ADD_DATA_FLAG" bh_bot/__main__.py
-pyinstaller --clean --onedir --name "Bit Heroes Bot" --add-data "$ADD_DATA_FLAG" bh_bot/__main__.py
+pyinstaller --clean --onedir --hide-console "minimize-early" --name "PBHB" --add-data "$ADD_DATA_FLAG" bh_bot/__main__.py
 
 # Check if the build was successful
 if [ $? -eq 0 ]; then

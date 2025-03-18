@@ -4,7 +4,7 @@ from typing import List
 import time
 import threading
 from bh_bot.utils.functions import click_images_in_sequence
-from bh_bot.utils.actions import locate_image, pyautogui
+from bh_bot.utils.actions import locate_image, locate_image_instances, pyautogui
 from bh_bot.utils.wrappers import stop_checking_wrapper
 from bh_bot.classes.image_info import ImageInfo
 from bh_bot.decorators.sleep import sleep
@@ -69,13 +69,47 @@ def world_boss(*, user_settings, user, stop_event: threading.Event):
                   offset_x=5, offset_y=5),
         ImageInfo(image_path='summon_button.png',
                   offset_x=5, offset_y=5),
-        ImageInfo(image_path='start_button.png',
-                  offset_x=5, offset_y=5),
     ]
 
     click_images_in_sequence_wrapped(
         running_window=running_window,
         image_info_list=enter_wb_sequence, resource_folder=RESOURCE_FOLDER, user_settings=user_settings, region=region)
+
+    # Case: Run solo or wait for multiple
+    button_image = "start_button.png" if locate_image(
+        running_window=running_window,
+        image_path_relative="start_button.png",
+        resource_folder=RESOURCE_FOLDER,
+        region=region
+    ) is not None else "ready_button.png"
+
+    if user_settings["WB_num_of_player"] != 1:
+        count, _ = locate_image_instances(
+            running_window=running_window,
+            image_path_relative="move_down_button.png",
+            resource_folder=RESOURCE_FOLDER,
+            region=region,
+        )
+        if count >= user_settings["WB_num_of_player"]:
+            button_sequence = [
+                ImageInfo(image_path=button_image, offset_x=5, offset_y=5)]
+            click_images_in_sequence_wrapped(
+                running_window=running_window,
+                image_info_list=button_sequence,
+                resource_folder=RESOURCE_FOLDER,
+                user_settings=user_settings,
+                region=region
+            )
+    else:
+        button_sequence = [
+            ImageInfo(image_path=button_image, offset_x=5, offset_y=5)]
+        click_images_in_sequence_wrapped(
+            running_window=running_window,
+            image_info_list=button_sequence,
+            resource_folder=RESOURCE_FOLDER,
+            user_settings=user_settings,
+            region=region
+        )
 
     # Case: Not full team
     if locate_image(running_window=running_window, image_path_relative="confirm_start_not_full_team.png", resource_folder=GLOBAL_RESOURCE_FOLDER, region=region) is not None:

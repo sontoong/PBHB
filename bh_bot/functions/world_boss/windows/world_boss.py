@@ -41,6 +41,13 @@ class WorldBossWindow:
         self.num_of_loop_entry.set(
             self.settings["WB_num_of_loop"])
 
+        # Entry for player count
+        self.num_of_player_entry = NumberEntry(
+            self.window, label_text="Number of player", min_value=1)
+        self.num_of_player_entry.pack(fill=X, padx=(5, 0), pady=5, anchor=W)
+        self.num_of_player_entry.set(
+            self.settings["WB_num_of_player"])
+
         # Footer Buttons
         button_frame = Frame(self.window)
         button_frame.pack(pady=10, side=BOTTOM)
@@ -54,12 +61,14 @@ class WorldBossWindow:
 
     def start_execute(self):
         num_of_loop = int(self.num_of_loop_entry.get())
+        num_of_player = int(self.num_of_player_entry.get())
 
         # Update settings
         settings_manager.update_user_setting(
             username=self.username,
             updates={
                 "WB_num_of_loop": num_of_loop,
+                "WB_num_of_player": num_of_player
             })
 
         # Reload the settings from the JSON file to ensure self.settings is up-to-date

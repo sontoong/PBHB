@@ -3,6 +3,11 @@
 from tkinter import *
 from tkinter import ttk
 from bh_bot.settings import settings_manager
+from bh_bot.utils.directory_utils import open_directory
+from bh_bot.utils.helpers import resource_path
+
+SETTINGS_DIRECTORY = "data"
+IMAGE_DIRECTORY = "images"
 
 
 class UserSettingsFrame(ttk.Frame):
@@ -38,6 +43,28 @@ class UserSettingsFrame(ttk.Frame):
         for frame in self.setting_frames.values():
             for child in frame.winfo_children():
                 child.grid_configure(padx=5, pady=5)
+
+        # Footer Buttons
+        button_frame = Frame(self)
+        button_frame.place(relx=0, rely=1.0, relwidth=1.0, anchor=SW)
+
+        # Create a custom style for the ttk.Button
+        style = ttk.Style()
+        style.configure("IconButton.TButton", font=("Arial", 16), width=2)
+
+        # User Folder
+        self.float_button = ttk.Button(
+            button_frame, text="🛠", style="IconButton.TButton",
+            command=lambda: open_directory(path=f'{SETTINGS_DIRECTORY}/{self.username}'))
+        self.float_button.pack(side=RIGHT, padx=10, pady=10)
+
+        # Image source
+        img_path = resource_path(
+            resource_folder_path=IMAGE_DIRECTORY, resource_name="")
+        self.image_button = ttk.Button(
+            button_frame, text="📁", style="IconButton.TButton",
+            command=lambda: open_directory(path=f'{img_path}'))
+        self.image_button.pack(side=RIGHT, padx=0, pady=10)
 
     def create_checkbuttons(self):
         # Define Checkbutton configurations

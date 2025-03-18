@@ -41,13 +41,16 @@ class NumberEntry(ttk.Frame):
         # Call the parent constructor
         super().__init__(parent, **kwargs)
 
+        # Create a StringVar to hold the entry value
+        self.var = tk.StringVar()
+
         self.label = ttk.Label(self, text=label_text)
         self.label.pack(side=tk.LEFT, padx=(0, 10))
 
         # Register the validation function to only allow numeric input
         validate_command = (self.register(self._validate), '%P')
 
-        self.entry = ttk.Entry(self, validate='key',
+        self.entry = ttk.Entry(self, validate='key', textvariable=self.var,
                                validatecommand=validate_command, **kwargs)
         self.entry.pack(side=tk.LEFT)
 
@@ -68,10 +71,13 @@ class NumberEntry(ttk.Frame):
 
     def get(self):
         """Get the current integer value of the entry, or None if empty."""
-        value = self.entry.get()
+        value = self.var.get()
         return int(value) if value.isdigit() else None
 
     def set(self, value):
         """Set the current value of the entry."""
-        self.entry.delete(0, tk.END)
-        self.entry.insert(0, str(value))
+        self.var.set(str(value))
+
+    def trace_add(self, mode, callback):
+        """Add a trace to the variable"""
+        return self.var.trace_add(mode, lambda name, index, mode: callback())

@@ -7,7 +7,7 @@ from bh_bot.utils.actions import click, locate_image, move_to
 from bh_bot.classes.image_info import ImageInfo
 
 
-def click_images_in_sequence(*, running_window, user_settings, image_info_list: List[ImageInfo], resource_folder, interval=2, region):
+def click_images_in_sequence(*, running_window, user_settings, image_info_list: List[ImageInfo], resource_folder, interval=1, region):
     """
     Clicks on each image in the provided list one by one, with optional offsets.
 

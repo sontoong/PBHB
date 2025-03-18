@@ -22,7 +22,7 @@ def extract_file_name(image_path):
     return image_name
 
 
-def resource_path(resource_folder_path, resource_name):
+def resource_path(*, resource_folder_path, resource_name):
     """ Get the absolute path to the resource, works for dev and for both PyInstaller --onefile and --onedir """
     try:
         # PyInstaller creates a temp folder (_MEIPASS) in --onefile mode

@@ -4,6 +4,7 @@ from tkinter import *
 from tkinter import ttk
 from bh_bot.settings import settings_manager
 from bh_bot.utils.window_utils import center_window_relative
+from bh_bot.ui.custom_entry import NumberEntry
 
 
 class SettingsWindow:
@@ -24,11 +25,13 @@ class SettingsWindow:
         self.tg1 = BooleanVar(value=self.settings["TG_increase_difficulty"])
         # inva
         self.inva1 = BooleanVar(value=self.settings["I_increase_wave"])
+        self.inva2 = self.settings["I_max_wave"]
         # raid
         self.raid1 = BooleanVar(value=self.settings["R_auto_catch_by_gold"])
         # gvg
 
         # wb
+        self.wb1 = self.settings["WB_num_of_player"]
 
     def view_function_settings(self):
         window = Toplevel(master=self.parent)
@@ -135,6 +138,20 @@ class SettingsWindow:
         inva_checkbox_1.grid(
             row=1, column=0, padx=5, pady=5, sticky=W)
 
+        # Entry for max wave
+        max_wave_entry = NumberEntry(
+            inva_frame, label_text="Max wave", min_value=1)
+        max_wave_entry.set(
+            self.inva2)
+        max_wave_entry.trace_add("write", lambda: settings_manager.update_user_setting(
+            username=self.username,
+            updates={
+                "I_max_wave": max_wave_entry.get()
+            })
+        )
+        max_wave_entry.grid(
+            row=2, column=0, padx=5, pady=5, sticky=W)
+
         # ---------------------------------------------------------- raid
         # Checkbutton for auto catch by gold
         raid_checkbox_1 = ttk.Checkbutton(
@@ -153,3 +170,44 @@ class SettingsWindow:
         # ---------------------------------------------------------- gvg
 
         # ---------------------------------------------------------- wb
+        # Entry for number of players
+        num_of_player_entry = NumberEntry(
+            wb_frame, label_text="Number of player", min_value=1)
+        num_of_player_entry.set(
+            self.wb1)
+        num_of_player_entry.trace_add("write", lambda: settings_manager.update_user_setting(
+            username=self.username,
+            updates={
+                "WB_num_of_player": num_of_player_entry.get()
+            })
+        )
+        num_of_player_entry.grid(
+            row=1, column=0, padx=5, pady=5, sticky=W)
+
+        # Entry for number of players
+        num_of_player_entry = NumberEntry(
+            wb_frame, label_text="Number of player", min_value=1)
+        num_of_player_entry.set(
+            self.wb1)
+        num_of_player_entry.trace_add("write", lambda: settings_manager.update_user_setting(
+            username=self.username,
+            updates={
+                "WB_num_of_player": num_of_player_entry.get()
+            })
+        )
+        num_of_player_entry.grid(
+            row=1, column=0, padx=5, pady=5, sticky=W)
+
+        # Entry for number of players
+        num_of_player_entry = NumberEntry(
+            wb_frame, label_text="Number of player", min_value=1)
+        num_of_player_entry.set(
+            self.wb1)
+        num_of_player_entry.trace_add("write", lambda: settings_manager.update_user_setting(
+            username=self.username,
+            updates={
+                "WB_num_of_player": num_of_player_entry.get()
+            })
+        )
+        num_of_player_entry.grid(
+            row=1, column=0, padx=5, pady=5, sticky=W)

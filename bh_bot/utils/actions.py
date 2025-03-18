@@ -3,6 +3,7 @@
 import difflib
 import time
 import pyautogui
+import pyscreeze
 import pygetwindow as gw
 from bh_bot.utils.helpers import extract_file_name, resource_path
 from bh_bot.decorators.sleep import sleep
@@ -48,11 +49,11 @@ def click(x, y, clicks=1, user_settings=None):
             pyautogui.click(clicks=clicks)
         else:
             pyautogui.moveTo(x=x, y=y)
-            time.sleep(0.1)
+            time.sleep(0.2)
             pyautogui.click(clicks=clicks)
     else:
         pyautogui.moveTo(x=x, y=y)
-        time.sleep(0.1)
+        time.sleep(0.2)
         pyautogui.click(clicks=clicks)
 
     # Debug
@@ -105,6 +106,47 @@ def locate_image(*, running_window, image_path_relative, resource_folder, confid
         if not optional:
             # print("Not Optional:")
             # print(f"'{image_name}' not found, retrying...")
+            raise pyautogui.ImageNotFoundException(f"Could not locate '{
+                image_name}' on screen. Make sure the window is clearly visible.") from err
+        return None
+    except Exception as general_err:
+        raise general_err
+
+
+@sleep(timeout=1, retry=2)
+def locate_image_instances(*, running_window, image_path_relative, resource_folder, confidence=0.8, region=None, optional=True):
+    """
+    Locates all instances of an image on the screen and returns the count.
+
+    :param running_window: Window to activate before searching
+    :param image_path_relative: Location of the image.
+    :param resource_folder: Location to the images from where function executing.
+    :param confidence: Confidence level for image recognition (default is 0.8).
+    :param region: Specific region to search in (default is None for full screen)
+    :param optional: Image is optional or not.
+    :return: Tuple of (count of instances, list of locations)
+    """
+    try:
+        force_activate_window(running_window)
+
+        # Construct the image path
+        image_path = resource_path(
+            resource_folder_path=resource_folder, resource_name=image_path_relative)
+
+        # Locate all instances of the image
+        locations = list(pyautogui.locateAllOnScreen(
+            image_path, confidence=confidence, region=region))
+
+        # Return the count of instances and the locations
+        return len(locations), locations
+
+    except pyscreeze.ImageNotFoundException as err:
+        image_name = extract_file_name(image_path)
+        if optional:
+            # Image not found but it's optional
+            return 0, []
+        if not optional:
+            # Image not found and it's required
             raise pyautogui.ImageNotFoundException(f"Could not locate '{
                 image_name}' on screen. Make sure the window is clearly visible.") from err
         return None
