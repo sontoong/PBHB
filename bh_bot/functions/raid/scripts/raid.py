@@ -64,13 +64,7 @@ def raid(*, user_settings, user, stop_event: threading.Event):
 
     # Case: Not full team
     if locate_image(running_window=running_window, image_path_relative="confirm_start_not_full_team.png", resource_folder=GLOBAL_RESOURCE_FOLDER, region=region) is not None:
-        confirm_start_not_full_team_sequence: List[ImageInfo] = [
-            ImageInfo(image_path='yes_button.png',
-                      offset_x=5, offset_y=5)
-        ]
-        click_images_in_sequence_wrapped(
-            running_window=running_window,
-            image_info_list=confirm_start_not_full_team_sequence, resource_folder=RESOURCE_FOLDER, user_settings=user_settings, region=region)
+        pyautogui.press("space", presses=1, interval=1)
 
     # Case: Collect button
     if locate_image(running_window=running_window, image_path_relative="collect_button.png", resource_folder=RESOURCE_FOLDER, region=region) is not None:

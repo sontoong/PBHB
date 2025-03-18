@@ -20,7 +20,7 @@ DEFAULT_SETTINGS = {
     # invasion
     "I_num_of_loop": 1,
     "I_increase_wave": False,
-    "I_max_wave": 10,
+    "I_max_num_of_wave": 10,
 
     # tg
     "TG_num_of_loop": 1,

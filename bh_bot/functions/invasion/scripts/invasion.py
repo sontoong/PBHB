@@ -10,9 +10,12 @@ from bh_bot.classes.image_info import ImageInfo
 from bh_bot.decorators.sleep import sleep
 from bh_bot.utils.helpers import list_flattern
 from bh_bot.functions.global_functions.global_sequences import get_global_click_sequence
+from bh_bot.utils.grab_text import grab_text
 
 GLOBAL_RESOURCE_FOLDER = "images/global"
 RESOURCE_FOLDER = "images/invasion"
+
+MAX_WAVE = None
 
 
 @sleep(timeout=5, retry=999)
@@ -45,6 +48,27 @@ def invasion(*, user_settings, user, stop_event: threading.Event):
     if locate_image(running_window=running_window, image_path_relative="not_enough_tokens.png", resource_folder=GLOBAL_RESOURCE_FOLDER, region=region) is not None:
         pyautogui.press("esc", presses=2, interval=1)
         stop_event.set()
+
+    # Case: Max wave
+    global MAX_WAVE
+
+    location = locate_image(running_window=running_window, image_path_relative="wave_counter_box_left.png",
+                            resource_folder=RESOURCE_FOLDER, region=region)
+    if location is not None:
+        wave_text = grab_text(running_window=running_window, window_region=region,
+                              box_offset_top=location.top-running_window.top+10, box_offset_left=location.left-running_window.left+10, box_width=90, box_height=25)
+        print(f"Current wave: {wave_text}")
+        if MAX_WAVE is None and wave_text != "":
+            MAX_WAVE = int(wave_text) + user_settings["I_max_num_of_wave"]
+
+        if MAX_WAVE is not None:
+            print(f"Exit at wave: {MAX_WAVE}")
+            if int(wave_text) >= MAX_WAVE:
+                pyautogui.press("esc", presses=1, interval=1)
+                pyautogui.press("space", presses=1, interval=1)
+                time.sleep(1)
+                pyautogui.press("esc", presses=2, interval=1)
+                stop_event.set()
 
     # Case: Exit and re-enter invasion
     exit_and_enter_sequence: List[ImageInfo] = [
@@ -94,10 +118,4 @@ def invasion(*, user_settings, user, stop_event: threading.Event):
 
     # Case: Not full team
     if locate_image(running_window=running_window, image_path_relative="confirm_start_not_full_team.png", resource_folder=GLOBAL_RESOURCE_FOLDER, region=region) is not None:
-        confirm_start_not_full_team: List[ImageInfo] = [
-            ImageInfo(image_path='yes_button.png',
-                      offset_x=5, offset_y=5)
-        ]
-        click_images_in_sequence_wrapped(
-            running_window=running_window,
-            image_info_list=confirm_start_not_full_team, resource_folder=RESOURCE_FOLDER, user_settings=user_settings, region=region)
+        pyautogui.press("space", presses=1, interval=1)

@@ -25,7 +25,7 @@ class SettingsWindow:
         self.tg1 = BooleanVar(value=self.settings["TG_increase_difficulty"])
         # inva
         self.inva1 = BooleanVar(value=self.settings["I_increase_wave"])
-        self.inva2 = self.settings["I_max_wave"]
+        self.inva2 = self.settings["I_max_num_of_wave"]
         # raid
         self.raid1 = BooleanVar(value=self.settings["R_auto_catch_by_gold"])
         # gvg
@@ -140,13 +140,13 @@ class SettingsWindow:
 
         # Entry for max wave
         max_wave_entry = NumberEntry(
-            inva_frame, label_text="Max wave", min_value=1)
+            inva_frame, label_text="Number of wave", min_value=1)
         max_wave_entry.set(
             self.inva2)
         max_wave_entry.trace_add("write", lambda: settings_manager.update_user_setting(
             username=self.username,
             updates={
-                "I_max_wave": max_wave_entry.get()
+                "I_max_num_of_wave": max_wave_entry.get()
             })
         )
         max_wave_entry.grid(
