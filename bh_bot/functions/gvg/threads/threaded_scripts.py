@@ -28,7 +28,8 @@ def run_with_retries(*, func, thread_id, user_settings, user, **kwargs):
                 print(
                     "(Previous loop duration: N/A)")
 
-            func(user_settings=user_settings, user=user, **kwargs)
+            func(user_settings=user_settings, user=user,
+                 start_time=loop_start_time, **kwargs)
 
         except Exception as e:
             print(f"Loop {loop} failed: {e}")

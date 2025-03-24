@@ -3,7 +3,7 @@
 thread_id: The name of function in the thread
 
 Todo: dungeon?, exped?, fishing
-add save check for not finding image
+add dungeon, bribe fam list
 
 Hard coded positions:
 send_msg_button

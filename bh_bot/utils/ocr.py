@@ -2,10 +2,10 @@ import easyocr
 from PIL import ImageGrab, Image, ImageEnhance, ImageFilter
 import numpy as np
 import cv2
+import torch
 from bh_bot.utils.window_utils import force_activate_window
 
 # First, check if PyTorch can see your GPU
-import torch
 print(f"CUDA available: {torch.cuda.is_available()}")
 print(f"CUDA device count: {torch.cuda.device_count()}")
 if torch.cuda.is_available():
@@ -13,7 +13,7 @@ if torch.cuda.is_available():
     print(f"CUDA device name: {torch.cuda.get_device_name(0)}")
 
 
-def grab_text(*, running_window, window_region, box_offset_left, box_offset_top, box_width, box_height, allowlist=None):
+def grab_text(*, running_window, box_left, box_top, box_width, box_height, allowlist=None):
     """
     Capture a specific box within a window region and extract text using OCR.
 
@@ -29,19 +29,9 @@ def grab_text(*, running_window, window_region, box_offset_left, box_offset_top,
     """
     force_activate_window(running_window)
 
-    # Extract window coordinates
-    window_left, window_top, window_width, window_height = window_region
-
     # Calculate absolute coordinates of the box
-    box_left = window_left + box_offset_left
-    box_top = window_top + box_offset_top
     box_right = box_left + box_width
     box_bottom = box_top + box_height
-
-    # Ensure box is within window boundaries
-    if (box_right > window_left + window_width or
-            box_bottom > window_top + window_height):
-        raise ValueError("The specified box exceeds the window boundaries")
 
     # Capture the specified box region
     screenshot = ImageGrab.grab(

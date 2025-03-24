@@ -5,55 +5,63 @@ from PIL import ImageGrab, Image
 from bh_bot.utils.window_utils import force_activate_window
 from bh_bot.utils.helpers import resource_path
 
-TEMPLATE_FOLDER = "images/global/numbers"
+TEMPLATE_FOLDER_NUMBERS = "images/global/numbers"
+TEMPLATE_FOLDER_CHARACTERS = "images/global/characters"
 
 
-def grab_text(*, running_window, window_region, box_offset_left, box_offset_top, box_width, box_height):
+def grab_text(*, running_window, box_left, box_top, box_width, box_height):
+    """
+    Extract text using template matching.
+
+    Returns:
+        str: Extracted text from the specified box
+
+    """
     force_activate_window(running_window)
 
-    # Load templates
-    templates = {}
+    # Load number templates
+    number_templates = {}
     for i in range(10):
-        # template_path = os.path.join(TEMPLATE_FOLDER, f"{i}.png")
         template_path = resource_path(
-            resource_folder_path=TEMPLATE_FOLDER, resource_name=f"{i}.png")
+            resource_folder_path=TEMPLATE_FOLDER_NUMBERS, resource_name=f"{i}.png")
         if os.path.exists(template_path):
-            templates[i] = cv2.imread(template_path, cv2.IMREAD_GRAYSCALE)
+            number_templates[str(i)] = cv2.imread(
+                template_path, cv2.IMREAD_GRAYSCALE)
 
-    # Extract window coordinates
-    window_left, window_top, window_width, window_height = window_region
+    # Load character templates
+    char_templates = {}
+    characters = "abcdefghijklmnopqrstuvwxyz"
+    for char in characters:
+        template_path = resource_path(
+            resource_folder_path=TEMPLATE_FOLDER_CHARACTERS, resource_name=f"{char}.png")
+        if os.path.exists(template_path):
+            char_templates[char] = cv2.imread(
+                template_path, cv2.IMREAD_GRAYSCALE)
+
+    # Combine all templates
+    templates = {**number_templates, **char_templates}
 
     # Calculate absolute coordinates of the box
-    box_left = window_left + box_offset_left
-    box_top = window_top + box_offset_top
     box_right = box_left + box_width
     box_bottom = box_top + box_height
-
-    # Ensure box is within window boundaries
-    if (box_right > window_left + window_width or
-            box_bottom > window_top + window_height):
-        raise ValueError("The specified box exceeds the window boundaries")
 
     # Capture the specified box region
     screenshot = ImageGrab.grab(
         bbox=(box_left, box_top, box_right, box_bottom))
 
     # Try template matching
-    recognized_text = recognize_number_by_template(screenshot, templates)
-
-    # If template matching fails, fall back to OCR
-    if not recognized_text:
-        # (OCR code from previous examples)
-        pass
+    recognized_text = recognize_text_by_template(
+        screenshot, templates, threshold=0.8)
 
     return recognized_text
 
 # pylint: disable=no-member
 
 
-def recognize_number_by_template(screenshot, templates_dict, threshold=0.7):
+def recognize_text_by_template(screenshot, templates_dict, threshold=0.7):
     """
-    Recognize numbers in a screenshot using template matching with improved filtering.
+    Recognize text in a screenshot using template matching with improved filtering.
+    Works for both numbers and characters.
     """
     # Convert PIL Image to OpenCV format if needed
     if isinstance(screenshot, Image.Image):
@@ -70,7 +78,7 @@ def recognize_number_by_template(screenshot, templates_dict, threshold=0.7):
     # Store potential matches with their positions and widths
     matches = []
 
-    for digit, template in templates_dict.items():
+    for char, template in templates_dict.items():
         # Make sure template is grayscale
         tmpl_gray = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY) if len(
             template.shape) == 3 else template
@@ -84,10 +92,10 @@ def recognize_number_by_template(screenshot, templates_dict, threshold=0.7):
         template_matches = list(zip(*locations[::-1]))
 
         # DEBUG-------------------------------------------------------------------------------------
-        # screenshot.save('captured_box.png')
-        # if template_matches:
-        #     debug_template_matching(
-        #         img, template, template_matches, digit)
+        screenshot.save('debug/captured_box.png')
+        if template_matches:
+            debug_template_matching(
+                img, template, template_matches, char)
         # ------------------------------------------------------------------------------------------
 
         # Add potential matches to our list
@@ -95,9 +103,9 @@ def recognize_number_by_template(screenshot, templates_dict, threshold=0.7):
             # Calculate match quality at this point
             match_val = result[pt[1], pt[0]]
 
-            # Store the digit, match quality, position, and width
+            # Store the character, match quality, position, and width
             matches.append({
-                'digit': digit,
+                'char': char,
                 'confidence': match_val,
                 'position': pt[0],
                 'width': tmpl_gray.shape[1],
@@ -110,7 +118,7 @@ def recognize_number_by_template(screenshot, templates_dict, threshold=0.7):
 
     # Apply non-maximum suppression
     selected_matches = []
-    min_distance = 10  # Minimum distance between digit centers
+    min_distance = 10  # Minimum distance between character centers
 
     # Mark matches to remove
     to_remove = set()
@@ -139,14 +147,13 @@ def recognize_number_by_template(screenshot, templates_dict, threshold=0.7):
     # Sort remaining matches by position (left to right)
     selected_matches.sort(key=lambda m: m['position'])
 
-    # Construct the final number
-    recognized_number = ''.join(str(match['digit'])
-                                for match in selected_matches)
+    # Construct the final text
+    recognized_text = ''.join(match['char'] for match in selected_matches)
 
-    return recognized_number
+    return recognized_text
 
 
-def debug_template_matching(image, template, matches, digit):
+def debug_template_matching(image, template, matches, char):
     """Draw rectangles around matched areas for debugging"""
     img_copy = image.copy()
     h, w = template.shape[:2]
@@ -154,13 +161,13 @@ def debug_template_matching(image, template, matches, digit):
     for pt in matches:
         x, y = pt
         cv2.rectangle(img_copy, (x, y), (x + w, y + h), (0, 255, 0), 2)
-        # Add text showing the digit and confidence
-        cv2.putText(img_copy, str(digit), (x, y-10),
+        # Add text showing the character and confidence
+        cv2.putText(img_copy, str(char), (x, y-10),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
 
     # Save the debug image
-    cv2.imwrite(f"debug_matches_{digit}.png", img_copy)
+    cv2.imwrite(f"debug/debug_matches_{char}.png", img_copy)
 
     # Optionally display (if running in an environment with GUI)
-    cv2.imshow(f"Debug Matches for {digit}", img_copy)
+    cv2.imshow(f"Debug Matches for {char}", img_copy)
     cv2.waitKey(500)  # Wait for 500ms between displays

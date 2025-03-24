@@ -10,19 +10,25 @@ from bh_bot.classes.image_info import ImageInfo
 from bh_bot.decorators.sleep import sleep
 from bh_bot.utils.helpers import list_flattern
 from bh_bot.functions.global_functions.global_sequences import get_global_click_sequence
-from bh_bot.utils.grab_text import grab_text
+from bh_bot.utils.template_matching import grab_text
 
 GLOBAL_RESOURCE_FOLDER = "images/global"
 RESOURCE_FOLDER = "images/invasion"
 
 MAX_WAVE = None
+MAX_TIME = 600
 
 
 @sleep(timeout=5, retry=999)
-def invasion(*, user_settings, user, stop_event: threading.Event):
+def invasion(*, user_settings, user, stop_event: threading.Event, start_time=time.time()):
     running_window = user["running_window"]
     running_window.activate()
     time.sleep(1)
+
+    # Check time
+    if time.time() - start_time > MAX_TIME:
+        pyautogui.press("esc", presses=2, interval=1)
+        pyautogui.press("space", presses=2, interval=1)
 
     # Define region for pyautogui
     region = (running_window.left, running_window.top,
@@ -55,8 +61,8 @@ def invasion(*, user_settings, user, stop_event: threading.Event):
     location = locate_image(running_window=running_window, image_path_relative="wave_counter_box_left.png",
                             resource_folder=RESOURCE_FOLDER, region=region)
     if location is not None:
-        wave_text = grab_text(running_window=running_window, window_region=region,
-                              box_offset_top=location.top-running_window.top+10, box_offset_left=location.left-running_window.left+10, box_width=90, box_height=25)
+        wave_text = grab_text(running_window=running_window,
+                              box_top=location.top+10, box_left=location.left+10, box_width=90, box_height=25)
         if MAX_WAVE is None and wave_text != "":
             MAX_WAVE = int(wave_text) + user_settings["I_max_num_of_wave"]
             print(f"Current wave: {wave_text}")

@@ -15,12 +15,20 @@ from bh_bot.functions.global_functions.global_sequences import get_global_click_
 GLOBAL_RESOURCE_FOLDER = "images/global"
 RESOURCE_FOLDER = "images/trials_gauntlet"
 
+MAX_TIME = 600
+
 
 @sleep(timeout=5, retry=999)
-def trials_gauntlet(*, user_settings, user, stop_event: threading.Event):
+def trials_gauntlet(*, user_settings, user, stop_event: threading.Event, start_time=time.time()):
     running_window = user["running_window"]
     running_window.activate()
     time.sleep(1)
+
+    # Check time
+    if time.time() - start_time > MAX_TIME:
+        pyautogui.press("space", presses=2, interval=1)
+        pyautogui.press("esc", presses=1, interval=1)
+        pyautogui.press("w", presses=1, interval=1)
 
     # Define region for pyautogui
     region = (running_window.left, running_window.top,

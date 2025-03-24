@@ -1,4 +1,5 @@
 from typing import List
+import pyautogui
 from bh_bot.classes.image_info import ImageInfo
 from bh_bot.utils.actions import locate_image
 from bh_bot.utils.image_utils import capture_screenshot
@@ -10,6 +11,15 @@ def get_global_click_sequence(*, user, user_settings: dict, running_window, regi
     """
     Returns the global click sequence for handling common scenarios.
     """
+    # Case: News alert
+    if locate_image(
+        running_window=running_window,
+        image_path_relative="news_label.png",
+        resource_folder=GLOBAL_RESOURCE_FOLDER,
+        region=region
+    ) is not None:
+        pyautogui.press("esc", presses=1, interval=1)
+
     # Case: Disconnected from the game
     reconnect_sequence: List[ImageInfo] = [
         ImageInfo(image_path='reconnect_button.png', offset_x=5, offset_y=5),
@@ -37,6 +47,19 @@ def get_global_click_sequence(*, user, user_settings: dict, running_window, regi
         region=region
     ) is not None:
         confirm_playing_bh_sequence = [
+            ImageInfo(image_path='no_button.png',
+                      offset_x=5, offset_y=5)
+        ]
+
+    # Case: Are you sure you want to quit this battle
+    confirm_battle_sequence: List[ImageInfo] = []
+    if locate_image(
+        running_window=running_window,
+        image_path_relative="confirm_quit_battle.png",
+        resource_folder=GLOBAL_RESOURCE_FOLDER,
+        region=region
+    ) is not None:
+        confirm_battle_sequence = [
             ImageInfo(image_path='no_button.png',
                       offset_x=5, offset_y=5)
         ]
@@ -108,9 +131,30 @@ def get_global_click_sequence(*, user, user_settings: dict, running_window, regi
         ]
 
     # Case: Battle victory screen
-    close_battle_victory_screen_sequence: List[ImageInfo] = [
-        ImageInfo(image_path='continue_button.png', offset_x=5, offset_y=5),
-    ]
+    close_battle_victory_screen_sequence: List[ImageInfo] = []
+    if locate_image(
+        running_window=running_window,
+        image_path_relative="victory_label.png",
+        resource_folder=GLOBAL_RESOURCE_FOLDER,
+        region=region
+    ) is not None:
+        close_battle_victory_screen_sequence = [
+            ImageInfo(image_path='continue_button.png',
+                      offset_x=5, offset_y=5),
+        ]
+
+    # Case: Accept not leave guild
+    accept_not_leave_guild_sequence: List[ImageInfo] = []
+    if locate_image(
+        running_window=running_window,
+        image_path_relative="cannot_leave_guild.png",
+        resource_folder=GLOBAL_RESOURCE_FOLDER,
+        region=region
+    ) is not None:
+        accept_not_leave_guild_sequence = [
+            ImageInfo(image_path='yes_button.png',
+                      offset_x=5, offset_y=5)
+        ]
 
     # ---------------------------------------------------
 
@@ -118,12 +162,14 @@ def get_global_click_sequence(*, user, user_settings: dict, running_window, regi
         reconnect_sequence,
         confirm_still_here_sequence,
         confirm_playing_bh_sequence,
+        confirm_battle_sequence,
         close_dm_sequence,
         claim_daily_reward_sequence,
         ignore_request_sequence,
         turn_on_auto_sequence,
         close_battle_victory_screen_sequence,
-        reconnect_to_dungeon_sequence
+        reconnect_to_dungeon_sequence,
+        accept_not_leave_guild_sequence
     ]
 
     # Filter out empty sequences

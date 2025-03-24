@@ -10,16 +10,25 @@ from bh_bot.classes.image_info import ImageInfo
 from bh_bot.decorators.sleep import sleep
 from bh_bot.utils.helpers import list_flattern
 from bh_bot.functions.global_functions.global_sequences import get_global_click_sequence
+from bh_bot.functions.global_functions.bribe_familiars import get_bribe_list
 
 GLOBAL_RESOURCE_FOLDER = "images/global"
 RESOURCE_FOLDER = "images/raid"
 
+MAX_TIME = 600
+
 
 @sleep(timeout=5, retry=999)
-def raid(*, user_settings, user, stop_event: threading.Event):
+def raid(*, user_settings, user, stop_event: threading.Event, start_time=time.time()):
     running_window = user["running_window"]
     running_window.activate()
     time.sleep(1)
+
+    # Check time
+    if time.time() - start_time > MAX_TIME:
+        pyautogui.press("space", presses=2, interval=1)
+        pyautogui.press("esc", presses=1, interval=1)
+        pyautogui.press("w", presses=1, interval=1)
 
     # Define region for pyautogui
     region = (running_window.left, running_window.top,
@@ -77,31 +86,25 @@ def raid(*, user_settings, user, stop_event: threading.Event):
             image_info_list=click_collect_button_sequence, resource_folder=RESOURCE_FOLDER, user_settings=user_settings, region=region)
 
     # Case: Persuade fam window
-    if user_settings["R_auto_catch_by_gold"] is True:
-        if locate_image(running_window=running_window, image_path_relative="persuade_button.png", resource_folder=RESOURCE_FOLDER, region=region) is not None:
-            persuade_fam_sequence: List[ImageInfo] = [
-                ImageInfo(image_path='persuade_button.png',
-                          offset_x=5, offset_y=5),
-                ImageInfo(image_path='yes_button.png',
-                          offset_x=5, offset_y=5),
-            ]
+    persuade_button_location = locate_image(
+        running_window=running_window, image_path_relative="persuade_button.png", resource_folder=RESOURCE_FOLDER, region=region)
+    if persuade_button_location is not None:
+        first_button = 'persuade_button.png'
 
-            click_images_in_sequence_wrapped(
-                running_window=running_window,
-                image_info_list=persuade_fam_sequence, resource_folder=RESOURCE_FOLDER, user_settings=user_settings, region=region)
+        if user_settings["R_auto_catch_by_gold"] is False:
+            first_button = 'decline_button.png'
 
-    if user_settings["R_auto_catch_by_gold"] is False:
-        if locate_image(running_window=running_window, image_path_relative="persuade_button.png", resource_folder=RESOURCE_FOLDER, region=region) is not None:
-            decline_fam_sequence: List[ImageInfo] = [
-                ImageInfo(image_path='decline_button.png',
-                          offset_x=5, offset_y=5),
-                ImageInfo(image_path='yes_button.png',
-                          offset_x=5, offset_y=5),
-            ]
+        if get_bribe_list(anchor_location=persuade_button_location, running_window=running_window, username=user["username"]) is True:
+            first_button = "bribe_button.png"
 
-            click_images_in_sequence_wrapped(
-                running_window=running_window,
-                image_info_list=decline_fam_sequence, resource_folder=RESOURCE_FOLDER, user_settings=user_settings, region=region)
+        fam_action_sequence: List[ImageInfo] = [
+            ImageInfo(image_path=first_button, offset_x=5, offset_y=5),
+            ImageInfo(image_path='yes_button.png', offset_x=5, offset_y=5),
+        ]
+
+        click_images_in_sequence_wrapped(
+            running_window=running_window,
+            image_info_list=fam_action_sequence, resource_folder=RESOURCE_FOLDER, user_settings=user_settings, region=region)
 
     # Case: Defeat
     if locate_image(running_window=running_window, image_path_relative="defeat_label.png", resource_folder=GLOBAL_RESOURCE_FOLDER, region=region) is not None:

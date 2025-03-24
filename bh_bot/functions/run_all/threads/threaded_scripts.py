@@ -68,6 +68,9 @@ def thread_worker(*, callback, user, user_settings) -> None:
                     case "tg":
                         child_thread_trials_gauntlet(callback=thread_callback, user=user,
                                                      user_settings=user_settings)
+                    case "world_boss":
+                        child_thread_world_boss(callback=thread_callback, user=user,
+                                                user_settings=user_settings)
                     case "invasion":
                         child_thread_invasion(callback=thread_callback, user=user,
                                               user_settings=user_settings)
@@ -77,9 +80,6 @@ def thread_worker(*, callback, user, user_settings) -> None:
                     case "raid":
                         child_thread_raid(callback=thread_callback, user=user,
                                           user_settings=user_settings)
-                    case "world_boss":
-                        child_thread_world_boss(callback=thread_callback, user=user,
-                                                user_settings=user_settings)
 
                 # Wait for the thread to complete
                 completion_event.wait()
@@ -127,14 +127,15 @@ def run_with_retries(*, func, thread_id, user_settings, user, **kwargs):
                 print(
                     "(Previous loop duration: N/A)")
 
-            func(user_settings=user_settings, user=user, **kwargs)
+            func(user_settings=user_settings, user=user,
+                 start_time=loop_start_time, **kwargs)
 
         except Exception as e:
             print(f"Loop {loop} failed: {e}")
             if loop < num_of_retries:
                 time.sleep(delay)
             else:
-                raise
+                break
         finally:
             # Calculate the duration of the current loop
             loop_end_time = time.time()

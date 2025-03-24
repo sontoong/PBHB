@@ -38,8 +38,17 @@ def resource_path(*, resource_folder_path, resource_name):
     return os.path.join(base_path, resource_folder_path, resource_name)
 
 
-def list_flattern(list_of_lists):
-    return list(itertools.chain.from_iterable(list_of_lists))
+def list_flattern(input_list):
+    # Handle empty list case
+    if not input_list:
+        return []
+
+    # Check if input is already a flattened list (not a list of lists)
+    if not any(isinstance(item, list) for item in input_list):
+        return input_list
+
+    # Otherwise, flatten the list of lists
+    return list(itertools.chain.from_iterable(input_list))
 
 
 def get_true_keys(dictionary):
