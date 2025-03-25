@@ -51,6 +51,16 @@ class ReRunWindow:
         )
         self.auto_catch_checkbox.pack(fill=X, padx=(5, 0), pady=5, anchor=W)
 
+        # Checkbutton for auto bribe
+        self.auto_bribe_var = BooleanVar()
+        self.auto_bribe_var.set(self.settings["RR_auto_bribe"])
+        self.auto_bribe_checkbox = ttk.Checkbutton(
+            self.window,
+            text="Auto bribe fams (only from bribe list)",
+            variable=self.auto_bribe_var
+        )
+        self.auto_bribe_checkbox.pack(fill=X, padx=(5, 0), pady=5, anchor=W)
+
         # Footer Buttons
         button_frame = Frame(self.window)
         button_frame.pack(pady=10, side=BOTTOM)
@@ -65,13 +75,15 @@ class ReRunWindow:
     def start_execute(self):
         num_of_loop = int(self.num_of_loop_entry.get())
         auto_catch = self.auto_catch_var.get()
+        auto_bribe = self.auto_bribe_var.get()
 
         # Update settings
         settings_manager.update_user_setting(
             username=self.username,
             updates={
                 "RR_num_of_loop": num_of_loop,
-                "RR_auto_catch_by_gold": auto_catch
+                "RR_auto_catch_by_gold": auto_catch,
+                "RR_auto_bribe": auto_bribe
             })
 
         # Reload the settings from the JSON file to ensure self.settings is up-to-date

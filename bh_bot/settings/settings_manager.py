@@ -19,6 +19,7 @@ _DEFAULT_SETTINGS = {
     # re_run
     "RR_num_of_loop": 1,
     "RR_auto_catch_by_gold": True,
+    "RR_auto_bribe": False,
 
     # invasion
     "I_num_of_loop": 1,
@@ -42,6 +43,7 @@ _DEFAULT_SETTINGS = {
     # raid
     "R_num_of_loop": 1,
     "R_auto_catch_by_gold": True,
+    "R_auto_bribe": False,
 
     # run_all
     "RA_functions": {"pvp": True, "tg": True, "world_boss": True, "gvg": True, "invasion": True, "raid": True, }

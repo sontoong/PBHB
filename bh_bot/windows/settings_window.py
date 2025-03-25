@@ -28,6 +28,7 @@ class SettingsWindow:
         self.inva2 = self.settings["I_max_num_of_wave"]
         # raid
         self.raid1 = BooleanVar(value=self.settings["R_auto_catch_by_gold"])
+        self.raid2 = BooleanVar(value=self.settings["R_auto_bribe"])
         # gvg
 
         # wb
@@ -170,6 +171,20 @@ class SettingsWindow:
         )
         raid_checkbox_1.grid(
             row=0, column=0, padx=5, pady=5, sticky=W)
+
+        # Checkbutton for auto bribe
+        raid_checkbox_2 = ttk.Checkbutton(
+            raid_frame,
+            text="Auto bribe (only from bribe list)",
+            variable=self.raid2,
+            command=lambda: settings_manager.update_user_setting(
+                username=self.username,
+                updates={
+                    "R_auto_bribe": self.raid2.get()
+                })
+        )
+        raid_checkbox_2.grid(
+            row=1, column=0, padx=5, pady=5, sticky=W)
 
         # ---------------------------------------------------------- gvg
 

@@ -117,7 +117,7 @@ class BribeListWindow:
                 amount_label.grid(row=0, column=1, padx=5, pady=5, sticky=W)
 
                 remove_button = ttk.Button(
-                    frame, text="-", command=lambda n=name: self.remove_from_list(n))
+                    frame, text="🗑", command=lambda n=name: self.remove_from_list(n))
                 remove_button.grid(row=0, column=2, padx=5, pady=5, sticky=W)
 
         self.refresh_list = refresh_list

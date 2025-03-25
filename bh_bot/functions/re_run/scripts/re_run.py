@@ -69,7 +69,7 @@ def re_run(*, user_settings, user, stop_event: threading.Event, start_time=time.
         if user_settings["RR_auto_catch_by_gold"] is False:
             first_button = 'decline_button.png'
 
-        if get_bribe_list(anchor_location=persuade_button_location, running_window=running_window, username=user["username"]) is True:
+        if user_settings["RR_auto_bribe"] and get_bribe_list(anchor_location=persuade_button_location, running_window=running_window, username=user["username"]) is True:
             first_button = "bribe_button.png"
 
         fam_action_sequence: List[ImageInfo] = [
@@ -81,6 +81,9 @@ def re_run(*, user_settings, user, stop_event: threading.Event, start_time=time.
             running_window=running_window,
             image_info_list=fam_action_sequence, resource_folder=RESOURCE_FOLDER, user_settings=user_settings, region=region)
 
+        if locate_image(running_window=running_window, image_path_relative="not_enough_gems.png", resource_folder=GLOBAL_RESOURCE_FOLDER, region=region) is not None:
+            pyautogui.press("esc", presses=1, interval=1)
+            pyautogui.press("space", presses=2, interval=1)
         pyautogui.press("space", presses=1, interval=1)
 
     # Case: Defeat
@@ -94,6 +97,7 @@ def re_run(*, user_settings, user, stop_event: threading.Event, start_time=time.
             running_window=running_window,
             image_info_list=exit_raid_sequence, resource_folder=RESOURCE_FOLDER, user_settings=user_settings, region=region)
 
+        print("Defeated, ending rerun")
         stop_event.set()
 
     # Final: Rerun
