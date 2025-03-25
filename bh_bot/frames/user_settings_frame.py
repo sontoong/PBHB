@@ -54,7 +54,7 @@ class UserSettingsFrame(ttk.Frame):
 
         # User Folder
         self.float_button = ttk.Button(
-            button_frame, text="🛠", style="IconButton.TButton",
+            button_frame, text="👤", style="IconButton.TButton",
             command=lambda: open_directory(path=f'{SETTINGS_DIRECTORY}/{self.username}'))
         self.float_button.pack(side=RIGHT, padx=10, pady=10)
 

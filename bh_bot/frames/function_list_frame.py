@@ -11,6 +11,7 @@ from bh_bot.functions.raid.windows.raid import RaidWindow
 from bh_bot.functions.gvg.windows.gvg import GvgWindow
 from bh_bot.functions.world_boss.windows.world_boss import WorldBossWindow
 from bh_bot.functions.run_all.windows.run_all import RunAllWindow
+from bh_bot.windows.bribe_list_window import BribeListWindow
 
 
 general_functions = {
@@ -65,6 +66,22 @@ class FunctionListFrame(ttk.Frame):
                 button = ttk.Button(frame, text=function_name,
                                     command=partial(self.open_function_window, function_window))
                 button.grid(padx=5, pady=5, sticky=(W, E))
+
+        # Footer Buttons
+        button_frame = Frame(self)
+        button_frame.place(relx=0, rely=1.0, relwidth=1.0, anchor=SW)
+
+        # Create a custom style for the ttk.Button
+        style = ttk.Style()
+        style.configure("IconButton.TButton", font=("Arial", 16), width=2)
+
+        # Bribe List
+        self.float_button = ttk.Button(
+            button_frame, text="💎", style="IconButton.TButton",
+            command=lambda: BribeListWindow(
+                parent=self.parent.window, user=self.parent.user).view_bribe_list(),
+        )
+        self.float_button.pack(side=RIGHT, padx=10, pady=10)
 
     def open_function_window(self, function_window):
         if function_window:

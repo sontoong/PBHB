@@ -36,7 +36,7 @@ class InvasionWindow:
         # UI start
         # Entry for loop count
         self.num_of_loop_entry = NumberEntry(
-            self.window, label_text="Number of loop", min_value=1)
+            self.window, label_text="Number of loops", min_value=1)
         self.num_of_loop_entry.pack(fill=X, padx=(5, 0), pady=5, anchor=W)
         self.num_of_loop_entry.set(
             self.settings["I_num_of_loop"])
@@ -54,7 +54,7 @@ class InvasionWindow:
 
         # Entry for max wave
         self.max_wave_entry = NumberEntry(
-            self.window, label_text="Number of wave", min_value=1)
+            self.window, label_text="Number of waves", min_value=1)
         self.max_wave_entry.pack(fill=X, padx=(5, 0), pady=5, anchor=W)
         self.max_wave_entry.set(
             self.settings["I_max_num_of_wave"])

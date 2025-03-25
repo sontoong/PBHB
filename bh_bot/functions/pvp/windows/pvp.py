@@ -36,7 +36,7 @@ class PvpWindow:
         # UI start
         # Entry for loop count
         self.num_of_loop_entry = NumberEntry(
-            self.window, label_text="Number of loop", min_value=1)
+            self.window, label_text="Number of loops", min_value=1)
         self.num_of_loop_entry.pack(fill=X, padx=(5, 0), pady=5, anchor=W)
         self.num_of_loop_entry.set(
             self.settings["PVP_num_of_loop"])

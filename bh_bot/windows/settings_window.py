@@ -46,36 +46,40 @@ class SettingsWindow:
         main_frame.pack(fill=BOTH, expand=1)
 
         # Create a canvas inside the main frame
-        canvas = Canvas(main_frame)
+        canvas = Canvas(main_frame, borderwidth=0,
+                        highlightthickness=0,
+                        scrollregion=(0, 0, 0, 0))
         canvas.pack(side=LEFT, fill=BOTH, expand=1)
 
         # Add a scrollbar to the main frame
         scrollbar = ttk.Scrollbar(
             main_frame, orient=VERTICAL, command=canvas.yview)
-        scrollbar.pack(side=RIGHT, fill=Y)
 
         # Configure the canvas
         canvas.configure(yscrollcommand=scrollbar.set)
-        canvas.bind('<Configure>', lambda e: canvas.configure(
-            scrollregion=canvas.bbox("all")))
 
         # Create another frame inside the canvas
-        content_frame = Frame(canvas)
+        content_frame = Frame(canvas, borderwidth=0,
+                              highlightthickness=0)
 
         # Add the content frame to the canvas
         canvas.create_window((0, 0), window=content_frame, anchor="nw")
 
-        # Add mousewheel scrolling support
-        def _on_mousewheel(event):
-            canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+        def update_scrollregion(event):
+            # Only update scroll region if content exceeds canvas height
+            if content_frame.winfo_reqheight() > canvas.winfo_height():
+                scrollbar.pack(side=RIGHT, fill=Y)
+                canvas.configure(scrollregion=canvas.bbox("all"))
+            else:
+                scrollbar.pack_forget()
+                canvas.configure(scrollregion=(0, 0, 0, canvas.winfo_height()))
 
-        canvas.bind_all("<MouseWheel>", _on_mousewheel)  # For Windows/MacOS
-        canvas.bind_all(
-            # For Linux
-            "<Button-4>", lambda e: canvas.yview_scroll(-1, "units"))
-        canvas.bind_all(
-            # For Linux
-            "<Button-5>", lambda e: canvas.yview_scroll(1, "units"))
+        def on_mousewheel(event):
+            canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+
+        # Bind the update function
+        content_frame.bind("<Configure>", update_scrollregion)
+        window.bind("<MouseWheel>", on_mousewheel)
 
         # Configure content frame - single column layout
         content_frame.columnconfigure(0, weight=1)
@@ -121,7 +125,7 @@ class SettingsWindow:
                 })
         )
         tg_checkbox_1.grid(
-            row=1, column=0, padx=5, pady=5, sticky=W)
+            row=0, column=0, padx=5, pady=5, sticky=W)
 
         # ---------------------------------------------------------- inva
         # Checkbutton for auto increase wave
@@ -136,11 +140,11 @@ class SettingsWindow:
                 })
         )
         inva_checkbox_1.grid(
-            row=1, column=0, padx=5, pady=5, sticky=W)
+            row=0, column=0, padx=5, pady=5, sticky=W)
 
         # Entry for max wave
         max_wave_entry = NumberEntry(
-            inva_frame, label_text="Number of wave", min_value=1)
+            inva_frame, label_text="Number of waves", min_value=1)
         max_wave_entry.set(
             self.inva2)
         max_wave_entry.trace_add("write", lambda: settings_manager.update_user_setting(
@@ -150,7 +154,7 @@ class SettingsWindow:
             })
         )
         max_wave_entry.grid(
-            row=2, column=0, padx=5, pady=5, sticky=W)
+            row=1, column=0, padx=5, pady=5, sticky=W)
 
         # ---------------------------------------------------------- raid
         # Checkbutton for auto catch by gold
@@ -165,14 +169,14 @@ class SettingsWindow:
                 })
         )
         raid_checkbox_1.grid(
-            row=1, column=0, padx=5, pady=5, sticky=W)
+            row=0, column=0, padx=5, pady=5, sticky=W)
 
         # ---------------------------------------------------------- gvg
 
         # ---------------------------------------------------------- wb
         # Entry for number of players
         num_of_player_entry = NumberEntry(
-            wb_frame, label_text="Number of player", min_value=1)
+            wb_frame, label_text="Number of players", min_value=1)
         num_of_player_entry.set(
             self.wb1)
         num_of_player_entry.trace_add("write", lambda: settings_manager.update_user_setting(
@@ -182,32 +186,4 @@ class SettingsWindow:
             })
         )
         num_of_player_entry.grid(
-            row=1, column=0, padx=5, pady=5, sticky=W)
-
-        # Entry for number of players
-        num_of_player_entry = NumberEntry(
-            wb_frame, label_text="Number of player", min_value=1)
-        num_of_player_entry.set(
-            self.wb1)
-        num_of_player_entry.trace_add("write", lambda: settings_manager.update_user_setting(
-            username=self.username,
-            updates={
-                "WB_num_of_player": num_of_player_entry.get()
-            })
-        )
-        num_of_player_entry.grid(
-            row=1, column=0, padx=5, pady=5, sticky=W)
-
-        # Entry for number of players
-        num_of_player_entry = NumberEntry(
-            wb_frame, label_text="Number of player", min_value=1)
-        num_of_player_entry.set(
-            self.wb1)
-        num_of_player_entry.trace_add("write", lambda: settings_manager.update_user_setting(
-            username=self.username,
-            updates={
-                "WB_num_of_player": num_of_player_entry.get()
-            })
-        )
-        num_of_player_entry.grid(
-            row=1, column=0, padx=5, pady=5, sticky=W)
+            row=0, column=0, padx=5, pady=5, sticky=W)
