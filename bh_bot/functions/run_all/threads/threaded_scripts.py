@@ -2,6 +2,7 @@
 
 import time
 import threading
+import pygetwindow
 from bh_bot.utils.thread_utils import get_break_signal, thread_function
 from bh_bot.utils.helpers import get_true_keys
 from bh_bot.functions.pvp.scripts.pvp import pvp
@@ -46,46 +47,61 @@ def thread_worker(*, callback, user, user_settings) -> None:
     thread_id = "run_all"
     functions_to_run = get_true_keys(user_settings["RA_functions"])
 
-    def loop_worker(**kwargs):
+    def loop_worker(**_):
         while True:
-            for function_name in functions_to_run:
-                # Create a threading.Event to wait for thread completion
-                def create_thread_handler():
-                    completion_event = threading.Event()
+            error_tracker = {"count": 0}
+            try:
+                for function_name in functions_to_run:
 
-                    def thread_callback():
-                        completion_event.set()
+                    def child_thread_handler():
+                        child_completion_event = threading.Event()
 
-                    return thread_callback, completion_event
+                        def child_thread_callback(error=None, result=None):
+                            if error:
+                                print(error)
+                                error_tracker["count"] += 1
+                            if result:
+                                print(f"Result: {result}")
+                            child_completion_event.set()
 
-                thread_callback, completion_event = create_thread_handler()
+                        return child_thread_callback, child_completion_event
 
-                print(f"\nStarting task: {function_name}")
-                match function_name:
-                    case "pvp":
-                        child_thread_pvp(
-                            callback=thread_callback, user=user, user_settings=user_settings)
-                    case "tg":
-                        child_thread_trials_gauntlet(callback=thread_callback, user=user,
-                                                     user_settings=user_settings)
-                    case "world_boss":
-                        child_thread_world_boss(callback=thread_callback, user=user,
-                                                user_settings=user_settings)
-                    case "invasion":
-                        child_thread_invasion(callback=thread_callback, user=user,
+                    child_thread_callback, child_completion_event = child_thread_handler()
+
+                    print(f"\nStarting task: {function_name}")
+                    match function_name:
+                        case "pvp":
+                            child_thread_pvp(
+                                callback=child_thread_callback, user=user, user_settings=user_settings)
+                        case "tg":
+                            child_thread_trials_gauntlet(callback=child_thread_callback, user=user,
+                                                         user_settings=user_settings)
+                        case "world_boss":
+                            child_thread_world_boss(callback=child_thread_callback, user=user,
+                                                    user_settings=user_settings)
+                        case "invasion":
+                            child_thread_invasion(callback=child_thread_callback, user=user,
+                                                  user_settings=user_settings)
+                        case "gvg":
+                            child_thread_gvg(callback=child_thread_callback, user=user,
+                                             user_settings=user_settings)
+                        case "raid":
+                            child_thread_raid(callback=child_thread_callback, user=user,
                                               user_settings=user_settings)
-                    case "gvg":
-                        child_thread_gvg(callback=thread_callback, user=user,
-                                         user_settings=user_settings)
-                    case "raid":
-                        child_thread_raid(callback=thread_callback, user=user,
-                                          user_settings=user_settings)
 
-                # Wait for the thread to complete
-                completion_event.wait()
+                    # Wait for the thread to complete
+                    child_completion_event.wait()
 
-                if get_break_signal(thread_id=thread_id):
-                    return
+                    # If all functions fail in a single loop, most likely choosing a non-existence window
+                    if error_tracker["count"] == len(functions_to_run):
+                        raise RuntimeError(
+                            "Can not execute functions. Please close and choose game window again.")
+
+                    if get_break_signal(thread_id=thread_id):
+                        return
+
+            except Exception as e:
+                raise e
 
     thread_function(func=loop_worker, callback=callback,
                     thread_id=thread_id)
@@ -93,7 +109,7 @@ def thread_worker(*, callback, user, user_settings) -> None:
 
 def create_child_thread(*, func, callback, user, user_settings) -> None:
     """
-    Generic function to create a thread with the given parameters.
+    Creates a thread for a child function
     """
     thread_id = f"run_all_{func.__name__}"
 
@@ -129,6 +145,10 @@ def run_with_retries(*, func, thread_id, user_settings, user, **kwargs):
 
             func(user_settings=user_settings, user=user,
                  start_time=loop_start_time, **kwargs)
+
+        except pygetwindow.PyGetWindowException as exc:
+            raise RuntimeError(
+                "Cannot detect window. Please choose game window again.") from exc
 
         except Exception as e:
             print(f"Loop {loop} failed: {e}")

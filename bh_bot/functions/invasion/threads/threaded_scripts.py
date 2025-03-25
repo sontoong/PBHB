@@ -1,6 +1,7 @@
 # pylint: disable=C0114,C0115,C0116,C0301
 
 import time
+import pygetwindow
 from bh_bot.functions.invasion.scripts.invasion import invasion
 from bh_bot.utils.thread_utils import get_break_signal, thread_function
 
@@ -30,6 +31,10 @@ def run_with_retries(*, func, thread_id, user_settings, user, **kwargs):
 
             func(user_settings=user_settings, user=user,
                  start_time=loop_start_time, **kwargs)
+
+        except pygetwindow.PyGetWindowException as exc:
+            raise RuntimeError(
+                "Cannot detect window. Please choose game window again.") from exc
 
         except Exception as e:
             print(f"Loop {loop} failed: {e}")
