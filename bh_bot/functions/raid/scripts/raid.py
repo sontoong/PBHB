@@ -106,6 +106,8 @@ def raid(*, user_settings, user, stop_event: threading.Event, start_time=time.ti
             running_window=running_window,
             image_info_list=fam_action_sequence, resource_folder=RESOURCE_FOLDER, user_settings=user_settings, region=region)
 
+        pyautogui.press("space", presses=1, interval=1)
+
     # Case: Defeat
     if locate_image(running_window=running_window, image_path_relative="defeat_label.png", resource_folder=GLOBAL_RESOURCE_FOLDER, region=region) is not None:
         exit_raid_sequence: List[ImageInfo] = [

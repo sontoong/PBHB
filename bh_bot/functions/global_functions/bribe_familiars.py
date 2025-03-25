@@ -13,8 +13,8 @@ def get_bribe_list(*, username, running_window, anchor_location):
     bribe_list = user_settings["G_bribe_list"]
 
     familiar_name_grab = grab_text(running_window=running_window,
-                                   box_top=anchor_location.top-240, box_left=anchor_location.left+65, box_width=150, box_height=20)
-
+                                   box_top=anchor_location.top-241, box_left=anchor_location.left+40, box_width=200, box_height=20)
+    print(f"Familiar name: {familiar_name_grab}")
     familiar_amount = 0
     found_familiar_name = ""
 

@@ -81,6 +81,21 @@ def re_run(*, user_settings, user, stop_event: threading.Event, start_time=time.
             running_window=running_window,
             image_info_list=fam_action_sequence, resource_folder=RESOURCE_FOLDER, user_settings=user_settings, region=region)
 
+        pyautogui.press("space", presses=1, interval=1)
+
+    # Case: Defeat
+    if locate_image(running_window=running_window, image_path_relative="defeat_label.png", resource_folder=GLOBAL_RESOURCE_FOLDER, region=region) is not None:
+        exit_raid_sequence: List[ImageInfo] = [
+            ImageInfo(image_path='town_button.png',
+                      offset_x=5, offset_y=5),
+        ]
+
+        click_images_in_sequence_wrapped(
+            running_window=running_window,
+            image_info_list=exit_raid_sequence, resource_folder=RESOURCE_FOLDER, user_settings=user_settings, region=region)
+
+        stop_event.set()
+
     # Final: Rerun
     rerun_sequence: List[ImageInfo] = [
         ImageInfo(image_path='rerun_button.png',

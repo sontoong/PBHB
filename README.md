@@ -3,7 +3,7 @@
 thread_id: The name of function in the thread
 
 Todo: dungeon?, exped?, fishing
-add dungeon, bribe fam list
+add dungeon, bribe fam list, warning for exiting window
 
 Hard coded positions:
 send_msg_button
