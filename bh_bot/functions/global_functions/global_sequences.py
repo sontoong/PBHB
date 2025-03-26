@@ -6,11 +6,20 @@ from bh_bot.utils.image_utils import capture_screenshot
 
 GLOBAL_RESOURCE_FOLDER = "images/global"
 
+CHECK_COUNTER = 0
+
 
 def get_global_click_sequence(*, user, user_settings: dict, running_window, region) -> List[List[ImageInfo]]:
     """
     Returns the global click sequence for handling common scenarios.
     """
+    global CHECK_COUNTER
+    print(f"Counter: {CHECK_COUNTER}")
+
+    CHECK_COUNTER += 1
+    if CHECK_COUNTER % 2 != 0:
+        return []
+
     # Case: News alert
     if locate_image(
         running_window=running_window,
