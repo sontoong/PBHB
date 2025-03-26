@@ -69,8 +69,11 @@ def re_run(*, user_settings, user, stop_event: threading.Event, start_time=time.
         if user_settings["RR_auto_catch_by_gold"] is False:
             first_button = 'decline_button.png'
 
-        if user_settings["RR_auto_bribe"] and get_bribe_list(anchor_location=persuade_button_location, running_window=running_window, username=user["username"]) is True:
-            first_button = "bribe_button.png"
+        if user_settings["RR_auto_bribe"]:
+            anchor_location = locate_image(
+                running_window=running_window, image_path_relative="persuade_anchor.png", resource_folder=GLOBAL_RESOURCE_FOLDER, region=region)
+            if get_bribe_list(anchor_location=anchor_location, running_window=running_window, username=user["username"]) is True:
+                first_button = "bribe_button.png"
 
         fam_action_sequence: List[ImageInfo] = [
             ImageInfo(image_path=first_button, offset_x=5, offset_y=5),
