@@ -10,7 +10,7 @@ from bh_bot.classes.image_info import ImageInfo
 from bh_bot.decorators.sleep import sleep
 from bh_bot.utils.helpers import list_flattern
 from bh_bot.functions.global_functions.global_sequences import get_global_click_sequence
-from bh_bot.functions.global_functions.bribe_familiars import get_bribe_list
+from bh_bot.functions.global_functions.bribe_familiars import get_bribe_list, add_amount_familiar
 
 GLOBAL_RESOURCE_FOLDER = "images/global"
 RESOURCE_FOLDER = "images/re_run"
@@ -86,8 +86,12 @@ def re_run(*, user_settings, user, stop_event: threading.Event, start_time=time.
 
         if locate_image(running_window=running_window, image_path_relative="not_enough_gems.png", resource_folder=GLOBAL_RESOURCE_FOLDER, region=region) is not None:
             pyautogui.press("esc", presses=1, interval=1)
+            add_amount_familiar(anchor_location=anchor_location,
+                                running_window=running_window, username=user["username"], amount=1)
             pyautogui.press("space", presses=2, interval=1)
-        pyautogui.press("space", presses=1, interval=1)
+
+        if locate_image(running_window=running_window, image_path_relative="close_button.png", resource_folder=GLOBAL_RESOURCE_FOLDER, region=region) is not None:
+            pyautogui.press("space", presses=1, interval=1)
 
     # Case: Defeat
     if locate_image(running_window=running_window, image_path_relative="defeat_label.png", resource_folder=GLOBAL_RESOURCE_FOLDER, region=region) is not None:
