@@ -69,7 +69,7 @@ class BribeListWindow:
         content_frame.bind("<Configure>", update_scrollregion)
         window.bind("<MouseWheel>", on_mousewheel)
 
-        # Configure content frame - single column layout
+        # Configure content frame
         content_frame.columnconfigure(0, weight=1)
 
         # Entry frame

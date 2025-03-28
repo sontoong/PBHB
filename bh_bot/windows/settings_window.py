@@ -1,10 +1,11 @@
 # pylint: disable=C0114,C0116,C0301,C0115,W0401,W0614
-
+import os
 from tkinter import *
 from tkinter import ttk
 from bh_bot.settings import settings_manager
 from bh_bot.utils.window_utils import center_window_relative
 from bh_bot.ui.custom_entry import NumberEntry
+from bh_bot.utils.helpers import resource_path, get_files_naturally_sorted
 
 
 class SettingsWindow:
@@ -34,13 +35,18 @@ class SettingsWindow:
         # wb
         self.wb1 = self.settings["WB_num_of_player"]
 
+        # dungeon
+        self.d1 = BooleanVar(value=self.settings["D_auto_catch_by_gold"])
+        self.d2 = BooleanVar(value=self.settings["D_auto_bribe"])
+        self.d3 = self.settings["D_selected_dungeon"]
+
     def view_function_settings(self):
         window = Toplevel(master=self.parent)
         window.title("Settings")
         window.transient(self.parent)
         window.grab_set()
         center_window_relative(
-            window=window, parent=self.parent, window_width=300, window_height=300)
+            window=window, parent=self.parent, window_width=510, window_height=500)
 
         # Create a main frame inside the Toplevel window
         main_frame = Frame(window)
@@ -66,7 +72,7 @@ class SettingsWindow:
         # Add the content frame to the canvas
         canvas.create_window((0, 0), window=content_frame, anchor="nw")
 
-        def update_scrollregion(event):
+        def update_scrollregion(_):
             # Only update scroll region if content exceeds canvas height
             if content_frame.winfo_reqheight() > canvas.winfo_height():
                 scrollbar.pack(side=RIGHT, fill=Y)
@@ -82,34 +88,32 @@ class SettingsWindow:
         content_frame.bind("<Configure>", update_scrollregion)
         window.bind("<MouseWheel>", on_mousewheel)
 
-        # Configure content frame - single column layout
+        # Configure content frame
+        content_frame.grid(sticky=NSEW)
         content_frame.columnconfigure(0, weight=1)
+        content_frame.columnconfigure(1, weight=1)
 
-        # Init frames - all with consistent width
-        pvp_frame = ttk.LabelFrame(content_frame, text="Pvp Settings")
-        pvp_frame.grid(row=0, column=0, padx=10, pady=5, sticky=EW)
-        pvp_frame.columnconfigure(0, weight=1)
-
+        # Init frames
         tg_frame = ttk.LabelFrame(
             content_frame, text="Trials/Gauntlet Settings")
-        tg_frame.grid(row=1, column=0, padx=10, pady=5, sticky=EW)
+        tg_frame.grid(row=0, column=0, padx=10, pady=5, sticky="NEW")
         tg_frame.columnconfigure(0, weight=1)
 
         inva_frame = ttk.LabelFrame(content_frame, text="Invasion Settings")
-        inva_frame.grid(row=2, column=0, padx=10, pady=5, sticky=EW)
+        inva_frame.grid(row=0, column=1, padx=10, pady=5, sticky="NEW")
         inva_frame.columnconfigure(0, weight=1)
 
         raid_frame = ttk.LabelFrame(content_frame, text="Raid Settings")
-        raid_frame.grid(row=3, column=0, padx=10, pady=5, sticky=EW)
+        raid_frame.grid(row=1, column=0, padx=10, pady=5, sticky="NEW")
         raid_frame.columnconfigure(0, weight=1)
 
-        wb_frame = ttk.LabelFrame(content_frame, text="Wb Settings")
-        wb_frame.grid(row=4, column=0, padx=10, pady=5, sticky=EW)
+        wb_frame = ttk.LabelFrame(content_frame, text="World Boss Settings")
+        wb_frame.grid(row=1, column=1, padx=10, pady=5, sticky="NEW")
         wb_frame.columnconfigure(0, weight=1)
 
-        gvg_frame = ttk.LabelFrame(content_frame, text="Gvg Settings")
-        gvg_frame.grid(row=5, column=0, padx=10, pady=5, sticky=EW)
-        gvg_frame.columnconfigure(0, weight=1)
+        dungeon_frame = ttk.LabelFrame(content_frame, text="Dungeon Settings")
+        dungeon_frame.grid(row=2, column=0, padx=10, pady=5, sticky="NEW")
+        dungeon_frame.columnconfigure(0, weight=1)
 
         # ---------------------------------------------------------- pvp
 
@@ -202,3 +206,67 @@ class SettingsWindow:
         )
         num_of_player_entry.grid(
             row=0, column=0, padx=5, pady=5, sticky=W)
+
+        # ---------------------------------------------------------- dungeon
+        # Checkbutton for auto catch by gold
+        dungeon_checkbox_1 = ttk.Checkbutton(
+            dungeon_frame,
+            text="Auto catch by gold",
+            variable=self.d1,
+            command=lambda: settings_manager.update_user_setting(
+                username=self.username,
+                updates={
+                    "D_auto_catch_by_gold": self.d1.get()
+                })
+        )
+        dungeon_checkbox_1.grid(
+            row=0, column=0, padx=5, pady=5, sticky=W)
+
+        # Checkbutton for auto bribe
+        dungeon_checkbox_2 = ttk.Checkbutton(
+            dungeon_frame,
+            text="Auto bribe (only from bribe list)",
+            variable=self.d2,
+            command=lambda: settings_manager.update_user_setting(
+                username=self.username,
+                updates={
+                    "D_auto_bribe": self.d2.get()
+                })
+        )
+        dungeon_checkbox_2.grid(
+            row=1, column=0, padx=5, pady=5, sticky=W)
+
+        # Dropdown for dungeon selection
+        dungeon_dropdown = ttk.Combobox(
+            dungeon_frame,
+            values=self.get_dungeon_list(),
+            state="readonly"
+        )
+        dungeon_dropdown.set(self.d3)
+        dungeon_dropdown.bind("<<ComboboxSelected>>", lambda event: settings_manager.update_user_setting(
+            username=self.username,
+            updates={
+                "D_selected_dungeon": dungeon_dropdown.get()
+            })
+        )
+        dungeon_dropdown.grid(row=2, column=0, padx=5, pady=5, sticky=EW)
+
+    def get_dungeon_list(self):
+        """
+        Retrieve list of dungeons from the images directory.
+
+        Returns:
+            list: A list of dungeon names
+        """
+        dungeons_path = resource_path(
+            resource_folder_path="images/dungeon/dungeons", resource_name="")
+        dungeon_list = []
+
+        if os.path.exists(dungeons_path):
+            sorted_filenames = get_files_naturally_sorted(
+                directory=dungeons_path)
+            for filename in sorted_filenames:
+                # Remove file extension and add to list
+                dungeon_name = os.path.splitext(filename)[0]
+                dungeon_list.append(dungeon_name)
+        return dungeon_list

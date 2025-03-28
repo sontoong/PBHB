@@ -65,8 +65,6 @@ def invasion(*, user_settings, user, stop_event: threading.Event, start_time=tim
                               box_top=location.top+10, box_left=location.left+10, box_width=90, box_height=25)
         if MAX_WAVE is None and wave_text != "":
             MAX_WAVE = int(wave_text) + user_settings["I_max_num_of_wave"]
-            print(f"Current wave: {wave_text}")
-            print(f"Exit at wave: {MAX_WAVE}")
 
         if MAX_WAVE is not None:
             if int(wave_text) >= MAX_WAVE:

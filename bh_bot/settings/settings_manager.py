@@ -45,8 +45,14 @@ _DEFAULT_SETTINGS = {
     "R_auto_catch_by_gold": True,
     "R_auto_bribe": False,
 
+    # dungeon
+    "D_num_of_loop": 1,
+    "D_selected_dungeon": "t1d1",
+    "D_auto_catch_by_gold": True,
+    "D_auto_bribe": False,
+
     # run_all
-    "RA_functions": {"pvp": True, "tg": True, "world_boss": True, "gvg": True, "invasion": True, "raid": True, }
+    "RA_functions": {"pvp": True,  "gvg": True, "invasion": True,  "tg": True, "world_boss": True, "raid": True, "dungeon": True}
 }
 
 

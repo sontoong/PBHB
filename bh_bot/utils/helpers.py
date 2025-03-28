@@ -2,6 +2,7 @@
 import os
 import sys
 import itertools
+import re
 
 
 def path_prefix(image_list, prefix):
@@ -62,3 +63,60 @@ def get_true_keys(dictionary):
         list: List of keys with True values
     """
     return [key for key, value in dictionary.items() if value is True]
+
+
+def dungeon_sort_key(s):
+    """
+    Args:
+        s (str): The filename to be sorted
+
+    Returns:
+        tuple: A tuple of comparable values for precise sorting
+    """
+    # Extract components using regex
+    match = re.match(r't(\d+)d(\d+)(?:\.[^.]*)?$', s)
+    if match:
+        # Convert matched groups to integers for proper numeric sorting
+        return (int(match.group(1)), int(match.group(2)))
+
+    # Fallback to default sorting if pattern doesn't match
+    return [int(text) if text.isdigit() else text.lower()
+            for text in re.split(r'(\d+)', s)]
+
+
+def natural_sort(items):
+    """
+    Sort a list of strings using natural sorting
+
+    Args:
+        items (list): List of strings to be sorted
+        key
+
+    Returns:
+        list: Sorted list of strings
+    """
+    return sorted(items, key=dungeon_sort_key)
+
+
+def get_files_naturally_sorted(directory, extension=None):
+    """
+    Get files from a directory sorted naturally
+
+    Args:
+        directory (str): Path to the directory
+        extension (str, optional): File extension to filter by
+        key
+
+    Returns:
+        list: Naturally sorted list of filenames
+    """
+    if extension and not extension.startswith('.'):
+        extension = '.' + extension
+
+    # Get files, optionally filtered by extension
+    if extension:
+        files = [f for f in os.listdir(directory) if f.endswith(extension)]
+    else:
+        files = os.listdir(directory)
+
+    return natural_sort(files)

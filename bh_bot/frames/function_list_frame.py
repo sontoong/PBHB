@@ -11,6 +11,7 @@ from bh_bot.functions.raid.windows.raid import RaidWindow
 from bh_bot.functions.gvg.windows.gvg import GvgWindow
 from bh_bot.functions.world_boss.windows.world_boss import WorldBossWindow
 from bh_bot.functions.run_all.windows.run_all import RunAllWindow
+from bh_bot.functions.dungeon.windows.dungeon import DungeonWindow
 from bh_bot.windows.bribe_list_window import BribeListWindow
 
 
@@ -36,6 +37,9 @@ gvg_functions = {
 world_boss_functions = {
     "Play": WorldBossWindow
 }
+dungeon_functions = {
+    "Play": DungeonWindow
+}
 
 
 class FunctionListFrame(ttk.Frame):
@@ -43,7 +47,7 @@ class FunctionListFrame(ttk.Frame):
         super().__init__(master=notebook, **kwargs)
         self.parent = parent
         self.functions = {
-            "General": general_functions, "Pvp": pvp_functions, "Trials/Gauntlet": trials_gauntlet_functions, "Raid": raid_functions, "Invasion": invasion_functions, "Gvg": gvg_functions, "World Boss": world_boss_functions}
+            "General": general_functions, "Pvp": pvp_functions, "Trials/Gauntlet": trials_gauntlet_functions, "Raid": raid_functions, "Invasion": invasion_functions, "Gvg": gvg_functions, "World Boss": world_boss_functions, "Dungeon": dungeon_functions}
 
         # Define the number of columns per row
         columns_per_row = 4

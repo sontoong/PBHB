@@ -11,6 +11,7 @@ from bh_bot.functions.invasion.scripts.invasion import invasion
 from bh_bot.functions.raid.scripts.raid import raid
 from bh_bot.functions.gvg.scripts.gvg import gvg
 from bh_bot.functions.world_boss.scripts.world_boss import world_boss
+from bh_bot.functions.dungeon.scripts.dungeon import dungeon
 
 
 def child_thread_pvp(*, callback, user, user_settings) -> None:
@@ -43,6 +44,11 @@ def child_thread_world_boss(*, callback, user, user_settings) -> None:
                         user=user, user_settings=user_settings)
 
 
+def child_thread_dungeon(*, callback, user, user_settings) -> None:
+    create_child_thread(func=dungeon, callback=callback,
+                        user=user, user_settings=user_settings)
+
+
 def thread_worker(*, callback, user, user_settings) -> None:
     thread_id = "run_all"
     functions_to_run = get_true_keys(user_settings["RA_functions"])
@@ -58,7 +64,6 @@ def thread_worker(*, callback, user, user_settings) -> None:
 
                         def child_thread_callback(error=None, result=None):
                             if error:
-                                print(error)
                                 error_tracker["count"] += 1
                             if result:
                                 print(f"Result: {result}")
@@ -88,6 +93,9 @@ def thread_worker(*, callback, user, user_settings) -> None:
                         case "raid":
                             child_thread_raid(callback=child_thread_callback, user=user,
                                               user_settings=user_settings)
+                        case "dungeon":
+                            child_thread_dungeon(callback=child_thread_callback, user=user,
+                                                 user_settings=user_settings)
 
                     # Wait for the thread to complete
                     child_completion_event.wait()

@@ -19,7 +19,7 @@ class RunAllWindow:
         self.window = Toplevel(parent=None)
         self.window.title("Run All")
         center_window_relative(
-            window=self.window, parent=self.parent, window_width=250, window_height=250)
+            window=self.window, parent=self.parent, window_width=300, window_height=250)
         self.window.protocol("WM_DELETE_WINDOW", self.close_window)
 
         # Bind the Escape key to the stop_execute function
@@ -54,7 +54,7 @@ class RunAllWindow:
             row = index // num_columns
             column = index % num_columns
 
-            checkbox.grid(row=row, column=column, sticky='w', padx=5, pady=2)
+            checkbox.grid(row=row, column=column, sticky='new', padx=5, pady=2)
 
         # Footer Buttons
         button_frame = Frame(self.window)

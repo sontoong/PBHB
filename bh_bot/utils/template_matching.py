@@ -124,14 +124,14 @@ def recognize_text_by_template(screenshot, templates_dict, threshold=0.7):
             # Switch columns and rows
             template_matches = list(zip(*locations[::-1]))
 
-            # DEBUG-------------------------------------------------------------------------------------
-            screenshot.save('debug/captured_box.png')
-            if template_matches:
-                match_info = [{'pt': pt, 'confidence': result[pt[1], pt[0]]}
-                              for pt in template_matches]
-                debug_template_matching(
-                    img, template, match_info, char)
-            # ------------------------------------------------------------------------------------------
+            # DEBUG---------------------------------------------------------------------------------
+            # screenshot.save('debug/captured_box.png')
+            # if template_matches:
+            #     match_info = [{'pt': pt, 'confidence': result[pt[1], pt[0]]}
+            #                   for pt in template_matches]
+            #     debug_template_matching(
+            #         img, template, match_info, char)
+            # --------------------------------------------------------------------------------------
 
             # Add potential matches to our list
             for pt in template_matches:

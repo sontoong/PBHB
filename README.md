@@ -2,8 +2,7 @@
 
 thread_id: The name of function in the thread
 
-Todo: dungeon?, exped?, fishing
-add dungeon
+Todo: exped, fishing?
 
 Hard coded positions:
 send_msg_button
