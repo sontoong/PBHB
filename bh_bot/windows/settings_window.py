@@ -126,7 +126,7 @@ class SettingsWindow:
         self.expedition_frame = ttk.LabelFrame(
             content_frame, text="Expedition Settings")
         self.expedition_frame.grid(
-            row=2, column=0, padx=10, pady=5, sticky="NEW")
+            row=2, column=1, padx=10, pady=5, sticky="NEW")
         self.expedition_frame.columnconfigure(0, weight=1)
 
         # ---------------------------------------------------------- pvp
