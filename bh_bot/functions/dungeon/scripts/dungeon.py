@@ -16,7 +16,7 @@ GLOBAL_RESOURCE_FOLDER = "images/global"
 RESOURCE_FOLDER = "images/dungeon"
 DUNGEON_IMAGE_FOLDER = "dungeons"
 
-MAX_TIME = 600
+MAX_TIME = 300
 
 
 @sleep(timeout=5, retry=999)

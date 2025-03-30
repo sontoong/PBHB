@@ -15,7 +15,7 @@ from bh_bot.functions.global_functions.bribe_familiars import get_bribe_list, ad
 GLOBAL_RESOURCE_FOLDER = "images/global"
 RESOURCE_FOLDER = "images/re_run"
 
-MAX_TIME = 600
+MAX_TIME = 300
 
 
 @sleep(timeout=5, retry=999)

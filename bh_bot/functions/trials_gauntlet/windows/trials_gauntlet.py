@@ -41,7 +41,7 @@ class TrialsGauntletWindow:
         self.num_of_loop_entry.set(
             self.settings["TG_num_of_loop"])
 
-        # Checkbutton for auto increase wave
+        # Checkbutton for auto increase difficulty
         self.auto_increase_difficulty_var = BooleanVar()
         self.auto_increase_difficulty_var.set(
             self.settings["TG_increase_difficulty"])

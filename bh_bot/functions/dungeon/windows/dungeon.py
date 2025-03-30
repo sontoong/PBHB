@@ -133,7 +133,6 @@ class DungeonWindow:
         if selected_dungeon in self.dungeon_images:
             image_path = self.dungeon_images[selected_dungeon]
             image = Image.open(image_path)
-
             image.thumbnail((100, 100))
             photo = ImageTk.PhotoImage(image)
 

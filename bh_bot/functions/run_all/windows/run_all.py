@@ -19,7 +19,7 @@ class RunAllWindow:
         self.window = Toplevel(parent=None)
         self.window.title("Run All")
         center_window_relative(
-            window=self.window, parent=self.parent, window_width=300, window_height=250)
+            window=self.window, parent=self.parent, window_width=350, window_height=250)
         self.window.protocol("WM_DELETE_WINDOW", self.close_window)
 
         # Bind the Escape key to the stop_execute function

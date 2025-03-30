@@ -11,3 +11,4 @@ class ImageInfo:
     clicks: int = 1
     optional: bool = True
     confidence: int = 0.8
+    grayscale: bool = True

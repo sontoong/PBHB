@@ -4,6 +4,7 @@ import pyautogui
 from bh_bot.classes.image_info import ImageInfo
 from bh_bot.utils.actions import locate_image
 from bh_bot.utils.image_utils import capture_screenshot
+from bh_bot.utils.helpers import list_flattern
 
 GLOBAL_RESOURCE_FOLDER = "images/global"
 
@@ -16,12 +17,29 @@ def get_global_click_sequence(*, user, user_settings: dict, running_window, regi
     """
     global CHECK_COUNTER
 
+    # Init values
+    turn_on_auto_sequence: List[ImageInfo] = []
+    confirm_still_here_sequence: List[ImageInfo] = []
+    confirm_playing_bh_sequence: List[ImageInfo] = []
+    confirm_battle_sequence: List[ImageInfo] = []
+    close_dm_sequence: List[ImageInfo] = []
+    claim_daily_reward_sequence: List[ImageInfo] = []
+    reconnect_to_dungeon_sequence: List[ImageInfo] = []
+    close_battle_victory_screen_sequence: List[ImageInfo] = []
+    accept_not_leave_guild_sequence: List[ImageInfo] = []
+
+    # Check counter
     CHECK_COUNTER += 1
+    if CHECK_COUNTER % 5 != 0:
+        return list_flattern([turn_on_auto_sequence])
+
     if CHECK_COUNTER % 10 != 0:
         return []
 
     print(f"Counter: {CHECK_COUNTER}")
     print(time.time())
+
+    # Start -------------------------------------------------------
     # Case: News alert
     if locate_image(
         running_window=running_window,
@@ -37,7 +55,6 @@ def get_global_click_sequence(*, user, user_settings: dict, running_window, regi
     ]
 
     # Case: Are you still there
-    confirm_still_here_sequence: List[ImageInfo] = []
     if locate_image(
         running_window=running_window,
         image_path_relative="are_you_still_there.png",
@@ -50,7 +67,6 @@ def get_global_click_sequence(*, user, user_settings: dict, running_window, regi
         ]
 
     # Case: Are you sure you want to quit Bit Heroes
-    confirm_playing_bh_sequence: List[ImageInfo] = []
     if locate_image(
         running_window=running_window,
         image_path_relative="exit_bh.png",
@@ -62,8 +78,19 @@ def get_global_click_sequence(*, user, user_settings: dict, running_window, regi
                       offset_x=5, offset_y=5)
         ]
 
+    # Case: Auto is not on
+    if locate_image(
+        running_window=running_window,
+        image_path_relative="auto_red.png",
+        resource_folder=GLOBAL_RESOURCE_FOLDER,
+        region=region
+    ) is not None:
+        turn_on_auto_sequence = [
+            ImageInfo(image_path='auto_red.png',
+                      offset_x=5, offset_y=5, grayscale=False)
+        ]
+
     # Case: Are you sure you want to quit this battle
-    confirm_battle_sequence: List[ImageInfo] = []
     if locate_image(
         running_window=running_window,
         image_path_relative="confirm_quit_battle.png",
@@ -76,7 +103,6 @@ def get_global_click_sequence(*, user, user_settings: dict, running_window, regi
         ]
 
     # Case: Chat Window
-    close_dm_sequence: List[ImageInfo] = []
     if user_settings["G_auto_close_dm"] is True and locate_image(
         running_window=running_window,
         image_path_relative="send_msg_button.png",
@@ -95,7 +121,6 @@ def get_global_click_sequence(*, user, user_settings: dict, running_window, regi
         ]
 
     # Case: Claim daily reward
-    claim_daily_reward_sequence: List[ImageInfo] = []
     if locate_image(
         running_window=running_window,
         image_path_relative="daily_rewards.png",
@@ -109,7 +134,6 @@ def get_global_click_sequence(*, user, user_settings: dict, running_window, regi
         ]
 
     # Case: Disconnected from dungeon
-    reconnect_to_dungeon_sequence: List[ImageInfo] = []
     if locate_image(
         running_window=running_window,
         image_path_relative="disconnected_from_dungeon.png",
@@ -128,21 +152,7 @@ def get_global_click_sequence(*, user, user_settings: dict, running_window, regi
                   offset_x=-150, offset_y=50),
     ]
 
-    # Case: Auto is not on
-    turn_on_auto_sequence: List[ImageInfo] = []
-    if locate_image(
-        running_window=running_window,
-        image_path_relative="auto_red.png",
-        resource_folder=GLOBAL_RESOURCE_FOLDER,
-        region=region
-    ) is not None:
-        turn_on_auto_sequence = [
-            ImageInfo(image_path='auto_red.png',
-                      offset_x=5, offset_y=5)
-        ]
-
     # Case: Battle victory screen
-    close_battle_victory_screen_sequence: List[ImageInfo] = []
     if locate_image(
         running_window=running_window,
         image_path_relative="victory_label.png",
@@ -155,7 +165,6 @@ def get_global_click_sequence(*, user, user_settings: dict, running_window, regi
         ]
 
     # Case: Accept not leave guild
-    accept_not_leave_guild_sequence: List[ImageInfo] = []
     if locate_image(
         running_window=running_window,
         image_path_relative="cannot_leave_guild.png",
@@ -177,13 +186,9 @@ def get_global_click_sequence(*, user, user_settings: dict, running_window, regi
         close_dm_sequence,
         claim_daily_reward_sequence,
         ignore_request_sequence,
-        turn_on_auto_sequence,
         close_battle_victory_screen_sequence,
         reconnect_to_dungeon_sequence,
         accept_not_leave_guild_sequence
     ]
 
-    # Filter out empty sequences
-    global_sequence = [seq for seq in global_sequence if seq]
-
-    return global_sequence
+    return list_flattern(global_sequence)

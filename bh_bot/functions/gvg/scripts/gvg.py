@@ -14,7 +14,7 @@ from bh_bot.functions.global_functions.global_sequences import get_global_click_
 GLOBAL_RESOURCE_FOLDER = "images/global"
 RESOURCE_FOLDER = "images/gvg"
 
-MAX_TIME = 600
+MAX_TIME = 300
 
 
 @sleep(timeout=5, retry=999)

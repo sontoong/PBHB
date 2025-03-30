@@ -15,7 +15,7 @@ from bh_bot.functions.global_functions.global_sequences import get_global_click_
 GLOBAL_RESOURCE_FOLDER = "images/global"
 RESOURCE_FOLDER = "images/trials_gauntlet"
 
-MAX_TIME = 600
+MAX_TIME = 300
 
 
 @sleep(timeout=5, retry=999)
@@ -70,6 +70,7 @@ def trials_gauntlet(*, user_settings, user, stop_event: threading.Event, start_t
         image_info_list=exit_and_enter_sequence, resource_folder=RESOURCE_FOLDER, user_settings=user_settings, region=region)
 
     # Case: Auto increase difficulty
+    # 2nd diff click is exclusive to tg
     if user_settings["TG_increase_difficulty"] is True:
         increase_wave_sequence: List[ImageInfo] = [
             ImageInfo(image_path='difficulty_counter.png',

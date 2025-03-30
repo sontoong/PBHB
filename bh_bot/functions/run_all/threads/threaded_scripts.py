@@ -12,6 +12,7 @@ from bh_bot.functions.raid.scripts.raid import raid
 from bh_bot.functions.gvg.scripts.gvg import gvg
 from bh_bot.functions.world_boss.scripts.world_boss import world_boss
 from bh_bot.functions.dungeon.scripts.dungeon import dungeon
+from bh_bot.functions.expedition.scripts.expedition import expedition
 
 
 def child_thread_pvp(*, callback, user, user_settings) -> None:
@@ -46,6 +47,11 @@ def child_thread_world_boss(*, callback, user, user_settings) -> None:
 
 def child_thread_dungeon(*, callback, user, user_settings) -> None:
     create_child_thread(func=dungeon, callback=callback,
+                        user=user, user_settings=user_settings)
+
+
+def child_thread_expedition(*, callback, user, user_settings) -> None:
+    create_child_thread(func=expedition, callback=callback,
                         user=user, user_settings=user_settings)
 
 
@@ -96,6 +102,9 @@ def thread_worker(*, callback, user, user_settings) -> None:
                         case "dungeon":
                             child_thread_dungeon(callback=child_thread_callback, user=user,
                                                  user_settings=user_settings)
+                        case "expedition":
+                            child_thread_expedition(callback=child_thread_callback, user=user,
+                                                    user_settings=user_settings)
 
                     # Wait for the thread to complete
                     child_completion_event.wait()
