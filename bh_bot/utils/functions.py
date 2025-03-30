@@ -23,9 +23,10 @@ def click_images_in_sequence(*, running_window, user_settings, image_info_list: 
         clicks = image_info.clicks
         optional = image_info.optional
         confidence = image_info.confidence
+        grayscale = image_info.grayscale
 
         location = locate_image(running_window=running_window,
-                                image_path_relative=image_path, resource_folder=resource_folder, confidence=confidence, optional=optional, region=region)
+                                image_path_relative=image_path, resource_folder=resource_folder, confidence=confidence, optional=optional, region=region, grayscale=grayscale)
         if location is not None:
             # print(f"Image {image_path} found at {location}")
             center_x = location.left + offset_x

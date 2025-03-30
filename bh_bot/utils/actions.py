@@ -76,7 +76,7 @@ def move_to(x, y, user_settings=None):
 
 
 @sleep(timeout=1, retry=2)
-def locate_image(*, running_window, image_path_relative, resource_folder, confidence=0.8, region, optional=True):
+def locate_image(*, running_window, image_path_relative, resource_folder, confidence=0.8, region, optional=True, grayscale=True):
     """
     Locates an image on the screen using image recognition.
 
@@ -95,7 +95,7 @@ def locate_image(*, running_window, image_path_relative, resource_folder, confid
 
         # Locate the image
         location = pyautogui.locateOnScreen(
-            image_path, confidence=confidence, region=region)
+            image_path, confidence=confidence, region=region, grayscale=grayscale)
         return location
     except pyautogui.ImageNotFoundException as err:
         image_name = extract_file_name(image_path)

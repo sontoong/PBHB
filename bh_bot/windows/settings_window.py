@@ -24,12 +24,15 @@ class SettingsWindow:
 
         # tg
         self.tg1 = BooleanVar(value=self.settings["TG_increase_difficulty"])
+
         # inva
         self.inva1 = BooleanVar(value=self.settings["I_increase_wave"])
         self.inva2 = self.settings["I_max_num_of_wave"]
+
         # raid
         self.raid1 = BooleanVar(value=self.settings["R_auto_catch_by_gold"])
         self.raid2 = BooleanVar(value=self.settings["R_auto_bribe"])
+
         # gvg
 
         # wb
@@ -39,6 +42,11 @@ class SettingsWindow:
         self.d1 = BooleanVar(value=self.settings["D_auto_catch_by_gold"])
         self.d2 = BooleanVar(value=self.settings["D_auto_bribe"])
         self.d3 = self.settings["D_selected_dungeon"]
+
+        # exped
+        self.exped1 = BooleanVar(value=self.settings["E_increase_difficulty"])
+        self.exped2 = self.settings["E_selected_expedition"]
+        self.exped3 = self.settings["E_selected_portal"]
 
     def view_function_settings(self):
         window = Toplevel(master=self.parent)
@@ -114,6 +122,12 @@ class SettingsWindow:
         dungeon_frame = ttk.LabelFrame(content_frame, text="Dungeon Settings")
         dungeon_frame.grid(row=2, column=0, padx=10, pady=5, sticky="NEW")
         dungeon_frame.columnconfigure(0, weight=1)
+
+        self.expedition_frame = ttk.LabelFrame(
+            content_frame, text="Expedition Settings")
+        self.expedition_frame.grid(
+            row=2, column=0, padx=10, pady=5, sticky="NEW")
+        self.expedition_frame.columnconfigure(0, weight=1)
 
         # ---------------------------------------------------------- pvp
 
@@ -251,6 +265,51 @@ class SettingsWindow:
         )
         dungeon_dropdown.grid(row=2, column=0, padx=5, pady=5, sticky=EW)
 
+        # ---------------------------------------------------------- expedition
+        # Checkbutton for auto increase difficulty
+        exped_checkbox_1 = ttk.Checkbutton(
+            self.expedition_frame,
+            text="Auto increase difficulty",
+            variable=self.exped1,
+            command=lambda: settings_manager.update_user_setting(
+                username=self.username,
+                updates={
+                    "E_increase_difficulty": self.exped1.get()
+                })
+        )
+        exped_checkbox_1.grid(
+            row=0, column=0, padx=5, pady=5, sticky=W)
+
+        # Dropdown for expedition selection
+        self.expedition_dropdown = ttk.Combobox(
+            self.expedition_frame,
+            values=list(self.get_expedition_portals().keys()),
+            state="readonly"
+        )
+        self.expedition_dropdown.set(self.exped2)
+        self.expedition_dropdown.bind("<<ComboboxSelected>>", lambda event: [settings_manager.update_user_setting(
+            username=self.username,
+            updates={
+                "E_selected_expedition": self.expedition_dropdown.get()
+            }), self.load_radio_buttons()]
+        )
+        self.expedition_dropdown.grid(
+            row=1, column=0, padx=5, pady=5, sticky=EW)
+
+        # Radio buttons for portal selection
+        self.portal_selection_frame = Frame(self.expedition_frame)
+        self.portal_selection_frame.grid(
+            row=2, column=0, padx=5, pady=5, sticky=EW)
+        self.portal_name_var = StringVar()
+
+        # Load defaults
+        default_expedition = self.exped2
+        if default_expedition in self.get_expedition_portals():
+            self.expedition_dropdown.set(default_expedition)
+            self.load_radio_buttons()
+
+    # Functions --------------------------------------------------------------
+
     def get_dungeon_list(self):
         """
         Retrieve list of dungeons from the images directory.
@@ -270,3 +329,68 @@ class SettingsWindow:
                 dungeon_name = os.path.splitext(filename)[0]
                 dungeon_list.append(dungeon_name)
         return dungeon_list
+
+    def get_expedition_portals(self):
+        """
+        Load portal images.
+        Returns:
+            dict: {"exp1": {"dung1": "full/path/dung1.png"}}
+        """
+        expeditions_path = resource_path(
+            resource_folder_path="images/expedition/expeditions", resource_name="")
+        portal_list = {}
+        if os.path.exists(expeditions_path):
+            expeditions = os.listdir(expeditions_path)
+            for expedition in expeditions:
+                portal_list[expedition] = {}
+                expedition_path = os.path.join(
+                    expeditions_path, expedition)
+                portals = os.listdir(expedition_path)
+                for portal in portals:
+                    # Remove file extension and add to dictionary
+                    portal_name = os.path.splitext(portal)[0]
+                    full_path = os.path.join(expedition_path, portal)
+                    portal_list[expedition][portal_name] = full_path
+        return portal_list
+
+    def load_radio_buttons(self, event=None):
+        portal_images = self.get_expedition_portals()
+        # Clear previous radio buttons
+        for widget in self.portal_selection_frame.winfo_children():
+            widget.destroy()
+
+        # Get current folder
+        current_expedition = self.expedition_dropdown.get()
+        images: dict = portal_images[current_expedition]
+
+        # Load default
+        default_portal = settings_manager.load_user_settings(
+            username=self.username)["E_selected_portal"]
+        if default_portal in images:
+            self.portal_name_var.set(default_portal)
+        else:
+            self.portal_name_var.set(
+                list(images.keys())[0])
+            settings_manager.update_user_setting(
+                username=self.username,
+                updates={
+                    "E_selected_portal": list(portal_images[self.expedition_dropdown.get()].keys())[0]
+                })
+
+        # Create radio buttons for images
+        for img_name in images.keys():
+            # Create radio button
+            radio = ttk.Radiobutton(
+                self.portal_selection_frame,
+                text=img_name,
+                variable=self.portal_name_var,
+                value=img_name,
+                compound="left",
+                width=0,
+                command=lambda img=img_name: settings_manager.update_user_setting(
+                    username=self.username,
+                    updates={
+                        "E_selected_portal": img
+                    })
+            )
+            radio.pack(side=TOP, fill=X, expand=True)

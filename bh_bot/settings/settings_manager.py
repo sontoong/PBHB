@@ -51,8 +51,14 @@ _DEFAULT_SETTINGS = {
     "D_auto_catch_by_gold": True,
     "D_auto_bribe": False,
 
+    # expedition
+    "E_num_of_loop": 1,
+    "E_increase_difficulty": True,
+    "E_selected_expedition": "inferno_dimension",
+    "E_selected_portal": "raleibs_portal",
+
     # run_all
-    "RA_functions": {"pvp": True,  "gvg": True, "invasion": True,  "tg": True, "world_boss": True, "raid": True, "dungeon": True}
+    "RA_functions": {"pvp": True,  "gvg": True, "invasion": True, "expedition": True,  "tg": True, "world_boss": True, "raid": True, "dungeon": True}
 }
 
 
