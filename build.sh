@@ -16,6 +16,8 @@ echo "Building executable..."
 # pyinstaller --clean --onefile --noconsole --name "Bit Heroes Bot" --add-data "$ADD_DATA_FLAG" bh_bot/__main__.py
 pyinstaller --clean --onedir --hide-console "minimize-early" --name "PBHB" --add-data "$ADD_DATA_FLAG" bh_bot/__main__.py
 
+pyinstaller --clean --onedir --noconsole --name "PBHB-no-console" --add-data "$ADD_DATA_FLAG" bh_bot/__main__.py
+
 # Check if the build was successful
 if [ $? -eq 0 ]; then
     echo "Build successful!"
