@@ -11,7 +11,6 @@ _SETTING_FILE = "user_settings.json"
 
 _DEFAULT_SETTINGS = {
     # general
-    "G_dark_mode": False,
     "G_fancy_mouse": False,
     "G_auto_close_dm": True,
     "G_bribe_list": {},
