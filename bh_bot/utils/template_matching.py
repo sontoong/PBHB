@@ -68,6 +68,10 @@ def grab_text(*, running_window, box_left, box_top, box_width, box_height):
     recognized_text = recognize_text_by_template(
         screenshot, templates, threshold=0.9)
 
+    # Debug
+    os.makedirs("debug/offers", exist_ok=True)
+    screenshot.save(f'debug/offers/{recognized_text}.png')
+
     return recognized_text
 
 

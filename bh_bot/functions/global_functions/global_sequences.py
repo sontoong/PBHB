@@ -30,14 +30,24 @@ def get_global_click_sequence(*, user, user_settings: dict, running_window, regi
 
     # Check counter
     CHECK_COUNTER += 1
-    if CHECK_COUNTER % 5 != 0:
+    if CHECK_COUNTER % 2 != 0:
+        # Case: Auto is not on
+        if locate_image(
+            running_window=running_window,
+            image_path_relative="auto_red.png",
+            resource_folder=GLOBAL_RESOURCE_FOLDER,
+            region=region, confidence=0.95, grayscale=False
+        ) is not None:
+            time.sleep(2)
+            turn_on_auto_sequence = [
+                ImageInfo(image_path='auto_red.png',
+                          offset_x=5, offset_y=5, confidence=0.95, grayscale=False)
+            ]
+
         return list_flattern([turn_on_auto_sequence])
 
     if CHECK_COUNTER % 10 != 0:
         return []
-
-    print(f"Counter: {CHECK_COUNTER}")
-    print(time.time())
 
     # Start -------------------------------------------------------
     # Case: News alert
@@ -78,18 +88,6 @@ def get_global_click_sequence(*, user, user_settings: dict, running_window, regi
                       offset_x=5, offset_y=5)
         ]
 
-    # Case: Auto is not on
-    if locate_image(
-        running_window=running_window,
-        image_path_relative="auto_red.png",
-        resource_folder=GLOBAL_RESOURCE_FOLDER,
-        region=region
-    ) is not None:
-        turn_on_auto_sequence = [
-            ImageInfo(image_path='auto_red.png',
-                      offset_x=5, offset_y=5, grayscale=False)
-        ]
-
     # Case: Are you sure you want to quit this battle
     if locate_image(
         running_window=running_window,
@@ -111,7 +109,7 @@ def get_global_click_sequence(*, user, user_settings: dict, running_window, regi
     ) is not None:
         capture_screenshot(
             region=region,
-            save_directory=f"data/{user["username"]}/images",
+            save_directory=f"data/{user["username"]}/chat-images",
             add_timestamp=True
         )
 
