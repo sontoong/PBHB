@@ -51,7 +51,7 @@ def add_amount_familiar(*, username, running_window, anchor_location, amount=1):
     bribe_list = user_settings["G_bribe_list"]
 
     familiar_name_grab = grab_text(running_window=running_window,
-                                   box_top=anchor_location.top-5, box_left=anchor_location.left-250, box_width=240, box_height=25)
+                                   box_top=anchor_location.top-5, box_left=anchor_location.left-250, box_width=240, box_height=25, match_type="char")
     print(f"Familiar name: {familiar_name_grab}")
     familiar_amount = 0
     found_familiar_name = ""

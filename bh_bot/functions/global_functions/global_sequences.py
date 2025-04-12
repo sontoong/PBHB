@@ -30,6 +30,7 @@ def get_global_click_sequence(*, user, user_settings: dict, running_window, regi
 
     # Check counter
     CHECK_COUNTER += 1
+
     if CHECK_COUNTER % 2 != 0:
         # Case: Auto is not on
         if locate_image(
@@ -44,9 +45,51 @@ def get_global_click_sequence(*, user, user_settings: dict, running_window, regi
                           offset_x=5, offset_y=5, confidence=0.95, grayscale=False)
             ]
 
-        return list_flattern([turn_on_auto_sequence])
+        # Case: Chat Window
+        if user_settings["G_auto_close_dm"] is True and locate_image(
+            running_window=running_window,
+            image_path_relative="send_msg_button.png",
+            resource_folder=GLOBAL_RESOURCE_FOLDER,
+            region=region
+        ) is not None:
+            capture_screenshot(
+                region=region,
+                save_directory=f"data/{user["username"]}/chat-images",
+                add_timestamp=True
+            )
 
-    if CHECK_COUNTER % 10 != 0:
+            close_dm_sequence = [
+                ImageInfo(image_path='send_msg_button.png',
+                          offset_x=100, offset_y=-250),
+            ]
+
+        # Case: Are you sure you want to quit Bit Heroes
+        if locate_image(
+            running_window=running_window,
+            image_path_relative="exit_bh.png",
+            resource_folder=GLOBAL_RESOURCE_FOLDER,
+            region=region
+        ) is not None:
+            confirm_playing_bh_sequence = [
+                ImageInfo(image_path='no_button.png',
+                          offset_x=5, offset_y=5)
+            ]
+
+         # Case: Are you still there
+        if locate_image(
+            running_window=running_window,
+            image_path_relative="are_you_still_there.png",
+            resource_folder=GLOBAL_RESOURCE_FOLDER,
+            region=region
+        ) is not None:
+            confirm_still_here_sequence = [
+                ImageInfo(image_path='yes_button.png',
+                          offset_x=5, offset_y=5)
+            ]
+
+        return list_flattern([turn_on_auto_sequence, close_dm_sequence, confirm_playing_bh_sequence, confirm_still_here_sequence])
+
+    if CHECK_COUNTER % 5 != 0:
         return []
 
     # Start -------------------------------------------------------
@@ -64,30 +107,6 @@ def get_global_click_sequence(*, user, user_settings: dict, running_window, regi
         ImageInfo(image_path='reconnect_button.png', offset_x=5, offset_y=5),
     ]
 
-    # Case: Are you still there
-    if locate_image(
-        running_window=running_window,
-        image_path_relative="are_you_still_there.png",
-        resource_folder=GLOBAL_RESOURCE_FOLDER,
-        region=region
-    ) is not None:
-        confirm_still_here_sequence = [
-            ImageInfo(image_path='yes_button.png',
-                      offset_x=5, offset_y=5)
-        ]
-
-    # Case: Are you sure you want to quit Bit Heroes
-    if locate_image(
-        running_window=running_window,
-        image_path_relative="exit_bh.png",
-        resource_folder=GLOBAL_RESOURCE_FOLDER,
-        region=region
-    ) is not None:
-        confirm_playing_bh_sequence = [
-            ImageInfo(image_path='no_button.png',
-                      offset_x=5, offset_y=5)
-        ]
-
     # Case: Are you sure you want to quit this battle
     if locate_image(
         running_window=running_window,
@@ -98,24 +117,6 @@ def get_global_click_sequence(*, user, user_settings: dict, running_window, regi
         confirm_battle_sequence = [
             ImageInfo(image_path='no_button.png',
                       offset_x=5, offset_y=5)
-        ]
-
-    # Case: Chat Window
-    if user_settings["G_auto_close_dm"] is True and locate_image(
-        running_window=running_window,
-        image_path_relative="send_msg_button.png",
-        resource_folder=GLOBAL_RESOURCE_FOLDER,
-        region=region
-    ) is not None:
-        capture_screenshot(
-            region=region,
-            save_directory=f"data/{user["username"]}/chat-images",
-            add_timestamp=True
-        )
-
-        close_dm_sequence = [
-            ImageInfo(image_path='send_msg_button.png',
-                      offset_x=100, offset_y=-250),
         ]
 
     # Case: Claim daily reward
@@ -178,10 +179,7 @@ def get_global_click_sequence(*, user, user_settings: dict, running_window, regi
 
     global_sequence = [
         reconnect_sequence,
-        confirm_still_here_sequence,
-        confirm_playing_bh_sequence,
         confirm_battle_sequence,
-        close_dm_sequence,
         claim_daily_reward_sequence,
         ignore_request_sequence,
         close_battle_victory_screen_sequence,

@@ -24,10 +24,6 @@ def expedition(*, user_settings, user, stop_event: threading.Event, start_time=t
     running_window.activate()
     time.sleep(1)
 
-    # Check time
-    if time.time() - start_time > MAX_TIME:
-        pyautogui.press("space", presses=2, interval=1)
-
     # Define region for pyautogui
     region = (running_window.left, running_window.top,
               running_window.width, running_window.height)
@@ -52,6 +48,11 @@ def expedition(*, user_settings, user, stop_event: threading.Event, start_time=t
     if locate_image(running_window=running_window, image_path_relative="not_enough_badges.png", resource_folder=GLOBAL_RESOURCE_FOLDER, region=region) is not None:
         pyautogui.press("esc", presses=4, interval=1)
         stop_event.set()
+
+    # Check time
+    if time.time() - start_time > MAX_TIME:
+        pyautogui.press("esc", presses=6, interval=1)
+        pyautogui.press("space", presses=2, interval=1)
 
     # Exit and enter portal
     enter_dungeon_sequence: List[ImageInfo] = [

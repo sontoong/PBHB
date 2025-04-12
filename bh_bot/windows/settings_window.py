@@ -163,7 +163,7 @@ class SettingsWindow:
 
         # Entry for max wave
         max_wave_entry = NumberEntry(
-            inva_frame, label_text="Number of waves", min_value=1)
+            inva_frame, label_text="Number of waves", min_value=0)
         max_wave_entry.set(
             self.inva2)
         max_wave_entry.trace_add("write", lambda: settings_manager.update_user_setting(

@@ -1,4 +1,5 @@
 import time
+from datetime import datetime
 import os
 import pyautogui
 from PIL import ImageDraw
@@ -38,7 +39,7 @@ def highlight_location(x, y, radius=20, color="red", duration=3):
     time.sleep(duration)
 
 
-def capture_screenshot(*, region=None, save_path=None, save_directory=None, add_timestamp=False):
+def capture_screenshot(*, region=None, save_path=None, save_directory=None, add_timestamp=True):
     """
     Captures a screenshot and saves it to the specified path.
 
@@ -59,7 +60,6 @@ def capture_screenshot(*, region=None, save_path=None, save_directory=None, add_
 
     # Determine where to save the image
     if save_path:
-        # Make sure the directory exists
         os.makedirs(os.path.dirname(save_path), exist_ok=True)
         screenshot.save(save_path)
         return save_path
@@ -69,8 +69,8 @@ def capture_screenshot(*, region=None, save_path=None, save_directory=None, add_
         os.makedirs(save_directory, exist_ok=True)
 
         # Generate filename
-        timestamp = int(time.time()) if add_timestamp else ""
-        timestamp_str = f"_{timestamp}" if timestamp else ""
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M")
+        timestamp_str = f"_{timestamp}" if add_timestamp else ""
         filename = f"screenshot{timestamp_str}.png"
 
         # Full save path
