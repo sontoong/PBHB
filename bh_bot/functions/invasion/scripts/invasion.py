@@ -16,7 +16,7 @@ GLOBAL_RESOURCE_FOLDER = "images/global"
 RESOURCE_FOLDER = "images/invasion"
 
 MAX_WAVE = None
-MAX_TIME = 300
+MAX_TIME = 3000  # Might need changes as inva runs take very long
 
 
 @sleep(timeout=5, retry=999)
@@ -24,11 +24,6 @@ def invasion(*, user_settings, user, stop_event: threading.Event, start_time=tim
     running_window = user["running_window"]
     running_window.activate()
     time.sleep(1)
-
-    # Check time
-    if time.time() - start_time > MAX_TIME:
-        pyautogui.press("esc", presses=2, interval=1)
-        pyautogui.press("space", presses=2, interval=1)
 
     # Define region for pyautogui
     region = (running_window.left, running_window.top,
@@ -50,28 +45,41 @@ def invasion(*, user_settings, user, stop_event: threading.Event, start_time=tim
     # Function click sequence
     # -----------------------------------------------------------
 
-    # Case: Out of tokens
-    if locate_image(running_window=running_window, image_path_relative="not_enough_tokens.png", resource_folder=GLOBAL_RESOURCE_FOLDER, region=region) is not None:
+    # Case: Out of badges
+    if locate_image(running_window=running_window, image_path_relative="not_enough_badges.png", resource_folder=GLOBAL_RESOURCE_FOLDER, region=region) is not None:
         pyautogui.press("esc", presses=2, interval=1)
         stop_event.set()
 
+    # Check time
+    if time.time() - start_time > MAX_TIME:
+        pyautogui.press("esc", presses=6, interval=1)
+        pyautogui.press("space", presses=1, interval=1)
+
     # Case: Max wave
-    global MAX_WAVE
+    if user_settings["I_max_num_of_wave"] != 0 and locate_image(running_window=running_window, image_path_relative="potions_button.png", resource_folder=RESOURCE_FOLDER, region=region):
+        global MAX_WAVE
 
-    location = locate_image(running_window=running_window, image_path_relative="wave_counter_box_left.png",
-                            resource_folder=RESOURCE_FOLDER, region=region)
-    if location is not None:
-        wave_text = grab_text(running_window=running_window,
-                              box_top=location.top+10, box_left=location.left+10, box_width=90, box_height=25)
-        if MAX_WAVE is None and wave_text != "":
-            MAX_WAVE = int(wave_text) + user_settings["I_max_num_of_wave"]
+        location = locate_image(running_window=running_window, image_path_relative="wave_counter_box_top.png",
+                                resource_folder=RESOURCE_FOLDER, region=region, confidence=0.9, grayscale=False)
+        if location is not None:
+            wave_text = grab_text(running_window=running_window,
+                                  box_top=location.top+10, box_left=location.left+10, box_width=90, box_height=25, match_type="number")
 
-        if MAX_WAVE is not None:
-            if int(wave_text) >= MAX_WAVE:
-                pyautogui.press("esc", presses=1, interval=1)
-                pyautogui.press("space", presses=1, interval=1)
-                time.sleep(1)
-                pyautogui.press("esc", presses=1, interval=1)
+            try:
+                wave_number = int(wave_text)
+
+                if MAX_WAVE is None:
+                    MAX_WAVE = wave_number + \
+                        user_settings["I_max_num_of_wave"]
+
+                if MAX_WAVE is not None and wave_number >= MAX_WAVE:
+                    pyautogui.press("esc", presses=1, interval=1)
+                    pyautogui.press("space", presses=1, interval=1)
+                    time.sleep(1)
+                    pyautogui.press("esc", presses=1, interval=1)
+                    MAX_WAVE = None
+            except ValueError:
+                pass
 
     # Case: Exit and re-enter invasion
     exit_and_enter_sequence: List[ImageInfo] = [

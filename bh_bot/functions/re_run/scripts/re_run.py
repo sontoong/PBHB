@@ -24,12 +24,6 @@ def re_run(*, user_settings, user, stop_event: threading.Event, start_time=time.
     running_window.activate()
     time.sleep(1)
 
-    # Check time
-    if time.time() - start_time > MAX_TIME:
-        pyautogui.press("space", presses=2, interval=1)
-        pyautogui.press("esc", presses=1, interval=1)
-        pyautogui.press("w", presses=1, interval=1)
-
     # Define region for pyautogui
     region = (running_window.left, running_window.top,
               running_window.width, running_window.height)
@@ -59,6 +53,13 @@ def re_run(*, user_settings, user, stop_event: threading.Event, start_time=time.
     if locate_image(running_window=running_window, image_path_relative="not_enough_shards.png", resource_folder=GLOBAL_RESOURCE_FOLDER, region=region) is not None:
         pyautogui.press("esc", presses=2, interval=1)
         stop_event.set()
+
+    # Check time
+    if time.time() - start_time > MAX_TIME:
+        pyautogui.press("esc", presses=6, interval=1)
+        pyautogui.press("space", presses=2, interval=1)
+        pyautogui.press("esc", presses=1, interval=1)
+        pyautogui.press("w", presses=1, interval=1)
 
     # Case: Persuade fam window
     persuade_button_location = locate_image(

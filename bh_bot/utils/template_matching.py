@@ -11,9 +11,11 @@ TEMPLATE_FOLDER_CHARACTERS = "images/global/characters"
 # pylint: disable=no-member
 
 
-def grab_text(*, running_window, box_left, box_top, box_width, box_height):
+def grab_text(*, running_window, box_left, box_top, box_width, box_height, match_type="both"):
     """
     Extract text using template matching.
+
+    :param match_type: Specify which type (char, number, both). Default is both
 
     Returns:
         str: Extracted text from the specified box
@@ -53,8 +55,17 @@ def grab_text(*, running_window, box_left, box_top, box_width, box_height):
         if char_variant_templates:
             char_templates[char] = char_variant_templates
 
-    # Combine all templates
-    templates = {**number_templates, **char_templates}
+    # Switch templates
+    match match_type:
+        case "number":
+            templates = number_templates
+            print("matching number")
+        case "char":
+            templates = char_templates
+            print("matching char")
+        case "both":
+            templates = {**number_templates, **char_templates}
+            print("matching both")
 
     # Calculate absolute coordinates of the box
     box_right = box_left + box_width
@@ -70,7 +81,8 @@ def grab_text(*, running_window, box_left, box_top, box_width, box_height):
 
     # Debug
     os.makedirs("debug/offers", exist_ok=True)
-    screenshot.save(f'debug/offers/{recognized_text}.png')
+    screenshot.save(
+        f'debug/offers/{recognized_text if recognized_text != '' else "empty"}.png')
 
     return recognized_text
 
@@ -157,13 +169,15 @@ def recognize_text_by_template(screenshot, templates_dict, threshold=0.7):
 
     # Apply non-maximum suppression
     selected_matches = []
-    min_distance = 10  # Minimum distance between character centers
 
     # Mark matches to remove
     to_remove = set()
 
     # Process matches in order of confidence
     for i, match in enumerate(matches):
+        char_width = match['width']
+        min_char_distance = max(char_width * 0.5, 3)  # Prevents overlapping
+
         if i in to_remove:
             continue
 
@@ -180,7 +194,7 @@ def recognize_text_by_template(screenshot, templates_dict, threshold=0.7):
             center2 = other_match['position'] + other_match['width'] // 2
 
             # If centers are too close, remove the lower confidence match
-            if abs(center1 - center2) < min_distance:
+            if abs(center1 - center2) < min_char_distance:
                 to_remove.add(j)
 
     # Sort remaining matches by position (left to right)

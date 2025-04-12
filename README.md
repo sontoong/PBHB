@@ -46,11 +46,12 @@ g1
 h1,h
 l1
 q,
+i1
+j1
+u1
+q1
 
 needs checking:
-i1
-j, j1
-q1
-u1
+j,
 x, x1
 , y1

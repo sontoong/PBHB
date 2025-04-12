@@ -93,18 +93,18 @@ class NumberEntry(ttk.Frame):
         if value == "" or value.isdigit():
             if value:
                 number = int(value)
-                # Check for min and max value constraints
-                if (self.min_value is not None and number < self.min_value) or \
-                   (self.max_value is not None and number > self.max_value):
+                if self.min_value is not None and number < self.min_value:
+                    return False
+                if self.max_value is not None and number > self.max_value:
                     return False
             return True
         else:
             return False
 
     def get(self):
-        """Get the current integer value of the entry, or None if empty."""
+        """Get the current integer value of the entry, or 0 if empty."""
         value = self.var.get()
-        return int(value) if value.isdigit() else None
+        return int(value) if value.isdigit() else 0
 
     def set(self, value):
         """Set the current value of the entry."""

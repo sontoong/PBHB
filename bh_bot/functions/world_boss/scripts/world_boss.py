@@ -23,10 +23,6 @@ def world_boss(*, user_settings, user, stop_event: threading.Event, start_time=t
     running_window.activate()
     time.sleep(1)
 
-    # Check time
-    if time.time() - start_time > MAX_TIME:
-        pyautogui.press("space", presses=2, interval=1)
-
     # Define region for pyautogui
     region = (running_window.left, running_window.top,
               running_window.width, running_window.height)
@@ -57,6 +53,11 @@ def world_boss(*, user_settings, user, stop_event: threading.Event, start_time=t
         else:
             pyautogui.press("esc", presses=2, interval=1)
             stop_event.set()
+
+     # Check time
+    if time.time() - start_time > MAX_TIME:
+        pyautogui.press("esc", presses=6, interval=1)
+        pyautogui.press("space", presses=2, interval=1)
 
     # Case: Enter world boss
     enter_wb_sequence: List[ImageInfo] = [

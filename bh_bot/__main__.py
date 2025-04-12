@@ -5,7 +5,7 @@ import pyautogui
 from bh_bot.windows.user_management import UserManagementScreen
 
 pyautogui.PAUSE = 0.1
-pyautogui.FAILSAFE = True
+pyautogui.FAILSAFE = False
 
 
 def main():
