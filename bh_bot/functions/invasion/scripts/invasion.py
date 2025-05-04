@@ -52,6 +52,7 @@ def invasion(*, user_settings, user, stop_event: threading.Event, start_time=tim
 
     # Check time
     if time.time() - start_time > MAX_TIME:
+        print("Timming out")
         pyautogui.press("esc", presses=6, interval=1)
         pyautogui.press("space", presses=1, interval=1)
 

@@ -52,6 +52,7 @@ def dungeon(*, user_settings, user, stop_event: threading.Event, start_time=time
 
     # Check time
     if time.time() - start_time > MAX_TIME:
+        print("Timming out")
         pyautogui.press("esc", presses=6, interval=1)
         pyautogui.press("space", presses=2, interval=1)
 
@@ -122,21 +123,19 @@ def dungeon(*, user_settings, user, stop_event: threading.Event, start_time=time
 
     # Final: Rerun dungeon
     if locate_image(
-            running_window=running_window, image_path_relative="town_button.png", resource_folder=RESOURCE_FOLDER, region=region) is not None:
-        if locate_image(
-                running_window=running_window, image_path_relative="rerun_button.png", resource_folder=RESOURCE_FOLDER, region=region) is None:
-            exit_dungeon_sequence: List[ImageInfo] = [
-                ImageInfo(image_path='town_button.png',
-                          offset_x=5, offset_y=5, optional=False),
-            ]
-            click_images_in_sequence_wrapped(
-                running_window=running_window,
-                image_info_list=exit_dungeon_sequence, resource_folder=RESOURCE_FOLDER, user_settings=user_settings, region=region)
-        else:
-            re_run_sequence: List[ImageInfo] = [
-                ImageInfo(image_path='rerun_button.png',
-                          offset_x=10, offset_y=10, optional=False),
-            ]
-            click_images_in_sequence_wrapped(
-                running_window=running_window,
-                image_info_list=re_run_sequence, resource_folder=RESOURCE_FOLDER, user_settings=user_settings, region=region)
+            running_window=running_window, image_path_relative="rerun_button.png", resource_folder=RESOURCE_FOLDER, region=region) is None:
+        exit_dungeon_sequence: List[ImageInfo] = [
+            ImageInfo(image_path='town_button.png',
+                      offset_x=5, offset_y=5, optional=False),
+        ]
+        click_images_in_sequence_wrapped(
+            running_window=running_window,
+            image_info_list=exit_dungeon_sequence, resource_folder=RESOURCE_FOLDER, user_settings=user_settings, region=region)
+    else:
+        re_run_sequence: List[ImageInfo] = [
+            ImageInfo(image_path='rerun_button.png',
+                      offset_x=10, offset_y=10, optional=False),
+        ]
+        click_images_in_sequence_wrapped(
+            running_window=running_window,
+            image_info_list=re_run_sequence, resource_folder=RESOURCE_FOLDER, user_settings=user_settings, region=region)
