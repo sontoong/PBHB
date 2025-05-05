@@ -51,6 +51,7 @@ def trials_gauntlet(*, user_settings, user, stop_event: threading.Event, start_t
 
     # Check time
     if time.time() - start_time > MAX_TIME:
+        print("Timming out")
         pyautogui.press("esc", presses=6, interval=1)
         pyautogui.press("space", presses=2, interval=1)
         pyautogui.press("esc", presses=1, interval=1)
