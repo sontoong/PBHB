@@ -56,6 +56,7 @@ def grab_text(*, running_window, box_left, box_top, box_width, box_height, match
             char_templates[char] = char_variant_templates
 
     # Switch templates
+    templates = {**number_templates, **char_templates}
     match match_type:
         case "number":
             templates = number_templates

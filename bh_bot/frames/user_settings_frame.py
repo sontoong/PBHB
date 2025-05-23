@@ -35,7 +35,7 @@ class UserSettingsFrame(ttk.Frame):
             column = idx % columns_per_row
             row = idx // columns_per_row
             frame.grid(column=column, row=row, padx=10,
-                       pady=10, sticky=(N, W, E, S))
+                       pady=10, sticky="nsew")
 
         self.create_checkbuttons()
 
@@ -86,7 +86,7 @@ class UserSettingsFrame(ttk.Frame):
                 variable=var,
                 command=lambda var=var, key=opt["setting_key"]: self.update_setting(
                     key, var.get())
-            ).grid(sticky=(W, E))
+            ).grid(sticky="we")
 
     def update_setting(self, key, value):
         # Update the specified setting

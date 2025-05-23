@@ -8,7 +8,6 @@ from bh_bot.utils.actions import locate_image, pyautogui
 from bh_bot.utils.wrappers import stop_checking_wrapper
 from bh_bot.classes.image_info import ImageInfo
 from bh_bot.decorators.sleep import sleep
-from bh_bot.utils.helpers import list_flattern
 from bh_bot.functions.global_functions.global_sequences import get_global_click_sequence
 from bh_bot.functions.global_functions.bribe_familiars import get_bribe_list, add_amount_familiar
 
@@ -22,7 +21,6 @@ MAX_TIME = 400
 def raid(*, user_settings, user, stop_event: threading.Event, start_time=time.time()):
     running_window = user["running_window"]
     running_window.activate()
-    time.sleep(1)
 
     # Define region for pyautogui
     region = (running_window.left, running_window.top,
@@ -39,7 +37,7 @@ def raid(*, user_settings, user, stop_event: threading.Event, start_time=time.ti
 
     click_images_in_sequence_wrapped(
         running_window=running_window,
-        image_info_list=list_flattern(global_sequence), resource_folder=GLOBAL_RESOURCE_FOLDER, user_settings=user_settings, region=region)
+        image_info_list=global_sequence, resource_folder=GLOBAL_RESOURCE_FOLDER, user_settings=user_settings, region=region)
 
     # Function click sequence
     # -----------------------------------------------------------
@@ -92,13 +90,13 @@ def raid(*, user_settings, user, stop_event: threading.Event, start_time=time.ti
         running_window=running_window, image_path_relative="persuade_button.png", resource_folder=RESOURCE_FOLDER, region=region)
     if persuade_button_location is not None:
         first_button = 'persuade_button.png'
+        anchor_location = locate_image(
+            running_window=running_window, image_path_relative="persuade_anchor.png", resource_folder=GLOBAL_RESOURCE_FOLDER, region=region)
 
         if user_settings["R_auto_catch_by_gold"] is False:
             first_button = 'decline_button.png'
 
         if user_settings["R_auto_bribe"]:
-            anchor_location = locate_image(
-                running_window=running_window, image_path_relative="persuade_anchor.png", resource_folder=GLOBAL_RESOURCE_FOLDER, region=region)
             if get_bribe_list(anchor_location=anchor_location, running_window=running_window, username=user["username"]) is True:
                 first_button = "bribe_button.png"
 
@@ -122,7 +120,8 @@ def raid(*, user_settings, user, stop_event: threading.Event, start_time=time.ti
 
     # Final: Rerun raid
     if locate_image(
-            running_window=running_window, image_path_relative="rerun_button.png", resource_folder=RESOURCE_FOLDER, region=region) is None:
+            running_window=running_window, image_path_relative="rerun_button.png", resource_folder=RESOURCE_FOLDER, region=region) is None and locate_image(
+            running_window=running_window, image_path_relative="town_button.png", resource_folder=RESOURCE_FOLDER, region=region) is not None:
         exit_dungeon_sequence: List[ImageInfo] = [
             ImageInfo(image_path='town_button.png',
                       offset_x=5, offset_y=5, optional=False),

@@ -57,11 +57,15 @@ def child_thread_expedition(*, callback, user, user_settings) -> None:
 
 def thread_worker(*, callback, user, user_settings) -> None:
     thread_id = "run_all"
+    running_window = user["running_window"]
     functions_to_run = get_true_keys(user_settings["RA_functions"])
+    is_close_game = user_settings["RA_close_game_after_regen"]
 
     def loop_worker(**_):
         while True:
             error_tracker = {"count": 0}
+            finish_tracker = {"count": 0}
+
             try:
                 for function_name in functions_to_run:
 
@@ -71,8 +75,10 @@ def thread_worker(*, callback, user, user_settings) -> None:
                         def child_thread_callback(error=None, result=None):
                             if error:
                                 error_tracker["count"] += 1
-                            if result:
+                            elif result:
                                 print(f"Result: {result}")
+                            else:
+                                finish_tracker["count"] += 1
                             child_completion_event.set()
 
                         return child_thread_callback, child_completion_event
@@ -108,6 +114,11 @@ def thread_worker(*, callback, user, user_settings) -> None:
 
                     # Wait for the thread to complete
                     child_completion_event.wait()
+
+                    # If all success and want to quit game
+                    if finish_tracker["count"] == len(functions_to_run) and is_close_game is True:
+                        running_window.close()
+                        return
 
                     # If all functions fail in a single loop, most likely choosing a non-existence window
                     if error_tracker["count"] == len(functions_to_run):

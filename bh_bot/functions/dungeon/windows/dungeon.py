@@ -21,11 +21,12 @@ class DungeonWindow:
     def __init__(self, parent, user):
         # Init window
         self.parent = parent
-        self.window = Toplevel(parent=None)
+        self.window = Toplevel(master=None)
         self.window.title("Dungeon")
         center_window_relative(
             window=self.window, parent=self.parent, window_width=300, window_height=300)
         self.window.protocol("WM_DELETE_WINDOW", self.close_window)
+        self.current_photo = None
 
         # Bind the Escape key to the stop_execute function
         keyboard.add_hotkey(
@@ -134,10 +135,9 @@ class DungeonWindow:
             image_path = self.dungeon_images[selected_dungeon]
             image = Image.open(image_path)
             image.thumbnail((100, 100))
-            photo = ImageTk.PhotoImage(image)
+            self.current_photo = ImageTk.PhotoImage(image)
 
-            self.image_label.config(image=photo)
-            self.image_label.image = photo
+            self.image_label.config(image=self.current_photo)
 
     def start_execute(self):
         num_of_loop = int(self.num_of_loop_entry.get())

@@ -17,7 +17,7 @@ class InvasionWindow:
     def __init__(self, parent, user):
         # Init window
         self.parent = parent
-        self.window = Toplevel(parent=None)
+        self.window = Toplevel(master=None)
         self.window.title("Invasion")
         center_window_relative(
             window=self.window, parent=self.parent, window_width=250, window_height=250)

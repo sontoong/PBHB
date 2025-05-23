@@ -5,6 +5,7 @@ import time
 import pyautogui
 import pyscreeze
 import pygetwindow as gw
+from typing import Tuple, Any, List
 from bh_bot.utils.helpers import extract_file_name, resource_path
 from bh_bot.decorators.sleep import sleep
 from bh_bot.utils.window_utils import force_activate_window
@@ -45,7 +46,7 @@ def click(x, y, clicks=1, user_settings=None):
 
         if animated:
             pyautogui.moveTo(x=x, y=y, duration=0.2,
-                             tween=pyautogui.easeInOutQuad)
+                             tween=pyautogui.easeInOutQuad)  # type: ignore
             pyautogui.click(clicks=clicks)
         else:
             pyautogui.moveTo(x=x, y=y)
@@ -66,7 +67,7 @@ def move_to(x, y, user_settings=None):
 
         if animated:
             pyautogui.moveTo(x=x, y=y, duration=0.2,
-                             tween=pyautogui.easeInOutQuad)
+                             tween=pyautogui.easeInOutQuad)  # type: ignore
         else:
             pyautogui.moveTo(x=x, y=y)
     else:
@@ -86,6 +87,7 @@ def locate_image(*, running_window, image_path_relative, resource_folder, confid
     :param optional: Image is optional or not.
     :return: The location of the image if found, otherwise None.
     """
+    image_path = ""
     try:
         force_activate_window(running_window)
 
@@ -114,7 +116,7 @@ def locate_image(*, running_window, image_path_relative, resource_folder, confid
 
 
 @sleep(timeout=1, retry=2)
-def locate_image_instances(*, running_window, image_path_relative, resource_folder, confidence=0.8, region=None, optional=True):
+def locate_image_instances(*, running_window, image_path_relative, resource_folder, confidence=0.8, region=None, optional=True) -> Tuple[int, List[Any]]:
     """
     Locates all instances of an image on the screen and returns the count.
 
@@ -126,6 +128,7 @@ def locate_image_instances(*, running_window, image_path_relative, resource_fold
     :param optional: Image is optional or not.
     :return: Tuple of (count of instances, list of locations)
     """
+    image_path = ""
     try:
         force_activate_window(running_window)
 
@@ -149,6 +152,6 @@ def locate_image_instances(*, running_window, image_path_relative, resource_fold
             # Image not found and it's required
             raise pyautogui.ImageNotFoundException(f"Could not locate '{
                 image_name}' on screen. Make sure the window is clearly visible.") from err
-        return None
+        return 0, []
     except Exception as general_err:
         raise general_err
