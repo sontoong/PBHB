@@ -67,7 +67,7 @@ class FunctionListFrame(ttk.Frame):
             column = idx % columns_per_row
             row = idx // columns_per_row
             frame.grid(column=column, row=row, padx=10,
-                       pady=10, sticky=(N, W, E, S))
+                       pady=10, sticky="nsew")
 
             # Create buttons for each function
             for function_name, function_window in frame_functions.items():

@@ -4,29 +4,29 @@ import pyautogui
 from bh_bot.classes.image_info import ImageInfo
 from bh_bot.utils.actions import locate_image
 from bh_bot.utils.image_utils import capture_screenshot
-from bh_bot.utils.helpers import list_flattern
+from bh_bot.utils.helpers import list_flatten
 
 GLOBAL_RESOURCE_FOLDER = "images/global"
 
 CHECK_COUNTER = 0
 
 
-def get_global_click_sequence(*, user, user_settings: dict, running_window, region) -> List[List[ImageInfo]]:
+def get_global_click_sequence(*, user, user_settings: dict, running_window, region) -> List[ImageInfo]:
     """
     Returns the global click sequence for handling common scenarios.
     """
     global CHECK_COUNTER
 
     # Init values
-    turn_on_auto_sequence: List[ImageInfo] = []
-    confirm_still_here_sequence: List[ImageInfo] = []
-    confirm_playing_bh_sequence: List[ImageInfo] = []
-    confirm_battle_sequence: List[ImageInfo] = []
-    close_dm_sequence: List[ImageInfo] = []
-    claim_daily_reward_sequence: List[ImageInfo] = []
-    reconnect_to_dungeon_sequence: List[ImageInfo] = []
-    close_battle_victory_screen_sequence: List[ImageInfo] = []
-    accept_not_leave_guild_sequence: List[ImageInfo] = []
+    turn_on_auto_sequence = None
+    confirm_still_here_sequence = None
+    confirm_playing_bh_sequence = None
+    confirm_battle_sequence = None
+    close_dm_sequence = None
+    claim_daily_reward_sequence = None
+    reconnect_to_dungeon_sequence = None
+    close_battle_victory_screen_sequence = None
+    accept_not_leave_guild_sequence = None
 
     # Check counter
     CHECK_COUNTER += 1
@@ -87,7 +87,7 @@ def get_global_click_sequence(*, user, user_settings: dict, running_window, regi
                           offset_x=5, offset_y=5)
             ]
 
-        return list_flattern([turn_on_auto_sequence, close_dm_sequence, confirm_playing_bh_sequence, confirm_still_here_sequence])
+        return list_flatten([turn_on_auto_sequence, close_dm_sequence, confirm_playing_bh_sequence, confirm_still_here_sequence])
 
     if CHECK_COUNTER % 5 != 0:
         return []
@@ -126,7 +126,7 @@ def get_global_click_sequence(*, user, user_settings: dict, running_window, regi
         resource_folder=GLOBAL_RESOURCE_FOLDER,
         region=region
     ) is not None:
-        claim_daily_reward_sequence: List[ImageInfo] = [
+        claim_daily_reward_sequence = [
             ImageInfo(image_path='claim_button.png', offset_x=5, offset_y=5),
             ImageInfo(image_path='close_icon_button.png',
                       offset_x=5, offset_y=5)
@@ -139,7 +139,7 @@ def get_global_click_sequence(*, user, user_settings: dict, running_window, regi
         resource_folder=GLOBAL_RESOURCE_FOLDER,
         region=region
     ) is not None:
-        reconnect_to_dungeon_sequence: List[ImageInfo] = [
+        reconnect_to_dungeon_sequence = [
             ImageInfo(image_path='yes_button.png', offset_x=5, offset_y=5),
         ]
 
@@ -187,4 +187,4 @@ def get_global_click_sequence(*, user, user_settings: dict, running_window, regi
         accept_not_leave_guild_sequence
     ]
 
-    return list_flattern(global_sequence)
+    return list_flatten(global_sequence)

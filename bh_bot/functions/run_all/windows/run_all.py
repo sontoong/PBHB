@@ -16,7 +16,7 @@ class RunAllWindow:
     def __init__(self, parent, user):
         # Init window
         self.parent = parent
-        self.window = Toplevel(parent=None)
+        self.window = Toplevel(master=None)
         self.window.title("Run All")
         center_window_relative(
             window=self.window, parent=self.parent, window_width=350, window_height=250)
@@ -56,6 +56,18 @@ class RunAllWindow:
 
             checkbox.grid(row=row, column=column, sticky='new', padx=5, pady=2)
 
+        # Checkbox for closing game after finish regen
+        self.close_game_after_regen_var = BooleanVar()
+        self.close_game_after_regen_var.set(
+            self.settings["RA_close_game_after_regen"])
+        self.close_game_after_regen_checkbox = ttk.Checkbutton(
+            self.window,
+            text="Close game after regen",
+            variable=self.close_game_after_regen_var
+        )
+        self.close_game_after_regen_checkbox.pack(
+            fill=X, padx=(10, 0), pady=5, anchor=W)
+
         # Footer Buttons
         button_frame = Frame(self.window)
         button_frame.place(relx=0, rely=1.0, relwidth=1.0, anchor=SW)
@@ -73,12 +85,14 @@ class RunAllWindow:
 
     def start_execute(self):
         functions = {key: var.get() for key, var in self.checkbox_vars.items()}
+        close_game_after_regen = self.close_game_after_regen_var.get()
 
         # Update settings
         settings_manager.update_user_setting(
             username=self.username,
             updates={
                 "RA_functions": functions,
+                "RA_close_game_after_regen": close_game_after_regen
             })
 
         # Reload the settings from the JSON file to ensure self.settings is up-to-date

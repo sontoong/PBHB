@@ -57,7 +57,8 @@ _DEFAULT_SETTINGS = {
     "E_selected_portal": "raleibs_portal",
 
     # run_all
-    "RA_functions": {"pvp": True,  "gvg": True, "invasion": True, "expedition": True,  "tg": True, "world_boss": True, "raid": True, "dungeon": True}
+    "RA_functions": {"pvp": True,  "gvg": True, "invasion": True, "expedition": True,  "tg": True, "world_boss": True, "raid": True, "dungeon": True},
+    "RA_close_game_after_regen": True
 }
 
 
@@ -83,10 +84,18 @@ def load_user_settings(*, username):
     user_settings_path = _get_user_settings_file_path(username)
 
     if not os.path.exists(user_settings_path):
-        return _DEFAULT_SETTINGS
+        return _DEFAULT_SETTINGS.copy()
 
     with open(user_settings_path, "r", encoding="utf-8") as file:
-        return json.load(file)
+        loaded_settings = json.load(file)
+
+    merged_settings = _DEFAULT_SETTINGS.copy()
+    merged_settings.update(loaded_settings)
+
+    if len(merged_settings) > len(loaded_settings):
+        _save_user_settings(username=username, settings=merged_settings)
+
+    return merged_settings
 
 
 def update_user_setting(*, username, updates):

@@ -55,8 +55,6 @@ def force_activate_window(window):
         user32.AttachThreadInput(target_thread, current_thread, True)
 
         # Show and restore window
-        SW_RESTORE = 9
-        user32.ShowWindow(hwnd, SW_RESTORE)
         user32.BringWindowToTop(hwnd)
         result = user32.SetForegroundWindow(hwnd)
 

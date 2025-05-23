@@ -8,7 +8,6 @@ from bh_bot.utils.actions import locate_image, pyautogui
 from bh_bot.utils.wrappers import stop_checking_wrapper
 from bh_bot.classes.image_info import ImageInfo
 from bh_bot.decorators.sleep import sleep
-from bh_bot.utils.helpers import list_flattern
 from bh_bot.functions.global_functions.global_sequences import get_global_click_sequence
 from bh_bot.utils.template_matching import grab_text
 
@@ -23,7 +22,6 @@ MAX_TIME = 3000  # Might need changes as inva runs take very long
 def invasion(*, user_settings, user, stop_event: threading.Event, start_time=time.time()):
     running_window = user["running_window"]
     running_window.activate()
-    time.sleep(1)
 
     # Define region for pyautogui
     region = (running_window.left, running_window.top,
@@ -40,7 +38,7 @@ def invasion(*, user_settings, user, stop_event: threading.Event, start_time=tim
 
     click_images_in_sequence_wrapped(
         running_window=running_window,
-        image_info_list=list_flattern(global_sequence), resource_folder=GLOBAL_RESOURCE_FOLDER, user_settings=user_settings, region=region)
+        image_info_list=global_sequence, resource_folder=GLOBAL_RESOURCE_FOLDER, user_settings=user_settings, region=region)
 
     # Function click sequence
     # -----------------------------------------------------------

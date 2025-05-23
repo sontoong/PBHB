@@ -3,6 +3,8 @@ import os
 import sys
 import itertools
 import re
+from typing import List, Optional
+from bh_bot.classes.image_info import ImageInfo
 
 
 def path_prefix(image_list, prefix):
@@ -27,9 +29,12 @@ def resource_path(*, resource_folder_path, resource_name):
     """ Get the absolute path to the resource, works for dev and for both PyInstaller --onefile and --onedir """
     try:
         # PyInstaller creates a temp folder (_MEIPASS) in --onefile mode
-        base_path = sys._MEIPASS  # pylint: disable=protected-access,no-member
+        base_path = getattr(
+            sys, '_MEIPASS', None)  # pylint: disable=protected-access,no-member
         # print(f"PATH INFO: {os.path.join(
         #     base_path, resource_folder_path, resource_name)}")
+        if base_path is None:
+            raise AttributeError("Not running in PyInstaller environment")
     except AttributeError:
         # In --onedir mode or development, base_path will be the directory where the script is located
         base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -39,17 +44,15 @@ def resource_path(*, resource_folder_path, resource_name):
     return os.path.join(base_path, resource_folder_path, resource_name)
 
 
-def list_flattern(input_list):
+def list_flatten(input_list: List[Optional[List[ImageInfo]]]) -> List[ImageInfo]:
+    filtered_list = [item for item in input_list if item is not None]
+
     # Handle empty list case
-    if not input_list:
+    if not filtered_list:
         return []
 
-    # Check if input is already a flattened list (not a list of lists)
-    if not any(isinstance(item, list) for item in input_list):
-        return input_list
-
     # Otherwise, flatten the list of lists
-    return list(itertools.chain.from_iterable(input_list))
+    return list(itertools.chain.from_iterable(filtered_list))
 
 
 def get_true_keys(dictionary):
