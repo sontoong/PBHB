@@ -13,6 +13,8 @@ from bh_bot.functions.gvg.scripts.gvg import gvg
 from bh_bot.functions.world_boss.scripts.world_boss import world_boss
 from bh_bot.functions.dungeon.scripts.dungeon import dungeon
 from bh_bot.functions.expedition.scripts.expedition import expedition
+from bh_bot.constant.task_status import STATUS
+from bh_bot.utils.logging import tprint
 
 
 def child_thread_pvp(*, callback, user, user_settings) -> None:
@@ -76,16 +78,17 @@ def thread_worker(*, callback, user, user_settings) -> None:
                             if error:
                                 error_tracker["count"] += 1
                             elif result:
-                                print(f"Result: {result}")
-                            else:
-                                finish_tracker["count"] += 1
+                                # Prevent stopping window when escaping at last function
+                                if result is not STATUS["esc"]:
+                                    finish_tracker["count"] += 1
+                                tprint(f"Result: {result}")
                             child_completion_event.set()
 
                         return child_thread_callback, child_completion_event
 
                     child_thread_callback, child_completion_event = child_thread_handler()
 
-                    print(f"\nStarting task: {function_name}")
+                    tprint(f"\nStarting task: {function_name}")
                     match function_name:
                         case "pvp":
                             child_thread_pvp(
@@ -142,8 +145,8 @@ def create_child_thread(*, func, callback, user, user_settings) -> None:
     thread_id = f"run_all_{func.__name__}"
 
     def apply_loop(**kwargs):
-        run_with_retries(func=func, thread_id=thread_id,
-                         user_settings=user_settings, user=user, **kwargs)
+        return run_with_retries(func=func, thread_id=thread_id,
+                                user_settings=user_settings, user=user, **kwargs)
 
     thread_function(func=apply_loop, callback=callback, thread_id=thread_id)
 
@@ -163,23 +166,25 @@ def run_with_retries(*, func, thread_id, user_settings, user, **kwargs):
             if get_break_signal(thread_id=thread_id):
                 break
 
-            print(f"Loop {loop} of {num_of_retries}")
+            tprint(f"Loop {loop} of {num_of_retries}")
             if previous_loop_duration is not None:
-                print(
+                tprint(
                     f"(Previous loop duration: {previous_loop_duration:.2f} seconds)")
             else:
-                print(
+                tprint(
                     "(Previous loop duration: N/A)")
 
-            func(user_settings=user_settings, user=user,
-                 start_time=loop_start_time, **kwargs)
+            result = func(user_settings=user_settings, user=user,
+                          start_time=loop_start_time, **kwargs)
+            if result:
+                return result
 
         except pygetwindow.PyGetWindowException as exc:
             raise RuntimeError(
                 "Cannot detect window. Please choose game window again.") from exc
 
         except Exception as e:
-            print(f"Loop {loop} failed: {e}")
+            tprint(f"Loop {loop} failed: {e}")
             if loop < num_of_retries:
                 time.sleep(delay)
             else:

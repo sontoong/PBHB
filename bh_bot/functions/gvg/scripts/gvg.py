@@ -9,6 +9,8 @@ from bh_bot.utils.wrappers import stop_checking_wrapper
 from bh_bot.classes.image_info import ImageInfo
 from bh_bot.decorators.sleep import sleep
 from bh_bot.functions.global_functions.global_sequences import get_global_click_sequence
+from bh_bot.constant.task_status import STATUS
+from bh_bot.utils.logging import tprint
 
 GLOBAL_RESOURCE_FOLDER = "images/global"
 RESOURCE_FOLDER = "images/gvg"
@@ -45,10 +47,11 @@ def gvg(*, user_settings, user, stop_event: threading.Event, start_time=time.tim
     if locate_image(running_window=running_window, image_path_relative="not_enough_badges.png", resource_folder=GLOBAL_RESOURCE_FOLDER, region=region) is not None:
         pyautogui.press("esc", presses=2, interval=1)
         stop_event.set()
+        return STATUS["oor"]
 
     # Check time
     if time.time() - start_time > MAX_TIME:
-        print("Timming out")
+        tprint("Timming out")
         pyautogui.press("esc", presses=6, interval=1)
         pyautogui.press("space", presses=2, interval=1)
 

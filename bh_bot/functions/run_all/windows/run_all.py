@@ -120,7 +120,7 @@ class RunAllWindow:
         if error:
             messagebox.showerror("Error", f"{error}")
         if result:
-            print(f"Result: {result}")
+            pass
 
     def disable_close(self):
         """Disable the ability to close the window."""

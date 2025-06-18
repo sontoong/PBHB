@@ -2,8 +2,8 @@ import os
 import cv2
 import numpy as np
 from PIL import ImageGrab, Image
-from bh_bot.utils.window_utils import force_activate_window
 from bh_bot.utils.helpers import resource_path
+from bh_bot.utils.logging import tprint
 
 TEMPLATE_FOLDER_NUMBERS = "images/global/numbers"
 TEMPLATE_FOLDER_CHARACTERS = "images/global/characters"
@@ -21,7 +21,7 @@ def grab_text(*, running_window, box_left, box_top, box_width, box_height, match
         str: Extracted text from the specified box
 
     """
-    force_activate_window(running_window)
+    running_window.activate()
 
     # Load number templates
     number_templates = {}
@@ -60,13 +60,13 @@ def grab_text(*, running_window, box_left, box_top, box_width, box_height, match
     match match_type:
         case "number":
             templates = number_templates
-            print("matching number")
+            tprint("matching number")
         case "char":
             templates = char_templates
-            print("matching char")
+            tprint("matching char")
         case "both":
             templates = {**number_templates, **char_templates}
-            print("matching both")
+            tprint("matching both")
 
     # Calculate absolute coordinates of the box
     box_right = box_left + box_width
@@ -218,7 +218,7 @@ def debug_template_matching(image, template, matches, char):
         confidence = match['confidence']
         cv2.rectangle(img_copy, (x, y), (x + w, y + h), (0, 255, 0), 1)
 
-        print(f"Character: {char}, Confidence: {confidence:.2f}")
+        tprint(f"Character: {char}, Confidence: {confidence:.2f}")
 
     # Save the debug image
     cv2.imwrite(f"debug/debug_matches_{char}.png", img_copy)

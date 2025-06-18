@@ -4,12 +4,14 @@ import os
 import shutil
 from tkinter import *
 from tkinter import ttk, simpledialog, messagebox
-from bh_bot.utils.actions import get_active_windows
+from bh_bot.classes.window_manager import WindowManager
 from bh_bot.utils.window_utils import center_window_absolute
 from bh_bot.windows.main_window import MainWindow
 
 DATA_FOLDER = "data"
 WINDOW_TITLE_KEYWORDS = ["Bit Heroes"]
+
+wm = WindowManager()
 
 
 class UserManagementScreen:
@@ -47,7 +49,8 @@ class UserManagementScreen:
         self.update_window_list()
 
     def update_window_list(self):
-        self.all_windows = get_active_windows(keywords=WINDOW_TITLE_KEYWORDS)
+        self.all_windows = wm.get_list_of_windows_with_title(
+            keywords=WINDOW_TITLE_KEYWORDS)
         self.available_windows = [
             window for window in self.all_windows if window not in self.occupied_windows]
         # Update every 10 seconds

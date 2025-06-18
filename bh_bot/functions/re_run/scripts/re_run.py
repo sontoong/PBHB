@@ -10,6 +10,8 @@ from bh_bot.classes.image_info import ImageInfo
 from bh_bot.decorators.sleep import sleep
 from bh_bot.functions.global_functions.global_sequences import get_global_click_sequence
 from bh_bot.functions.global_functions.bribe_familiars import get_bribe_list, add_amount_familiar
+from bh_bot.constant.task_status import STATUS
+from bh_bot.utils.logging import tprint
 
 GLOBAL_RESOURCE_FOLDER = "images/global"
 RESOURCE_FOLDER = "images/re_run"
@@ -46,15 +48,17 @@ def re_run(*, user_settings, user, stop_event: threading.Event, start_time=time.
     if locate_image(running_window=running_window, image_path_relative="not_enough_energy.png", resource_folder=GLOBAL_RESOURCE_FOLDER, region=region) is not None:
         pyautogui.press("esc", presses=2, interval=1)
         stop_event.set()
+        return STATUS["oor"]
 
     # Case: Out of shards
     if locate_image(running_window=running_window, image_path_relative="not_enough_shards.png", resource_folder=GLOBAL_RESOURCE_FOLDER, region=region) is not None:
         pyautogui.press("esc", presses=2, interval=1)
         stop_event.set()
+        return STATUS["oor"]
 
     # Check time
     if time.time() - start_time > MAX_TIME:
-        print("Timming out")
+        tprint("Timming out")
         pyautogui.press("esc", presses=6, interval=1)
         pyautogui.press("space", presses=2, interval=1)
         pyautogui.press("esc", presses=1, interval=1)

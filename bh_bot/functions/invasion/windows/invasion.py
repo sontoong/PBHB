@@ -9,6 +9,7 @@ from bh_bot.functions.invasion.threads.threaded_scripts import thread_invasion
 from bh_bot.settings import settings_manager
 from bh_bot.utils.thread_utils import cancel_thread
 from bh_bot.utils.window_utils import center_window_relative
+from bh_bot.utils.logging import tprint
 
 THREAD_ID = "invasion"
 
@@ -109,7 +110,7 @@ class InvasionWindow:
         if error:
             messagebox.showerror("Error", f"{error}")
         if result:
-            print(f"Result: {result}")
+            tprint(f"Result: {result}")
 
     def disable_close(self):
         """Disable the ability to close the window."""
