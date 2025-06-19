@@ -54,7 +54,7 @@ def get_global_click_sequence(*, user, user_settings: dict, running_window, regi
         ) is not None:
             capture_screenshot(
                 region=region,
-                save_directory=f"data/{user["username"]}/chat-images",
+                save_directory=f"data/{user['username']}/chat-images",
                 add_timestamp=True
             )
 

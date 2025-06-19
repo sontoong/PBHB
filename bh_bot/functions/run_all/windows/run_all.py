@@ -2,14 +2,16 @@
 
 from tkinter import *
 from tkinter import ttk, messagebox
-import keyboard
 from bh_bot.functions.run_all.threads.threaded_scripts import thread_worker
 from bh_bot.settings import settings_manager
 from bh_bot.utils.thread_utils import cancel_thread
 from bh_bot.utils.window_utils import center_window_relative
 from bh_bot.windows.settings_window import SettingsWindow
+from bh_bot.classes.input_manager import InputManager
 
 THREAD_ID = "run_all"
+
+input_manager = InputManager()
 
 
 class RunAllWindow:
@@ -23,7 +25,7 @@ class RunAllWindow:
         self.window.protocol("WM_DELETE_WINDOW", self.close_window)
 
         # Bind the Escape key to the stop_execute function
-        keyboard.add_hotkey(
+        input_manager.add_hotkey(
             'esc', self.stop_execute)
 
         # Load settings
@@ -120,7 +122,7 @@ class RunAllWindow:
         if error:
             messagebox.showerror("Error", f"{error}")
         if result:
-            print(f"Result: {result}")
+            pass
 
     def disable_close(self):
         """Disable the ability to close the window."""

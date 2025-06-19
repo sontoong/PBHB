@@ -1,6 +1,7 @@
 import os
 import subprocess
 import platform
+from bh_bot.utils.logging import tprint
 
 
 def open_directory(*, path):
@@ -10,7 +11,7 @@ def open_directory(*, path):
 
     # Check if the path exists
     if not os.path.exists(abs_path):
-        print(f"Path does not exist: {abs_path}")
+        tprint(f"Path does not exist: {abs_path}")
         return
 
     # Use the appropriate command based on the operating system

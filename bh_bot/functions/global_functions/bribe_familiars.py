@@ -1,5 +1,6 @@
 from bh_bot.settings import settings_manager
 from bh_bot.utils.template_matching import grab_text
+from bh_bot.utils.logging import tprint
 
 GLOBAL_RESOURCE_FOLDER = "images/global"
 
@@ -14,7 +15,7 @@ def get_bribe_list(*, username, running_window, anchor_location):
 
     familiar_name_grab = grab_text(running_window=running_window,
                                    box_top=anchor_location.top-5, box_left=anchor_location.left-250, box_width=240, box_height=25)
-    print(f"Familiar name: {familiar_name_grab}")
+    tprint(f"Familiar name: {familiar_name_grab}")
     familiar_amount = 0
     found_familiar_name = ""
 
@@ -52,7 +53,7 @@ def add_amount_familiar(*, username, running_window, anchor_location, amount=1):
 
     familiar_name_grab = grab_text(running_window=running_window,
                                    box_top=anchor_location.top-5, box_left=anchor_location.left-250, box_width=240, box_height=25, match_type="char")
-    print(f"Familiar name: {familiar_name_grab}")
+    tprint(f"Familiar name: {familiar_name_grab}")
     familiar_amount = 0
     found_familiar_name = ""
 

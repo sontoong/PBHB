@@ -4,6 +4,7 @@ import time
 import functools
 import threading
 import pyautogui
+from bh_bot.utils.logging import tprint
 
 # Thread-safe stop event for Esc monitoring
 stop_event = threading.Event()
@@ -35,7 +36,7 @@ def sleep(timeout, retry=3):
                         # print(f"Task stopped unexpectedly. Error: {err}")
                         raise err
                 except Exception as general_err:
-                    print(f"An unexpected error occurred: {general_err}")
+                    tprint(f"An unexpected error occurred: {general_err}")
                     raise
             return None
         return wrapper
