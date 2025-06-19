@@ -83,7 +83,7 @@ def grab_text(*, running_window, box_left, box_top, box_width, box_height, match
     # Debug
     os.makedirs("debug/offers", exist_ok=True)
     screenshot.save(
-        f'debug/offers/{recognized_text if recognized_text != '' else "empty"}.png')
+        f'debug/offers/{recognized_text if recognized_text != "" else "empty"}.png')
 
     return recognized_text
 

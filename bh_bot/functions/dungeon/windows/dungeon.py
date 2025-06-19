@@ -4,7 +4,6 @@ import os
 from tkinter import *
 from tkinter import messagebox
 from tkinter import ttk
-import keyboard
 from PIL import Image, ImageTk
 from bh_bot.ui.custom_entry import NumberEntry
 from bh_bot.functions.dungeon.threads.threaded_scripts import thread_dungeon
@@ -13,9 +12,12 @@ from bh_bot.utils.thread_utils import cancel_thread
 from bh_bot.utils.window_utils import center_window_relative
 from bh_bot.utils.helpers import resource_path, get_files_naturally_sorted
 from bh_bot.utils.logging import tprint
+from bh_bot.classes.input_manager import InputManager
 
 THREAD_ID = "dungeon"
 IMAGE_FOLDER = "images/dungeon/dungeons"
+
+input_manager = InputManager()
 
 
 class DungeonWindow:
@@ -30,7 +32,7 @@ class DungeonWindow:
         self.current_photo = None
 
         # Bind the Escape key to the stop_execute function
-        keyboard.add_hotkey(
+        input_manager.add_hotkey(
             'esc', self.stop_execute)
 
         # Load settings

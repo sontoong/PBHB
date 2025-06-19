@@ -2,7 +2,6 @@
 
 import time
 import threading
-import pygetwindow
 from bh_bot.utils.thread_utils import get_break_signal, thread_function
 from bh_bot.utils.helpers import get_true_keys
 from bh_bot.functions.pvp.scripts.pvp import pvp
@@ -178,10 +177,6 @@ def run_with_retries(*, func, thread_id, user_settings, user, **kwargs):
                           start_time=loop_start_time, **kwargs)
             if result:
                 return result
-
-        except pygetwindow.PyGetWindowException as exc:
-            raise RuntimeError(
-                "Cannot detect window. Please choose game window again.") from exc
 
         except Exception as e:
             tprint(f"Loop {loop} failed: {e}")

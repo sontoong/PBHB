@@ -40,8 +40,8 @@ def thread_function(*, func: Callable[..., None], callback: Callable[[Optional[E
             # Execute error callback
             threading.Thread(target=callback, args=(e, None)).start()
         finally:
-            tprint(f"Task {thread_id} stopped at {
-                datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+            tprint(
+                f"Task {thread_id} stopped.")
             del stop_events[thread_id]
 
     thread = threading.Thread(target=target)

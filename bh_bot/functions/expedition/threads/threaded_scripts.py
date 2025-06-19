@@ -1,7 +1,6 @@
 # pylint: disable=C0114,C0115,C0116,C0301
 
 import time
-import pygetwindow
 from bh_bot.functions.expedition.scripts.expedition import expedition
 from bh_bot.utils.thread_utils import get_break_signal, thread_function
 from bh_bot.utils.logging import tprint
@@ -34,10 +33,6 @@ def run_with_retries(*, func, thread_id, user_settings, user, **kwargs):
                           start_time=loop_start_time, **kwargs)
             if result:
                 return result
-
-        except pygetwindow.PyGetWindowException as exc:
-            raise RuntimeError(
-                "Cannot detect window. Please choose game window again.") from exc
 
         except Exception as e:
             tprint(f"Loop {loop} failed: {e}")
