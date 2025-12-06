@@ -1,9 +1,7 @@
 # pylint: disable=C0114,C0116,C0301,C0115
 
 import os
-from tkinter import *
-from tkinter import messagebox
-from tkinter import ttk
+from tkinter import ttk, messagebox, Toplevel, Frame, Label, X, W, LEFT, BooleanVar, RIGHT, BOTTOM, DISABLED, NORMAL
 from PIL import Image, ImageTk
 from bh_bot.ui.custom_entry import NumberEntry
 from bh_bot.functions.dungeon.threads.threaded_scripts import thread_dungeon
@@ -27,7 +25,7 @@ class DungeonWindow:
         self.window = Toplevel(master=None)
         self.window.title("Dungeon")
         center_window_relative(
-            window=self.window, parent=self.parent, window_width=300, window_height=300)
+            window=self.window, parent=self.parent, window_width=500, window_height=350)
         self.window.protocol("WM_DELETE_WINDOW", self.close_window)
         self.current_photo = None
 
@@ -68,6 +66,16 @@ class DungeonWindow:
         self.dungeon_dropdown.bind(
             "<<ComboboxSelected>>", self.display_dungeon_image)
 
+        self.show_image_var = BooleanVar()
+        self.show_image_var.set(self.settings["D_show_image"])
+        self.show_image_checkbox = ttk.Checkbutton(
+            dungeon_frame,
+            text="Show Image",
+            variable=self.show_image_var,
+            command=self.toggle_image_visibility
+        )
+        self.show_image_checkbox.pack(side=RIGHT, padx=(5, 0))
+
         default_dungeon = self.settings["D_selected_dungeon"]
         if default_dungeon in self.dungeon_images:
             self.dungeon_dropdown.set(default_dungeon)
@@ -99,6 +107,39 @@ class DungeonWindow:
             variable=self.auto_bribe_var
         )
         self.auto_bribe_checkbox.pack(fill=X, padx=(5, 0), pady=5, anchor=W)
+
+        # Checkbutton for auto open chest
+        self.auto_open_chest_var = BooleanVar()
+        self.auto_open_chest_var.set(self.settings["D_auto_open_chest"])
+        self.auto_open_chest_checkbox = ttk.Checkbutton(
+            self.window,
+            text="Auto open chest",
+            variable=self.auto_open_chest_var
+        )
+        self.auto_open_chest_checkbox.pack(
+            fill=X, padx=(5, 0), pady=5, anchor=W)
+
+        # Checkbutton for free mode
+        self.free_mode_var = BooleanVar()
+        self.free_mode_var.set(self.settings["D_free_mode"])
+        self.free_mode_checkbox = ttk.Checkbutton(
+            self.window,
+            text="Free mode",
+            variable=self.free_mode_var
+        )
+        self.free_mode_checkbox.pack(
+            fill=X, padx=(5, 0), pady=5, anchor=W)
+
+        # Checkbutton for auto change armory
+        self.auto_change_armory_var = BooleanVar()
+        self.auto_change_armory_var.set(self.settings["D_auto_change_armory"])
+        self.auto_change_armory_checkbox = ttk.Checkbutton(
+            self.window,
+            text="Auto change armory",
+            variable=self.auto_change_armory_var
+        )
+        self.auto_change_armory_checkbox.pack(
+            fill=X, padx=(5, 0), pady=5, anchor=W)
 
         # Footer Buttons
         button_frame = Frame(self.window)
@@ -142,11 +183,26 @@ class DungeonWindow:
 
             self.image_label.config(image=self.current_photo)
 
+            self.toggle_image_visibility()
+
+    def toggle_image_visibility(self):
+        """
+        Toggle the visibility of the dungeon image based on the checkbox state.
+        """
+        if self.show_image_var.get():
+            self.image_label.pack(pady=10)  # Show the image
+        else:
+            self.image_label.pack_forget()
+
     def start_execute(self):
         num_of_loop = int(self.num_of_loop_entry.get())
         selected_dungeon = self.dungeon_dropdown.get()
         auto_catch = self.auto_catch_var.get()
         auto_bribe = self.auto_bribe_var.get()
+        auto_open_chest = self.auto_open_chest_var.get()
+        free_mode = self.free_mode_var.get()
+        show_image = self.show_image_var.get()
+        auto_change_armory = self.auto_change_armory_var.get()
 
         # Update settings
         settings_manager.update_user_setting(
@@ -155,7 +211,11 @@ class DungeonWindow:
                 "D_num_of_loop": num_of_loop,
                 "D_selected_dungeon": selected_dungeon,
                 "D_auto_catch_by_gold": auto_catch,
-                "D_auto_bribe": auto_bribe
+                "D_auto_bribe": auto_bribe,
+                "D_auto_open_chest": auto_open_chest,
+                "D_free_mode": free_mode,
+                "D_show_image": show_image,
+                "D_auto_change_armory": auto_change_armory,
             })
 
         # Reload the settings from the JSON file to ensure self.settings is up-to-date

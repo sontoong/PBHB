@@ -1,12 +1,13 @@
 # pylint: disable=C0114,C0116,C0301,C0115,W0401,W0614
 
-from tkinter import *
-from tkinter import ttk, messagebox
+
+from tkinter import ttk, messagebox, Toplevel, BooleanVar, X, W, RIGHT, Frame, LEFT, SW, NORMAL, DISABLED
 from bh_bot.functions.run_all.threads.threaded_scripts import thread_worker
 from bh_bot.settings import settings_manager
 from bh_bot.utils.thread_utils import cancel_thread
 from bh_bot.utils.window_utils import center_window_relative
-from bh_bot.windows.settings_window import SettingsWindow
+from bh_bot.functions.run_all.windows.settings_window import SettingsWindow
+from bh_bot.functions.run_all.windows.function_priority_window import FunctionPriorityWindow
 from bh_bot.classes.input_manager import InputManager
 
 THREAD_ID = "run_all"
@@ -46,7 +47,7 @@ class RunAllWindow:
 
         # Create a checkbox for each function in RA_functions
         for index, (key, value) in enumerate(self.settings["RA_functions"].items()):
-            var = BooleanVar(value=value)
+            var = BooleanVar(value=value["run"])
             self.checkbox_vars[key] = var
 
             checkbox = ttk.Checkbutton(
@@ -70,6 +71,11 @@ class RunAllWindow:
         self.close_game_after_regen_checkbox.pack(
             fill=X, padx=(10, 0), pady=5, anchor=W)
 
+        # Function priority Button
+        self.function_priority_button = ttk.Button(
+            self.window, text="Run Priority", command=lambda: FunctionPriorityWindow(parent=self.window, user=self.user).view_run_priority())
+        self.function_priority_button.pack(side=RIGHT, padx=10, pady=10)
+
         # Footer Buttons
         button_frame = Frame(self.window)
         button_frame.place(relx=0, rely=1.0, relwidth=1.0, anchor=SW)
@@ -80,20 +86,30 @@ class RunAllWindow:
         # Stop button
         ttk.Button(button_frame, text="Stop (Esc)", command=self.stop_execute).pack(
             side=LEFT, padx=0, pady=10)
-        # Floating Button for Settings
-        self.float_button = ttk.Button(
+        # Settings Button
+        self.settings_button = ttk.Button(
             button_frame, text="⚙️", command=lambda: SettingsWindow(parent=self.window, user=self.user).view_function_settings())
-        self.float_button.pack(side=RIGHT, padx=10, pady=10)
+        self.settings_button.pack(side=RIGHT, padx=10, pady=10)
 
     def start_execute(self):
-        functions = {key: var.get() for key, var in self.checkbox_vars.items()}
+        functions_run_states = {key: var.get()
+                                for key, var in self.checkbox_vars.items()}
         close_game_after_regen = self.close_game_after_regen_var.get()
 
         # Update settings
+        self.settings = settings_manager.load_user_settings(
+            username=self.username)
+        updated_functions = {}
+        for func_name, run_state in functions_run_states.items():
+            existing_priority = self.settings["RA_functions"][func_name]["priority"]
+            updated_functions[func_name] = {
+                "run": run_state,
+                "priority": existing_priority
+            }
         settings_manager.update_user_setting(
             username=self.username,
             updates={
-                "RA_functions": functions,
+                "RA_functions": updated_functions,
                 "RA_close_game_after_regen": close_game_after_regen
             })
 

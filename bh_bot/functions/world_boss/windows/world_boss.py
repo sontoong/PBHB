@@ -1,8 +1,6 @@
 # pylint: disable=C0114,C0116,C0301,C0115
 
-from tkinter import *
-from tkinter import messagebox
-from tkinter import ttk
+from tkinter import ttk, messagebox, Toplevel, BooleanVar, W, X, Frame, BOTTOM, LEFT, DISABLED, NORMAL
 from bh_bot.ui.custom_entry import NumberEntry
 from bh_bot.functions.world_boss.threads.threaded_scripts import thread_world_boss
 from bh_bot.settings import settings_manager
@@ -51,6 +49,17 @@ class WorldBossWindow:
         self.num_of_player_entry.set(
             self.settings["WB_num_of_player"])
 
+        # Checkbutton for free mode
+        self.free_mode_var = BooleanVar()
+        self.free_mode_var.set(self.settings["WB_free_mode"])
+        self.free_mode_checkbox = ttk.Checkbutton(
+            self.window,
+            text="Free mode",
+            variable=self.free_mode_var
+        )
+        self.free_mode_checkbox.pack(
+            fill=X, padx=(5, 0), pady=5, anchor=W)
+
         # Footer Buttons
         button_frame = Frame(self.window)
         button_frame.pack(pady=10, side=BOTTOM)
@@ -65,13 +74,15 @@ class WorldBossWindow:
     def start_execute(self):
         num_of_loop = int(self.num_of_loop_entry.get())
         num_of_player = int(self.num_of_player_entry.get())
+        free_mode = self.free_mode_var.get()
 
         # Update settings
         settings_manager.update_user_setting(
             username=self.username,
             updates={
                 "WB_num_of_loop": num_of_loop,
-                "WB_num_of_player": num_of_player
+                "WB_num_of_player": num_of_player,
+                "WB_free_mode": free_mode
             })
 
         # Reload the settings from the JSON file to ensure self.settings is up-to-date

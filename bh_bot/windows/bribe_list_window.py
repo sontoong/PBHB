@@ -1,7 +1,6 @@
 # pylint: disable=C0114,C0116,C0301,C0115,W0401,W0614
 
-from tkinter import *
-from tkinter import ttk
+from tkinter import ttk, Toplevel, Frame, BOTH, Canvas, LEFT, VERTICAL, RIGHT, Y, EW, W
 from bh_bot.settings import settings_manager
 from bh_bot.utils.window_utils import center_window_relative
 from bh_bot.ui.custom_entry import NumberEntry, EntryWithLabel

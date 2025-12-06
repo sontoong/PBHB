@@ -1,8 +1,6 @@
 # pylint: disable=C0114,C0116,C0301,C0115
 
-from tkinter import *
-from tkinter import messagebox
-from tkinter import ttk
+from tkinter import ttk, messagebox, Toplevel, X, BooleanVar, W, BOTTOM, LEFT, DISABLED, NORMAL
 from bh_bot.ui.custom_entry import NumberEntry
 from bh_bot.functions.trials_gauntlet.threads.threaded_scripts import thread_trials_gauntlet
 from bh_bot.settings import settings_manager
@@ -56,6 +54,17 @@ class TrialsGauntletWindow:
         self.auto_increase_difficulty_checkbox.pack(
             fill=X, padx=(5, 0), pady=5, anchor=W)
 
+        # Checkbutton for free mode
+        self.free_mode_var = BooleanVar()
+        self.free_mode_var.set(self.settings["TG_free_mode"])
+        self.free_mode_checkbox = ttk.Checkbutton(
+            self.window,
+            text="Free mode",
+            variable=self.free_mode_var
+        )
+        self.free_mode_checkbox.pack(
+            fill=X, padx=(5, 0), pady=5, anchor=W)
+
         # Footer Buttons
         button_frame = ttk.Frame(self.window)
         button_frame.pack(pady=10, side=BOTTOM)
@@ -70,13 +79,15 @@ class TrialsGauntletWindow:
     def start_execute(self):
         num_of_loop = int(self.num_of_loop_entry.get())
         auto_increase_difficulty = self.auto_increase_difficulty_var.get()
+        free_mode = self.free_mode_var.get()
 
         # Update settings
         settings_manager.update_user_setting(
             username=self.username,
             updates={
                 "TG_num_of_loop": num_of_loop,
-                "TG_increase_difficulty": auto_increase_difficulty
+                "TG_increase_difficulty": auto_increase_difficulty,
+                "TG_free_mode": free_mode
             })
 
         # Reload the settings from the JSON file to ensure self.settings is up-to-date

@@ -1,10 +1,14 @@
 # pylint: disable=C0114,C0116,C0301
 import os
 import sys
+from pathlib import Path
 import itertools
 import re
 from typing import List, Optional
+import cv2
+import numpy as np
 from bh_bot.classes.image_info import ImageInfo
+from bh_bot.utils.logging import tprint
 
 
 def path_prefix(image_list, prefix):
@@ -26,22 +30,17 @@ def extract_file_name(image_path):
 
 
 def resource_path(*, resource_folder_path, resource_name):
-    """ Get the absolute path to the resource, works for dev and for both PyInstaller --onefile and --onedir """
+    """Get the absolute path using pathlib for better Unicode handling"""
     try:
-        # PyInstaller creates a temp folder (_MEIPASS) in --onefile mode
-        base_path = getattr(
-            sys, '_MEIPASS', None)  # pylint: disable=protected-access,no-member
-        # print(f"PATH INFO: {os.path.join(
-        #     base_path, resource_folder_path, resource_name)}")
+        base_path = getattr(sys, '_MEIPASS', None)
         if base_path is None:
             raise AttributeError("Not running in PyInstaller environment")
     except AttributeError:
-        # In --onedir mode or development, base_path will be the directory where the script is located
-        base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        # print(f"PATH INFO: {os.path.join(
-        #     base_path, resource_folder_path, resource_name)}")
+        base_path = Path(__file__).parent.parent.absolute()
 
-    return os.path.join(base_path, resource_folder_path, resource_name)
+    base_path = Path(base_path)
+    full_path = base_path / resource_folder_path / resource_name
+    return str(full_path)
 
 
 def list_flatten(input_list: List[Optional[List[ImageInfo]]]) -> List[ImageInfo]:
@@ -55,17 +54,18 @@ def list_flatten(input_list: List[Optional[List[ImageInfo]]]) -> List[ImageInfo]
     return list(itertools.chain.from_iterable(filtered_list))
 
 
-def get_true_keys(dictionary):
-    """
-    Returns a list of keys from the dictionary that have a True value.
+def get_run_keys(ra_functions):
+    """Get function names to run, sorted by priority"""
+    functions_to_run = [
+        (func_name, settings["priority"])
+        for func_name, settings in ra_functions.items()
+        if settings["run"]
+    ]
 
-    Args:
-        dictionary (dict): Input dictionary to search for True values
+    # Sort by priority (lower number = higher priority)
+    functions_to_run.sort(key=lambda x: x[1])
 
-    Returns:
-        list: List of keys with True values
-    """
-    return [key for key, value in dictionary.items() if value is True]
+    return [func_name for func_name, _ in functions_to_run]
 
 
 def dungeon_sort_key(s):
@@ -123,3 +123,25 @@ def get_files_naturally_sorted(directory, extension=None):
         files = os.listdir(directory)
 
     return natural_sort(files)
+
+
+def safe_cv2_imread(image_path):
+    # pylint: disable=no-member
+    """Read image safely with Unicode path support"""
+    original_log_level = cv2.getLogLevel()
+    cv2.setLogLevel(2)
+
+    try:
+        img = cv2.imread(image_path)
+        if img is not None:
+            return img
+
+        with open(image_path, 'rb') as f:
+            buffer = np.frombuffer(f.read(), dtype=np.uint8)
+            img = cv2.imdecode(buffer, cv2.IMREAD_COLOR)
+            return img
+    except Exception as e:
+        tprint(f"Error reading image {image_path}: {e}")
+        return None
+    finally:
+        cv2.setLogLevel(original_log_level)

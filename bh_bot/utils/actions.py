@@ -6,7 +6,7 @@ import pyautogui
 import pyscreeze
 from bh_bot.classes.window_manager import WindowManager
 from bh_bot.classes.input_manager import InputManager
-from bh_bot.utils.helpers import extract_file_name, resource_path
+from bh_bot.utils.helpers import extract_file_name, resource_path, safe_cv2_imread
 from bh_bot.decorators.sleep import sleep
 from bh_bot.utils.logging import tprint
 # from bh_bot.utils.image_utils import highlight_location
@@ -15,7 +15,7 @@ wm = WindowManager()
 im = InputManager()
 
 
-def click(x, y, clicks=1, user_settings=None):
+def click(x, y, clicks=1, user_settings=None, button="LEFT"):
     if user_settings:
         animated = user_settings.get('G_fancy_mouse')
         # highlight_location(x=x, y=y)
@@ -23,15 +23,14 @@ def click(x, y, clicks=1, user_settings=None):
         if animated:
             pyautogui.moveTo(x=x, y=y, duration=0.2,
                              tween=pyautogui.easeInOutQuad)  # type: ignore
-            pyautogui.click(clicks=clicks)
         else:
             pyautogui.moveTo(x=x, y=y)
             time.sleep(0.05)
-            pyautogui.click(clicks=clicks)
     else:
         pyautogui.moveTo(x=x, y=y)
         time.sleep(0.05)
-        pyautogui.click(clicks=clicks)
+
+    pyautogui.click(clicks=clicks, button=button)
 
 
 def safe_copy_send(command: str) -> bool:
@@ -63,7 +62,7 @@ def move_to(x, y, user_settings=None):
 
 
 @sleep(timeout=1, retry=1)
-def locate_image(*, running_window, image_path_relative, resource_folder, confidence=0.8, region, optional=True, grayscale=True, last_instance=False):
+def locate_image(*, running_window, image_path_relative, resource_folder, confidence=0.8, region, optional=True, grayscale=True, instance=1):
     """
     Locates an image on the screen using image recognition.
 
@@ -71,31 +70,34 @@ def locate_image(*, running_window, image_path_relative, resource_folder, confid
     :param resource_folder: Location to the images from where function executing.
     :param confidence: Confidence level for image recognition (default is 0.8).
     :param optional: Image is optional or not.
+    :param instance: Starts at 1. -1 for last instance.
     :return: The location of the image if found, otherwise None.
     """
     image_path = ""
     try:
-        running_window.activate()
+        if region is not None:
+            running_window.activate()
 
         # Construct the image path
         image_path = resource_path(
             resource_folder_path=resource_folder, resource_name=image_path_relative)
+        image = safe_cv2_imread(image_path)
 
         # Locate the image
-        if last_instance:
+        if instance > 1:
             count, locations = locate_image_instances(
                 running_window=running_window,
-                image_path_relative=image_path,
+                image_path_relative=image_path_relative,
                 resource_folder=resource_folder,
                 confidence=confidence,
                 optional=optional,
                 region=region,
                 grayscale=grayscale
             )
-            location = locations[-1] if count > 0 else None
+            location = locations[instance-1] if count > 0 else None
         else:
             location = pyautogui.locateOnScreen(
-                image_path, confidence=confidence, region=region, grayscale=grayscale)
+                image, confidence=confidence, region=region, grayscale=grayscale)
 
         # if location is not None:
         #     highlight_location(
@@ -135,10 +137,11 @@ def locate_image_instances(*, running_window, image_path_relative, resource_fold
         # Construct the image path
         image_path = resource_path(
             resource_folder_path=resource_folder, resource_name=image_path_relative)
+        image = safe_cv2_imread(image_path)
 
         # Locate all instances of the image
         locations = list(pyautogui.locateAllOnScreen(
-            image_path, confidence=confidence, region=region, grayscale=grayscale))
+            image, confidence=confidence, region=region, grayscale=grayscale))
 
         # Return the count of instances and the locations
         return len(locations), locations

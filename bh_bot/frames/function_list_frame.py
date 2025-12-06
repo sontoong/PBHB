@@ -1,7 +1,7 @@
 # pylint: disable=C0114,C0116,C0301,C0115,W0401,W0614
 
-from tkinter import *
-from tkinter import ttk, messagebox
+
+from tkinter import ttk, messagebox, Frame, SW, EW, RIGHT
 from functools import partial
 from bh_bot.functions.re_run.windows.re_run import ReRunWindow
 from bh_bot.functions.invasion.windows.invasion import InvasionWindow
@@ -52,6 +52,8 @@ class FunctionListFrame(ttk.Frame):
         self.parent = parent
         self.functions = {
             "General": general_functions, "Pvp": pvp_functions, "Trials/Gauntlet": trials_gauntlet_functions, "Raid": raid_functions, "Invasion": invasion_functions, "Gvg": gvg_functions, "Expedition": expedition_functions, "World Boss": world_boss_functions, "Dungeon": dungeon_functions}
+        self.parent_window = self.parent.window
+        self.user = self.parent.user
 
         # Define the number of columns per row
         columns_per_row = 4
@@ -87,13 +89,13 @@ class FunctionListFrame(ttk.Frame):
         self.float_button = ttk.Button(
             button_frame, text="💎", style="IconButton.TButton",
             command=lambda: BribeListWindow(
-                parent=self.parent.window, user=self.parent.user).view_bribe_list(),
+                parent=self.parent_window, user=self.user).view_bribe_list(),
         )
         self.float_button.pack(side=RIGHT, padx=10, pady=10)
 
     def open_function_window(self, function_window):
         if function_window:
-            function_window(self.parent.window, self.parent.user)
-            self.parent.window.withdraw()
+            function_window(self.parent_window, self.user)
+            self.parent_window.withdraw()
         else:
             messagebox.showerror("Error", "Function not implemented yet.")

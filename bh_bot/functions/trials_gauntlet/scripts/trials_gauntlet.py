@@ -16,17 +16,19 @@ from bh_bot.utils.logging import tprint
 GLOBAL_RESOURCE_FOLDER = "images/global"
 RESOURCE_FOLDER = "images/trials_gauntlet"
 
-MAX_TIME = 300
+MAX_TIME = 900
 
 
 @sleep(timeout=5, retry=999)
 def trials_gauntlet(*, user_settings, user, stop_event: threading.Event, start_time=time.time()):
     running_window = user["running_window"]
-    running_window.activate()
+    free_mode_on = user_settings["TG_free_mode"]
 
     # Define region for pyautogui
-    region = (running_window.left, running_window.top,
-              running_window.width, running_window.height)
+    region = None if free_mode_on else (
+        running_window.left, running_window.top,
+        running_window.width, running_window.height
+    )
 
     # Wrap functions that need to check for stop event
     click_images_in_sequence_wrapped = stop_checking_wrapper(
@@ -45,23 +47,22 @@ def trials_gauntlet(*, user_settings, user, stop_event: threading.Event, start_t
     # -----------------------------------------------------------
 
     # Case: Out of tokens
-    if locate_image(running_window=running_window, image_path_relative="not_enough_tokens.png", resource_folder=GLOBAL_RESOURCE_FOLDER, region=region) is not None:
-        pyautogui.press("esc", presses=2, interval=1)
-        stop_event.set()
-        return STATUS["oor"]
+    if not free_mode_on:
+        if locate_image(running_window=running_window, image_path_relative="not_enough_tokens.png", resource_folder=GLOBAL_RESOURCE_FOLDER, region=region) is not None:
+            pyautogui.press("esc", presses=2, interval=1)
+            stop_event.set()
+            return STATUS["oor"]
 
     # Check time
     if time.time() - start_time > MAX_TIME:
         tprint("Timming out")
-        pyautogui.press("esc", presses=6, interval=1)
-        pyautogui.press("space", presses=2, interval=1)
         pyautogui.press("esc", presses=1, interval=1)
-        pyautogui.press("w", presses=1, interval=1)
+        pyautogui.press("space", presses=1, interval=1)
 
     # Case: Exit and re-enter trials/gauntlet
     exit_and_enter_sequence: List[ImageInfo] = [
         ImageInfo(image_path='town_button.png',
-                  offset_x=10, offset_y=10),
+                  offset_x=10, offset_y=10, delay=2),
         ImageInfo(image_path='gauntlet_label.png',
                   offset_x=10, offset_y=-10),
         ImageInfo(image_path='trials_label.png',

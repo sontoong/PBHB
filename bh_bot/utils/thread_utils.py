@@ -1,7 +1,6 @@
 # pylint: disable=C0114,C0116,C0301,R0913
 
 import threading
-from datetime import datetime
 from typing import Callable, Any, Optional
 from bh_bot.decorators.sleep import stop_sleep
 from bh_bot.constant.task_status import STATUS

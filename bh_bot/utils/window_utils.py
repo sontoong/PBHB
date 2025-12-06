@@ -9,10 +9,9 @@ def center_window_relative(*, window, parent, window_width=0, window_height=0, v
     parent_x = parent.winfo_x()
     parent_y = parent.winfo_y()
     parent_width = parent.winfo_width()
-    parent_height = parent.winfo_height()
 
     x = parent_x + (parent_width // 2) - (window_width // 2)
-    y = parent_y + (parent_height // 2) - (window_height // 2)
+    y = parent_y
 
     window.withdraw()
     window.geometry(f"{window_width}x{window_height}+{x}+{y}")
