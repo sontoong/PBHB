@@ -1,3 +1,4 @@
+import re
 import tkinter as tk
 from tkinter import messagebox
 from typing import Optional, Dict
@@ -35,14 +36,18 @@ class VersionChecker:
             response = requests.get(self.version_url, timeout=10)
             response.raise_for_status()
 
-            remote_version = response.text.strip().lstrip('v').strip()
+            remote_version = self._extract_version_from_py(response.text)
+
+            if remote_version is None:
+                return {'error': 'Could not parse version from remote file', 'update_available': False}
 
             # Validate versions
             if not all(self._is_valid_version(v) for v in [self.current_version, remote_version]):
                 return {'error': 'Invalid version format', 'update_available': False}
 
-            current_ver = version.parse(self.current_version)
-            remote_ver = version.parse(remote_version)
+            current_ver = version.parse(
+                self.current_version.lstrip('v').strip())
+            remote_ver = version.parse(remote_version.lstrip('v').strip())
 
             self.last_check = time.time()
 
@@ -71,6 +76,10 @@ class VersionChecker:
         """Show update notification with link"""
         result = self.check_for_update()
 
+        if result.get('error'):
+            print(f"Version check failed: {result['error']}")
+            return False
+
         if result.get('update_available'):
             root = tk.Tk()
             root.withdraw()
@@ -78,6 +87,7 @@ class VersionChecker:
             response = messagebox.askyesno(
                 "Update Available",
                 f"New version {result['latest_version']} is available!\n\n"
+                f"Current version: {result['current_version']}\n\n"
                 f"Would you like to visit the download page?"
             )
 
@@ -87,3 +97,17 @@ class VersionChecker:
             root.destroy()
             return True
         return False
+
+    def _extract_version_from_py(self, content: str) -> Optional[str]:
+        """Extract version string from Python version file"""
+        patterns = [
+            r'__version__\s*=\s*["\']([^"\']+)["\']',
+            r'VERSION\s*=\s*["\']([^"\']+)["\']',
+        ]
+
+        for pattern in patterns:
+            match = re.search(pattern, content)
+            if match:
+                return match.group(1).strip()
+
+        return None

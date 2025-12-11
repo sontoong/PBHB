@@ -21,7 +21,7 @@ class App:
 
     def check_for_updates(self):
         checker = VersionChecker(
-            version_url="https://raw.githubusercontent.com/sontoong/PBHB/main/version.txt",
+            version_url="https://raw.githubusercontent.com/sontoong/PBHB/main/version.py",
             releases_url="https://github.com/sontoong/PBHB/releases"
         )
 
