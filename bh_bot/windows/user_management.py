@@ -2,8 +2,7 @@
 
 import os
 import shutil
-from tkinter import *
-from tkinter import ttk, simpledialog, messagebox
+from tkinter import ttk, simpledialog, messagebox, Frame, X, W
 from bh_bot.classes.window_manager import WindowManager
 from bh_bot.utils.window_utils import center_window_absolute
 from bh_bot.windows.main_window import MainWindow
@@ -29,7 +28,6 @@ class UserManagementScreen:
         self.user_list = self.load_user_list()
 
         # Load active window list
-        self.all_windows = []
         self.occupied_windows = []
         self.available_windows = []
         self.user_window_list = []
@@ -49,12 +47,11 @@ class UserManagementScreen:
         self.update_window_list()
 
     def update_window_list(self):
-        self.all_windows = wm.get_list_of_windows_with_title(
+        all_windows = wm.get_list_of_windows_with_title(
             keywords=WINDOW_TITLE_KEYWORDS)
         self.available_windows = [
-            window for window in self.all_windows if window not in self.occupied_windows]
-        # Update every 10 seconds
-        # self.parent.after(10000, self.update_window_list)
+            window for window in all_windows if window not in self.occupied_windows]
+        return self.available_windows
 
     def load_user_list(self):
         """Load user settings by scanning existing folders in the data directory."""
@@ -184,7 +181,7 @@ class UserManagementScreen:
         self.disable_buttons(username)
         # make UserManagementScreen invisible
         self.parent.withdraw()
-        main_window = MainWindow(self.parent, username, available_windows=self.available_windows,
+        main_window = MainWindow(self.parent, username, available_windows=self.available_windows, update_window_list=self.update_window_list,
                                  on_close=lambda: self.on_main_window_close(username))
         self.user_window_list.append({username: main_window})
 

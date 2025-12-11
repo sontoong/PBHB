@@ -1,8 +1,6 @@
 # pylint: disable=C0114,C0116,C0301,C0115
 
-from tkinter import *
-from tkinter import messagebox
-from tkinter import ttk
+from tkinter import ttk, messagebox, Toplevel, BooleanVar, Frame, BOTTOM, LEFT, X, W, DISABLED, NORMAL
 from bh_bot.ui.custom_entry import NumberEntry
 from bh_bot.functions.pvp.threads.threaded_scripts import thread_pvp
 from bh_bot.settings import settings_manager
@@ -23,7 +21,7 @@ class PvpWindow:
         self.window = Toplevel(master=None)
         self.window.title("Pvp")
         center_window_relative(
-            window=self.window, parent=self.parent, window_width=250, window_height=250)
+            window=self.window, parent=self.parent, window_width=300, window_height=250)
         self.window.protocol("WM_DELETE_WINDOW", self.close_window)
 
         # Bind the Escape key to the stop_execute function
@@ -44,6 +42,25 @@ class PvpWindow:
         self.num_of_loop_entry.set(
             self.settings["PVP_num_of_loop"])
 
+        # Entry for opponent placement
+        self.opponent_placement_entry = NumberEntry(
+            self.window, label_text="Opponent placement", min_value=1)
+        self.opponent_placement_entry.pack(
+            fill=X, padx=(5, 0), pady=5, anchor=W)
+        self.opponent_placement_entry.set(
+            self.settings["PVP_opponent_placement"])
+
+        # Checkbutton for free mode
+        self.free_mode_var = BooleanVar()
+        self.free_mode_var.set(self.settings["PVP_free_mode"])
+        self.free_mode_checkbox = ttk.Checkbutton(
+            self.window,
+            text="Free mode",
+            variable=self.free_mode_var
+        )
+        self.free_mode_checkbox.pack(
+            fill=X, padx=(5, 0), pady=5, anchor=W)
+
         # Footer Buttons
         button_frame = Frame(self.window)
         button_frame.pack(pady=10, side=BOTTOM)
@@ -57,12 +74,16 @@ class PvpWindow:
 
     def start_execute(self):
         num_of_loop = int(self.num_of_loop_entry.get())
+        opponent_placement = int(self.opponent_placement_entry.get())
+        free_mode = self.free_mode_var.get()
 
         # Update settings
         settings_manager.update_user_setting(
             username=self.username,
             updates={
                 "PVP_num_of_loop": num_of_loop,
+                "PVP_opponent_placement": opponent_placement,
+                "PVP_free_mode": free_mode
             })
 
         # Reload the settings from the JSON file to ensure self.settings is up-to-date

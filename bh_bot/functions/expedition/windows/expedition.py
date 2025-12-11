@@ -1,9 +1,7 @@
 # pylint: disable=C0114,C0116,C0301,C0115
 
 import os
-from tkinter import *
-from tkinter import messagebox
-from tkinter import ttk
+from tkinter import ttk, messagebox, Toplevel, BooleanVar, X, W, Frame, LEFT, Label, StringVar, BOTTOM, DISABLED, NORMAL
 from PIL import Image, ImageTk
 from bh_bot.ui.custom_entry import NumberEntry
 from bh_bot.functions.expedition.threads.threaded_scripts import thread_expedition
@@ -65,6 +63,17 @@ class ExpeditionWindow:
         self.auto_increase_difficulty_checkbox.pack(
             fill=X, padx=(5, 0), pady=5, anchor=W)
 
+        # Checkbutton for free mode
+        self.free_mode_var = BooleanVar()
+        self.free_mode_var.set(self.settings["E_free_mode"])
+        self.free_mode_checkbox = ttk.Checkbutton(
+            self.window,
+            text="Free mode",
+            variable=self.free_mode_var
+        )
+        self.free_mode_checkbox.pack(
+            fill=X, padx=(5, 0), pady=5, anchor=W)
+
         # Dropdown for expedition selection
         expedition_frame = Frame(self.window)
         expedition_frame.pack(fill=X, padx=5, pady=5)
@@ -77,7 +86,7 @@ class ExpeditionWindow:
         )
         self.expedition_dropdown.pack(side=LEFT, expand=True, fill=X, padx=5)
         self.expedition_dropdown.bind(
-            "<<ComboboxSelected>>", self.load_radio_buttons)
+            "<<ComboboxSelected>>", self.load_radio_buttons())
 
         # Radio buttons for portal selection
         self.portal_selection_frame = Frame(self.window)
@@ -125,7 +134,7 @@ class ExpeditionWindow:
                     portal_images[expedition][portal_name] = full_path
         return portal_images
 
-    def load_radio_buttons(self, event=None):
+    def load_radio_buttons(self):
         # Clear previous radio buttons
         for widget in self.portal_selection_frame.winfo_children():
             widget.destroy()
@@ -177,6 +186,7 @@ class ExpeditionWindow:
         auto_increase_difficulty = self.auto_increase_difficulty_var.get()
         selected_expedition = self.expedition_dropdown.get()
         selected_portal = self.portal_name_var.get()
+        free_mode = self.free_mode_var.get()
 
         # Update settings
         settings_manager.update_user_setting(
@@ -184,7 +194,8 @@ class ExpeditionWindow:
             updates={
                 "E_num_of_loop": num_of_loop,
                 "E_increase_difficulty": auto_increase_difficulty,                "E_selected_expedition": selected_expedition,
-                "E_selected_portal": selected_portal
+                "E_selected_portal": selected_portal,
+                "E_free_mode": free_mode
             })
 
         # Reload the settings from the JSON file to ensure self.settings is up-to-date

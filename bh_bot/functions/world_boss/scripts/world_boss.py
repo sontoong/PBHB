@@ -21,11 +21,12 @@ MAX_TIME = 300
 @sleep(timeout=5, retry=999)
 def world_boss(*, user_settings, user, stop_event: threading.Event, start_time=time.time()):
     running_window = user["running_window"]
-    running_window.activate()
 
     # Define region for pyautogui
-    region = (running_window.left, running_window.top,
-              running_window.width, running_window.height)
+    region = None if user_settings["WB_free_mode"] else (
+        running_window.left, running_window.top,
+        running_window.width, running_window.height
+    )
 
     # Wrap functions that need to check for stop event
     click_images_in_sequence_wrapped = stop_checking_wrapper(
@@ -58,8 +59,8 @@ def world_boss(*, user_settings, user, stop_event: threading.Event, start_time=t
      # Check time
     if time.time() - start_time > MAX_TIME:
         tprint("Timming out")
-        pyautogui.press("esc", presses=6, interval=1)
-        pyautogui.press("space", presses=2, interval=1)
+        pyautogui.press("esc", presses=1, interval=1)
+        pyautogui.press("space", presses=1, interval=1)
 
     # Case: Enter world boss
     enter_wb_sequence: List[ImageInfo] = [
@@ -120,7 +121,7 @@ def world_boss(*, user_settings, user, stop_event: threading.Event, start_time=t
     # Final: Regroup
     regroup_sequence: List[ImageInfo] = [
         ImageInfo(image_path='regroup_button.png',
-                  offset_x=5, offset_y=5, optional=False),
+                  offset_x=5, offset_y=5, optional=False, delay=2),
     ]
 
     click_images_in_sequence_wrapped(

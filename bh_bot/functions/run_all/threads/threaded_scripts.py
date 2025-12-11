@@ -3,7 +3,7 @@
 import time
 import threading
 from bh_bot.utils.thread_utils import get_break_signal, thread_function
-from bh_bot.utils.helpers import get_true_keys
+from bh_bot.utils.helpers import get_run_keys
 from bh_bot.functions.pvp.scripts.pvp import pvp
 from bh_bot.functions.trials_gauntlet.scripts.trials_gauntlet import trials_gauntlet
 from bh_bot.functions.invasion.scripts.invasion import invasion
@@ -59,7 +59,7 @@ def child_thread_expedition(*, callback, user, user_settings) -> None:
 def thread_worker(*, callback, user, user_settings) -> None:
     thread_id = "run_all"
     running_window = user["running_window"]
-    functions_to_run = get_true_keys(user_settings["RA_functions"])
+    functions_to_run = get_run_keys(user_settings["RA_functions"])
     is_close_game = user_settings["RA_close_game_after_regen"]
 
     def loop_worker(**_):

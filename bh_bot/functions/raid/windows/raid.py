@@ -1,8 +1,6 @@
 # pylint: disable=C0114,C0116,C0301,C0115
 
-from tkinter import *
-from tkinter import messagebox
-from tkinter import ttk
+from tkinter import ttk, messagebox, Toplevel, BooleanVar, X, W, Frame, BOTTOM, LEFT, DISABLED, NORMAL
 from bh_bot.ui.custom_entry import NumberEntry
 from bh_bot.functions.raid.threads.threaded_scripts import thread_raid
 from bh_bot.settings import settings_manager
@@ -64,6 +62,39 @@ class RaidWindow:
         )
         self.auto_bribe_checkbox.pack(fill=X, padx=(5, 0), pady=5, anchor=W)
 
+        # Checkbutton for auto open chest
+        self.auto_open_chest_var = BooleanVar()
+        self.auto_open_chest_var.set(self.settings["R_auto_open_chest"])
+        self.auto_open_chest_checkbox = ttk.Checkbutton(
+            self.window,
+            text="Auto open chest",
+            variable=self.auto_open_chest_var
+        )
+        self.auto_open_chest_checkbox.pack(
+            fill=X, padx=(5, 0), pady=5, anchor=W)
+
+        # Checkbutton for free mode
+        self.free_mode_var = BooleanVar()
+        self.free_mode_var.set(self.settings["R_free_mode"])
+        self.free_mode_checkbox = ttk.Checkbutton(
+            self.window,
+            text="Free mode",
+            variable=self.free_mode_var
+        )
+        self.free_mode_checkbox.pack(
+            fill=X, padx=(5, 0), pady=5, anchor=W)
+
+        # Checkbutton for auto change armory
+        self.auto_change_armory_var = BooleanVar()
+        self.auto_change_armory_var.set(self.settings["R_auto_change_armory"])
+        self.auto_change_armory_checkbox = ttk.Checkbutton(
+            self.window,
+            text="Auto change armory",
+            variable=self.auto_change_armory_var
+        )
+        self.auto_change_armory_checkbox.pack(
+            fill=X, padx=(5, 0), pady=5, anchor=W)
+
         # Footer Buttons
         button_frame = Frame(self.window)
         button_frame.pack(pady=10, side=BOTTOM)
@@ -79,6 +110,9 @@ class RaidWindow:
         num_of_loop = int(self.num_of_loop_entry.get())
         auto_catch = self.auto_catch_var.get()
         auto_bribe = self.auto_bribe_var.get()
+        auto_open_chest = self.auto_open_chest_var.get()
+        free_mode = self.free_mode_var.get()
+        auto_change_armory = self.auto_change_armory_var.get()
 
         # Update settings
         settings_manager.update_user_setting(
@@ -86,7 +120,10 @@ class RaidWindow:
             updates={
                 "R_num_of_loop": num_of_loop,
                 "R_auto_catch_by_gold": auto_catch,
-                "R_auto_bribe": auto_bribe
+                "R_auto_bribe": auto_bribe,
+                "R_auto_open_chest": auto_open_chest,
+                "R_free_mode": free_mode,
+                "R_auto_change_armory": auto_change_armory,
             })
 
         # Reload the settings from the JSON file to ensure self.settings is up-to-date

@@ -1,7 +1,6 @@
 # pylint: disable=C0114,C0116,C0301,C0115,W0401,W0614
 import os
-from tkinter import *
-from tkinter import ttk
+from tkinter import ttk, BooleanVar, Toplevel, Frame, Canvas, BOTH, LEFT, VERTICAL, RIGHT, Y, NSEW, W, EW, StringVar, TOP, X
 from bh_bot.settings import settings_manager
 from bh_bot.utils.window_utils import center_window_relative
 from bh_bot.ui.custom_entry import NumberEntry
@@ -21,6 +20,7 @@ class SettingsWindow:
 
         # Initialize attributes
         # pvp
+        self.pvp1 = self.settings["PVP_opponent_placement"]
 
         # tg
         self.tg1 = BooleanVar(value=self.settings["TG_increase_difficulty"])
@@ -32,8 +32,11 @@ class SettingsWindow:
         # raid
         self.raid1 = BooleanVar(value=self.settings["R_auto_catch_by_gold"])
         self.raid2 = BooleanVar(value=self.settings["R_auto_bribe"])
+        self.raid3 = BooleanVar(value=self.settings["R_auto_open_chest"])
+        self.raid4 = BooleanVar(value=self.settings["R_auto_change_armory"])
 
         # gvg
+        self.gvg1 = self.settings["GVG_opponent_placement"]
 
         # wb
         self.wb1 = self.settings["WB_num_of_player"]
@@ -42,6 +45,8 @@ class SettingsWindow:
         self.d1 = BooleanVar(value=self.settings["D_auto_catch_by_gold"])
         self.d2 = BooleanVar(value=self.settings["D_auto_bribe"])
         self.d3 = self.settings["D_selected_dungeon"]
+        self.d4 = BooleanVar(value=self.settings["D_auto_open_chest"])
+        self.d5 = BooleanVar(value=self.settings["D_auto_change_armory"])
 
         # exped
         self.exped1 = BooleanVar(value=self.settings["E_increase_difficulty"])
@@ -54,7 +59,7 @@ class SettingsWindow:
         window.transient(self.parent)
         window.grab_set()
         center_window_relative(
-            window=window, parent=self.parent, window_width=510, window_height=500)
+            window=window, parent=self.parent, window_width=600, window_height=500)
 
         # Create a main frame inside the Toplevel window
         main_frame = Frame(window)
@@ -129,7 +134,28 @@ class SettingsWindow:
             row=2, column=1, padx=10, pady=5, sticky="NEW")
         self.expedition_frame.columnconfigure(0, weight=1)
 
+        pvp_frame = ttk.LabelFrame(content_frame, text="Pvp Settings")
+        pvp_frame.grid(row=3, column=0, padx=10, pady=5, sticky="NEW")
+        pvp_frame.columnconfigure(0, weight=1)
+
+        gvg_frame = ttk.LabelFrame(content_frame, text="Gvg Settings")
+        gvg_frame.grid(row=3, column=1, padx=10, pady=5, sticky="NEW")
+        gvg_frame.columnconfigure(0, weight=1)
+
         # ---------------------------------------------------------- pvp
+        # Entry for opponent placement
+        pvp_opponent_placement_entry = NumberEntry(
+            pvp_frame, label_text="Opponent Placement", min_value=1)
+        pvp_opponent_placement_entry.set(
+            self.pvp1)
+        pvp_opponent_placement_entry.trace_add("write", lambda: settings_manager.update_user_setting(
+            username=self.username,
+            updates={
+                "PVP_opponent_placement": pvp_opponent_placement_entry.get()
+            })
+        )
+        pvp_opponent_placement_entry.grid(
+            row=0, column=0, padx=5, pady=5, sticky=W)
 
         # ---------------------------------------------------------- tg
         # Checkbutton for auto increase difficulty
@@ -204,7 +230,48 @@ class SettingsWindow:
         raid_checkbox_2.grid(
             row=1, column=0, padx=5, pady=5, sticky=W)
 
+        # Checkbutton for auto open chest
+        raid_checkbox_3 = ttk.Checkbutton(
+            raid_frame,
+            text="Auto open chest",
+            variable=self.raid3,
+            command=lambda: settings_manager.update_user_setting(
+                username=self.username,
+                updates={
+                    "R_auto_open_chest": self.raid3.get()
+                })
+        )
+        raid_checkbox_3.grid(
+            row=2, column=0, padx=5, pady=5, sticky=W)
+
+        # Checkbutton for auto change armory
+        raid_checkbox_4 = ttk.Checkbutton(
+            raid_frame,
+            text="Auto change armory",
+            variable=self.raid4,
+            command=lambda: settings_manager.update_user_setting(
+                username=self.username,
+                updates={
+                    "R_auto_change_armory": self.raid4.get()
+                })
+        )
+        raid_checkbox_4.grid(
+            row=3, column=0, padx=5, pady=5, sticky=W)
+
         # ---------------------------------------------------------- gvg
+        # Entry for opponent placement
+        gvg_opponent_placement_entry = NumberEntry(
+            gvg_frame, label_text="Opponent Placement", min_value=1)
+        gvg_opponent_placement_entry.set(
+            self.pvp1)
+        gvg_opponent_placement_entry.trace_add("write", lambda: settings_manager.update_user_setting(
+            username=self.username,
+            updates={
+                "GVG_opponent_placement": gvg_opponent_placement_entry.get()
+            })
+        )
+        gvg_opponent_placement_entry.grid(
+            row=0, column=0, padx=5, pady=5, sticky=W)
 
         # ---------------------------------------------------------- wb
         # Entry for number of players
@@ -264,6 +331,34 @@ class SettingsWindow:
             })
         )
         dungeon_dropdown.grid(row=2, column=0, padx=5, pady=5, sticky=EW)
+
+        # Checkbutton for auto open chest
+        dungeon_checkbox_3 = ttk.Checkbutton(
+            dungeon_frame,
+            text="Auto open chest",
+            variable=self.d4,
+            command=lambda: settings_manager.update_user_setting(
+                username=self.username,
+                updates={
+                    "D_auto_open_chest": self.d4.get()
+                })
+        )
+        dungeon_checkbox_3.grid(
+            row=3, column=0, padx=5, pady=5, sticky=W)
+
+        # Checkbutton for auto change armory
+        dungeon_checkbox_4 = ttk.Checkbutton(
+            dungeon_frame,
+            text="Auto change armory",
+            variable=self.d5,
+            command=lambda: settings_manager.update_user_setting(
+                username=self.username,
+                updates={
+                    "D_auto_change_armory": self.d5.get()
+                })
+        )
+        dungeon_checkbox_4.grid(
+            row=4, column=0, padx=5, pady=5, sticky=W)
 
         # ---------------------------------------------------------- expedition
         # Checkbutton for auto increase difficulty

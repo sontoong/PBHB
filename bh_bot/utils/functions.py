@@ -23,13 +23,25 @@ def click_images_in_sequence(*, running_window, user_settings, image_info_list: 
         optional = image_info.optional
         confidence = image_info.confidence
         grayscale = image_info.grayscale
+        instance = image_info.instance
+        delay = image_info.delay
 
         location = locate_image(running_window=running_window,
-                                image_path_relative=image_path, resource_folder=resource_folder, confidence=confidence, optional=optional, region=region, grayscale=grayscale)
+                                image_path_relative=image_path, resource_folder=resource_folder, confidence=confidence, optional=optional, region=region, grayscale=grayscale, instance=instance)
+        if delay:
+            time.sleep(delay)
+            location = locate_image(running_window=running_window,
+                                    image_path_relative=image_path, resource_folder=resource_folder, confidence=confidence, optional=optional, region=region, grayscale=grayscale, instance=instance)
         if location is not None:
             center_x = location.left + offset_x
             center_y = location.top + offset_y
+            if not region:
+                click(x=location.left, y=location.top, button="RIGHT")
+                time.sleep(0.1)
             click(x=center_x, y=center_y, clicks=clicks,
                   user_settings=user_settings)
-            move_to(x=region[0], y=region[1])
+            if region:
+                move_to(x=region[0], y=region[1])
+            else:
+                move_to(x=0, y=0)
             time.sleep(interval)  # Wait before moving to the next image

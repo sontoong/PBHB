@@ -1,8 +1,6 @@
 # pylint: disable=C0114,C0116,C0301,C0115
 
-from tkinter import *
-from tkinter import messagebox
-from tkinter import ttk
+from tkinter import ttk, messagebox, Toplevel, X, BooleanVar, W, Frame, BOTTOM, LEFT, DISABLED, NORMAL
 from bh_bot.ui.custom_entry import NumberEntry
 from bh_bot.functions.invasion.threads.threaded_scripts import thread_invasion
 from bh_bot.settings import settings_manager
@@ -62,6 +60,17 @@ class InvasionWindow:
         self.max_wave_entry.set(
             self.settings["I_max_num_of_wave"])
 
+        # Checkbutton for free mode
+        self.free_mode_var = BooleanVar()
+        self.free_mode_var.set(self.settings["I_free_mode"])
+        self.free_mode_checkbox = ttk.Checkbutton(
+            self.window,
+            text="Free mode",
+            variable=self.free_mode_var
+        )
+        self.free_mode_checkbox.pack(
+            fill=X, padx=(5, 0), pady=5, anchor=W)
+
         # Footer Buttons
         button_frame = Frame(self.window)
         button_frame.pack(pady=10, side=BOTTOM)
@@ -77,6 +86,7 @@ class InvasionWindow:
         num_of_loop = int(self.num_of_loop_entry.get())
         auto_increase_wave = self.auto_increase_wave_var.get()
         max_wave = int(self.max_wave_entry.get())
+        free_mode = self.free_mode_var.get()
 
         # Update settings
         settings_manager.update_user_setting(
@@ -84,7 +94,8 @@ class InvasionWindow:
             updates={
                 "I_num_of_loop": num_of_loop,
                 "I_increase_wave": auto_increase_wave,
-                "I_max_num_of_wave": max_wave
+                "I_max_num_of_wave": max_wave,
+                "I_free_mode": free_mode
             })
 
         # Reload the settings from the JSON file to ensure self.settings is up-to-date

@@ -12,3 +12,5 @@ class ImageInfo:
     optional: bool = True
     confidence: float = 0.8
     grayscale: bool = True
+    instance: int = 1
+    delay: float = 0
