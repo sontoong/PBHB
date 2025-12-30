@@ -114,7 +114,7 @@ def raid(*, user_settings, user, stop_event: threading.Event, start_time=time.ti
         first_button = 'open_button.png'
 
         if user_settings["R_auto_open_chest"] is False:
-            first_button = 'decline_button.png'
+            first_button = 'decline_button_chest.png'
 
         action_sequence: List[ImageInfo] = [
             ImageInfo(image_path=first_button, offset_x=5, offset_y=5),
