@@ -86,7 +86,7 @@ class ExpeditionWindow:
         )
         self.expedition_dropdown.pack(side=LEFT, expand=True, fill=X, padx=5)
         self.expedition_dropdown.bind(
-            "<<ComboboxSelected>>", self.load_radio_buttons())
+            "<<ComboboxSelected>>", lambda event: self.load_radio_buttons())
 
         # Radio buttons for portal selection
         self.portal_selection_frame = Frame(self.window)
