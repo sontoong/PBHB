@@ -106,7 +106,7 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ github.ref_name }}
-          name: "PBHB ${{ github.ref_name }}"
+          name: "Bit Heroes Bot ${{ github.ref_name }}"
           draft: false
           prerelease: false
           generate_release_notes: true
