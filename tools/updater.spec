@@ -1,0 +1,55 @@
+block_cipher = None
+
+a = Analysis(
+    ["updater.py"],
+    pathex=[],
+    binaries=[],
+    datas=[],
+    hiddenimports=[
+        "packaging",
+        "packaging.version",
+        "httpx",
+        "httpx._transports",
+        "httpx._transports.default",
+        "httpx._config",
+        "tkinter",
+        "tkinter.ttk",
+        "certifi",
+        "anyio",
+        "sniffio",
+        "idna",
+        "h11",
+    ],
+    hookspath=[],
+    hooksconfig={},
+    runtime_hooks=[],
+    excludes=[],
+    win_no_prefer_redirects=False,
+    win_private_assemblies=False,
+    cipher=block_cipher,
+    noarchive=False,
+)
+
+pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
+
+exe = EXE(
+    pyz,
+    a.scripts,
+    a.binaries,
+    a.zipfiles,
+    a.datas,
+    [],
+    name="updater",
+    bootloader_ignore_signals=False,
+    strip=False,
+    upx=True,
+    upx_exclude=[],
+    runtime_tmpdir=None,
+    console=False,
+    debug=False,
+    disable_windowed_traceback=False,
+    target_arch=None,
+    codesign_identity=None,
+    entitlements_file=None,
+    icon="../bot/assets/icons/app.ico",
+)

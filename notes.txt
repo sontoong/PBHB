@@ -1,55 +1,36 @@
-thread_id: The name of function in the thread
+add reward claim popup (find a way to differentiate between claim and play)
+auto change gamemode
+add maintenace to wait_for_game
+remove debug inva
+remove native page settings tabbar
+find why global dont run?
+add esc for native
+maybe read single screen mode
+close regen doesnt have close flag
+fix native window focus
+add auto close native game/ track native game die
+add auto portal select exped
+change data path usage, add tools path constant
+swap updater inside, main outside, add auto check update for main
+fix debug familiar img name
+auto reload bot?
+add season rewards wait for game
+auto updater
+speed hack?
+add lost connect log for reconnect
+reconnect -> lost speed
+mem leak when close game window -> relaunch -> close game window
+add key filter / save window name maybe (config)
+fix not relaunch after update, updater splash (manual)
+bug at saving profile
+add shortcut to data
+check native with sandboxie
+check for [2026-06-01 02:34:03] [ERROR  ] 'platform' (native, new acc) 
+get token guide / auto get token
+change icon
+copy token button
 
-Todo: fishing?, test multiple??
+auto turn off comp? (cant implement if run multiple accs?)
+change github link
 
-Hard coded positions:
-send_msg_button
-/duel_request
-/world_boss_request
-wave_counter
-difficulty_picker
-wave_counter_box_left
-
-confirmed:
-a, a1
-b1 (maybe)
-c
-d, d1
-f1
-g
-i
-k
-l
-m, m1
-n, n1
-o, o1
-p1
-t, t1
-u
-v, v1
-w
-r
-b
-w1
-c1
-e
-s, s1
-p
-k1
-r1
-z,z1
-y
-f
-g1
-h1,h
-l1
-q,
-i1
-j1
-u1
-q1
-
-needs checking:
-j,
-x, x1
-, y1
+BUG:

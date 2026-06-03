@@ -1,0 +1,115 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-app:
+    name: Build PBHB.exe
+    runs-on: windows-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install uv
+          uv sync
+          uv pip install pyinstaller
+
+      - name: Build PBHB.exe
+        run: uv run pyinstaller app.spec
+
+      - name: Upload PBHB.exe artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: pbhb-exe
+          path: dist/PBHB.exe
+          if-no-files-found: error
+
+  build-updater:
+    name: Build updater.exe
+    runs-on: windows-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install updater dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller packaging httpx
+
+      - name: Build updater.exe
+        run: |
+          cd tools
+          pyinstaller updater.spec
+
+      - name: Upload updater artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: updater-exe
+          path: tools/dist/updater.exe
+          if-no-files-found: error
+
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [build-app, build-updater]
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v8
+        with:
+          pattern: "*-exe"
+          merge-multiple: true
+          path: dist/
+
+      - name: Write version file
+        run: echo "${{ steps.version.outputs.VERSION }}" > dist/version
+
+      - name: Create release zip
+        run: |
+          FOLDER="PBHB"
+          mkdir -p "release/$FOLDER/_internal/tools"
+          cp dist/PBHB.exe "release/$FOLDER/PBHB.exe"
+          cp dist/version "release/$FOLDER/_internal/version"
+          cp dist/updater.exe "release/$FOLDER/_internal/tools/updater.exe"
+          cd release
+          zip -r "../dist/download.zip" "$FOLDER/"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "PBHB ${{ github.ref_name }}"
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            dist/PBHB.exe
+            dist/download.zip
