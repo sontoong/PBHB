@@ -60,7 +60,7 @@ class ClientManager:
     async def start_task_browser(self):
         if not self.profile["uid"] or not self.profile["token"]:
             await self.context.logger.warn(f"[{self.profile['username']}] Skipped: missing uid or token.")
-            return
+            raise TargetClosedError()
 
         await self.context.logger.info(f"[{self.profile["username"]}] Launching...")
 
@@ -138,16 +138,7 @@ class ClientManager:
                 pass
             self.start_task = None
 
-        # Cancel profile refresh
-        if self._refresh_profile_task and not self._refresh_profile_task.done():
-            self._refresh_profile_task.cancel()
-            try:
-                await self._refresh_profile_task
-            except asyncio.CancelledError:
-                pass
-            self._refresh_profile_task = None
-
-        # Close browser/pw instance or just end task
+        # Close browser
         if self.browser and self.page:
             browser = self.browser
             page = self.page
@@ -183,6 +174,8 @@ class ClientManager:
         elif self.native_driver:
             self.native_driver = None
             await self.context.logger.success(f"[{self.profile['username']}] Client closed successfully")
+
+        self.task_manager.reset()
 
     #   ------------------------------Helpers
 

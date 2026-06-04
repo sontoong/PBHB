@@ -30,7 +30,7 @@ class Expedition(BaseTask):
         # Play sequence
         if await self._click_image(f"{EXPEDITION_IMAGES}/play_button.png", stable_ms=300):
             return None
-        if await self._locate_image(f"{EXPEDITION_IMAGES}/refresh_button.png", stable_ms=300):
+        if await self._locate_image(f"{EXPEDITION_IMAGES}/refresh_button.png", stable_ms=300) and not await self._locate_image(f"{EXPEDITION_IMAGES}/enter_button.png"):
             await self._detect_and_sync_expedition()
         if await self._click_image(
             f"{EXPEDITION_IMAGES}/expeditions/{self._profile['expedition']['selectedExpedition']}/{self._profile['expedition']['selectedPortal']}.png",

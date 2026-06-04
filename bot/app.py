@@ -144,8 +144,8 @@ class Application:
                     on_progress(line)
 
     async def _check_for_update(self):
-        latest = await self._context.client_service.check_for_update()
-        if latest:
+        latest_version = await self._context.client_service.check_for_update()
+        if latest_version:
             self._context.queue_ui_task(
-                lambda: self._ui.show_update_button(latest)
+                lambda: self._ui.show_update_button(latest_version)
             )

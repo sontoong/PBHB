@@ -13,7 +13,6 @@ from bot.constants import GLOBAL_IMAGES,  EXPEDITION_IMAGES, GVG_IMAGES, INVASIO
 
 if TYPE_CHECKING:
     from bot.managers import ClientManager
-    from bot.base.driver import BaseDriver
 
 
 async def reload_and_wait(client_manager: ClientManager):
@@ -58,10 +57,14 @@ async def wait_for_game(client_manager: ClientManager, timeout_ms: int = 15 * 60
 
     async def _wait_for_town() -> None:
         while True:
-            if not client_manager.driver:
-                raise asyncio.CancelledError("Driver not available")
             while not client_manager.task_manager.is_running:
                 await sleep(1)
+
+            driver = client_manager.driver
+            page = client_manager.page
+
+            if not driver:
+                raise TargetClosedError()
 
             chat_image_path, is_correct_config = get_image_path_with_warning(
                 window_config, f"{GLOBAL_IMAGES}/chat.png")
@@ -70,23 +73,35 @@ async def wait_for_game(client_manager: ClientManager, timeout_ms: int = 15 * 60
                 default_w, default_h = DEFAULT_RESOLUTION
                 await client_manager.context.logger.warn(f"Current version doesn't support {current_w}x{current_h} resolution. Defaulting to {default_w}x{default_h}.")
 
-            if await locate_image(client_manager.driver, chat_image_path) or await locate_image(client_manager.driver, get_image_path(window_config, f"{GLOBAL_IMAGES}/news_label.png")) or await locate_image(client_manager.driver, get_image_path(window_config, f"{GLOBAL_IMAGES}/season_rewards.png")):
+            results = await asyncio.gather(
+                locate_image(driver, chat_image_path),
+                locate_image(driver, get_image_path(
+                    window_config, f"{GLOBAL_IMAGES}/news_label.png")),
+                locate_image(driver, get_image_path(
+                    window_config, f"{GLOBAL_IMAGES}/season_rewards.png")),
+                locate_image(driver, get_image_path(
+                    window_config, f"{GLOBAL_IMAGES}/auto_red.png")),
+            )
+
+            if any(results):
                 await client_manager.context.logger.info(f"[{client_manager.profile['username']}] Town loaded successfully")
                 return
-            if await locate_image(client_manager.driver, get_image_path(window_config, f"{GLOBAL_IMAGES}/maintenance.png")) or await locate_image(client_manager.driver, get_image_path(window_config, f"{GLOBAL_IMAGES}/maintenance2.png")):
+            if await locate_image(driver, get_image_path(window_config, f"{GLOBAL_IMAGES}/maintenance.png")) or await locate_image(driver, get_image_path(window_config, f"{GLOBAL_IMAGES}/maintenance2.png")):
                 # Maintenance handle only available to browser
-                if client_manager.page:
-                    invalidate_page_cache(client_manager.page)
-                    await asyncio.wait_for(client_manager.page.reload(wait_until="domcontentloaded", timeout=0), timeout=60)
+                if page:
+                    invalidate_page_cache(page)
+                    await asyncio.wait_for(page.reload(wait_until="domcontentloaded", timeout=0), timeout=60)
                 else:
                     await client_manager.context.client_service.stop_native_async(client_manager.profile["username"])
                     return
-            await click_image(client_manager.driver, get_image_path(window_config, f"{GLOBAL_IMAGES}/reconnect_button.png"))
+            await click_image(driver, get_image_path(window_config, f"{GLOBAL_IMAGES}/reconnect_button.png"))
             await sleep(1000, "ms")
 
     async def _check_gamemodes():
-        if not client_manager.driver:
-            raise asyncio.CancelledError("Driver not available")
+        driver = client_manager.driver
+
+        if not driver:
+            raise TargetClosedError()
         if not auto_change_gamemode:
             return
 
@@ -96,7 +111,7 @@ async def wait_for_game(client_manager: ClientManager, timeout_ms: int = 15 * 60
         keys = [key for key, _ in gamemode_images]
 
         for key, img in gamemode_images:
-            if await locate_image(client_manager.driver, get_image_path(window_config, img)):
+            if await locate_image(driver, get_image_path(window_config, img)):
                 updates = {
                     "global": {
                         "functions": {k: {"enabled": k == key} for k in keys}

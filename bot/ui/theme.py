@@ -37,6 +37,10 @@ def danger_button() -> int:
             dpg.add_theme_color(dpg.mvThemeCol_Button, (180, 40, 40))
             dpg.add_theme_color(dpg.mvThemeCol_ButtonHovered, (210, 60, 60))
             dpg.add_theme_color(dpg.mvThemeCol_ButtonActive, (150, 30, 30))
+        with dpg.theme_component(dpg.mvTabButton):
+            dpg.add_theme_color(dpg.mvThemeCol_Tab, (180, 40, 40))
+            dpg.add_theme_color(dpg.mvThemeCol_TabHovered, (210, 60, 60))
+            dpg.add_theme_color(dpg.mvThemeCol_TabActive, (150, 30, 30))
     _cache["danger_button"] = t
     return t
 
@@ -49,5 +53,9 @@ def primary_button() -> int:
             dpg.add_theme_color(dpg.mvThemeCol_Button, (30, 100, 200))
             dpg.add_theme_color(dpg.mvThemeCol_ButtonHovered, (50, 130, 240))
             dpg.add_theme_color(dpg.mvThemeCol_ButtonActive, (20, 80, 170))
+        with dpg.theme_component(dpg.mvTabButton):
+            dpg.add_theme_color(dpg.mvThemeCol_Tab, (30, 100, 200))
+            dpg.add_theme_color(dpg.mvThemeCol_TabHovered, (50, 130, 240))
+            dpg.add_theme_color(dpg.mvThemeCol_TabActive, (20, 80, 170))
     _cache["primary_button"] = t
     return t

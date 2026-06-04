@@ -104,13 +104,17 @@ class TaskManager:
                 raise RuntimeError(
                     f"[{self._profile["username"]}] All tasks failed. Check game state.")
 
-        self._tracking_status = STATUS.STANDBY
+            self.reset()
 
     def pause(self):
         self._status = STATUS.PAUSED
 
     def run(self):
         self._status = STATUS.RUNNING
+
+    def reset(self):
+        self._status = STATUS.RUNNING
+        self._tracking_status = STATUS.STANDBY
 
     #   ------------------------------Helpers
 

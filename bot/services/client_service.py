@@ -29,7 +29,6 @@ class ClientService:
 
     #   ------------------------------Async threads
     async def start_client_async(self, username: str):
-        await self._context.logger.info(f"[{username}] Initializing browser...")
         client_manager = self._context.profile_registry.get_client_manager(
             username)
         if client_manager:
@@ -151,7 +150,7 @@ class ClientService:
 
     async def check_for_update(self) -> str | None:
         if APP_VERSION == "DEV":
-            return None
+            return "DEV"
         try:
             async with httpx.AsyncClient() as client:
                 resp = await client.get(
@@ -174,5 +173,6 @@ class ClientService:
         flags = 0
         if sys.platform == "win32":
             flags = subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP
+
         subprocess.Popen([str(updater)], cwd=str(
             updater.parent), creationflags=flags, close_fds=True)

@@ -43,29 +43,15 @@ class MainUI:
         dpg.set_exit_callback(self._on_exit)
 
         with dpg.window(label="Control Panel", tag="main", no_close=True):
-            if len(_NAV) > 1:
-                with dpg.group(horizontal=True, tag="nav_group"):
-                    for entry in _NAV:
-                        dpg.add_button(
-                            label=entry.label,
-                            tag=f"nav_btn_{entry.label}",
-                            callback=lambda s, a, u: self._navigate(u),
-                            user_data=entry.label,
-                            enabled=entry.label != self._active
-                        )
-                dpg.add_separator()
-
-            with dpg.child_window(tag="page_area", border=False, autosize_x=True, height=-28):
+            with dpg.tab_bar(tag="nav_tab_bar", callback=lambda s, a: self._on_tab_changed(a)):
                 for entry in _NAV:
-                    page = entry.page_class(self._context)
-                    page.build("page_area")
-                    self._pages[entry.label] = page
+                    with dpg.tab(label=entry.label, tag=f"nav_tab_{entry.label}"):
+                        with dpg.child_window(tag=f"page_area_{entry.label}", border=False, autosize_x=True, height=-28):
+                            page = entry.page_class(self._context)
+                            page.build(f"page_area_{entry.label}")
+                            self._pages[entry.label] = page
 
             dpg.add_text("", tag="status_memory")
-
-        for label, page in self._pages.items():
-            if label != self._active:
-                page.hide()
 
         dpg.set_primary_window("main", True)
         dpg.show_viewport()
@@ -102,28 +88,32 @@ class MainUI:
         for page in self._pages.values():
             page.on_profiles_loaded()
 
-    def show_update_button(self, latest_version: str):
+    def show_update_button(self, version: str):
         if dpg.does_item_exist("update_btn"):
             return
 
-        dpg.add_button(
-            label=f"Update v{latest_version}",
+        dpg.add_tab_button(
+            label=f"Update v{version}",
             tag="update_btn",
             callback=self._on_update_clicked,
-            parent="nav_group",
+            parent="nav_tab_bar",
+            trailing=True,
+            no_tooltip=True,
         )
         dpg.bind_item_theme("update_btn", primary_button())
 
     #   ------------------------------Helpers
 
+    def _on_tab_changed(self, tag):
+        for entry in _NAV:
+            if f"nav_tab_{entry.label}" == tag:
+                self._navigate(entry.label)
+                break
+
     def _navigate(self, label: str):
         if label == self._active:
             return
-        self._pages[self._active].hide()
-        dpg.enable_item(f"nav_btn_{self._active}")
         self._active = label
-        self._pages[label].show()
-        dpg.disable_item(f"nav_btn_{self._active}")
 
     def _on_exit(self):
         dpg.set_exit_callback(lambda: None)
