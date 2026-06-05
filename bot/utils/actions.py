@@ -112,17 +112,10 @@ async def wait_for_game(client_manager: ClientManager, timeout_ms: int = 15 * 60
 
         for key, img in gamemode_images:
             if await locate_image(driver, get_image_path(window_config, img)):
-                updates = {
-                    "global": {
-                        "functions": {k: {"enabled": k == key} for k in keys}
-                    }
-                }
-                await client_manager.profile_manager.update_profile(updates)
-
                 for k in keys:
                     client_manager.profile["global"]["functions"][k]["enabled"] = (
                         k == key)
-
+                await client_manager.profile_manager.save_profile(client_manager.profile)
                 return
 
     try:

@@ -64,12 +64,7 @@ class Expedition(BaseTask):
             if await self._locate_image(path, confidence=0.95, grayscale=False):
                 current_exp = self._profile["expedition"]["selectedExpedition"]
                 if current_exp != expedition:
-                    await self._client_manager.profile_manager.update_profile({
-                        "expedition": {
-                            "selectedExpedition": expedition,
-                            "selectedPortal": portal,
-                        }
-                    })
                     self._profile["expedition"]["selectedExpedition"] = expedition
                     self._profile["expedition"]["selectedPortal"] = portal
+                    await self._client_manager.profile_manager.save_profile(self._profile)
                 return

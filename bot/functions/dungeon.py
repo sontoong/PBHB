@@ -121,11 +121,6 @@ class Dungeon(BaseTask):
             return False
 
         bribe_list[familiar_name] -= 1
-        if self._client_manager.profile_manager:
-            await self._client_manager.profile_manager.update_profile({
-                "global": {
-                    "bribeList": bribe_list
-                }
-            })
+        await self._client_manager.profile_manager.save_profile(self._profile)
 
         return True

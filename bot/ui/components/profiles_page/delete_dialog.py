@@ -1,15 +1,11 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
-from pathlib import Path
-import shutil
+import asyncio
 import dearpygui.dearpygui as dpg
 from bot.utils import center
-from bot.constants import DEFAULT_DATA_FOLDER
 
 if TYPE_CHECKING:
     from bot.context import AppContext
-
-_ROOT = Path(DEFAULT_DATA_FOLDER)
 
 
 class DeleteDialog:
@@ -34,16 +30,17 @@ class DeleteDialog:
                                callback=lambda: dpg.delete_item(self.TAG))
 
     def _confirm(self, username: str):
-        self._context.client_service.stop_client(username)
-        self._delete_profile_folder(username)
+        async def _delete_async():
+            await self._context.client_service.stop_client_async(username)
+            if manager:
+                await manager.profile_manager.delete_profile()
 
-        self._context.profile_registry.remove_profile(username)
-        self._context.profile_registry.remove_client_manager(username)
+        manager = self._context.client_store.get(username)
+        if manager:
+            manager.deleted = True
 
+        self._context.client_store.remove(username)
         dpg.delete_item(self.TAG)
         self._on_deleted_cb(username)
 
-    def _delete_profile_folder(self, username: str):
-        folder = _ROOT / username
-        if folder.exists():
-            shutil.rmtree(folder)
+        asyncio.run_coroutine_threadsafe(_delete_async(), self._context.loop)

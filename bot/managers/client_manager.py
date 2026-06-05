@@ -21,24 +21,23 @@ if TYPE_CHECKING:
 
 
 class ClientManager:
-    def __init__(self, profile, config, context: AppContext):
-        self.profile = profile
+    def __init__(self, init_creds, config, context: AppContext):
+        self.profile = init_creds
         self.config = config
         self.context = context
         self.browser: BrowserContext | None = None
         self.page: Page | None = None
         self.pw_instance: Playwright | None = None
         self.intentional_stop = False
+        self.deleted = False
         self.start_task: asyncio.Task | None = None
         self.native_driver: NativeDriver | None = None
-        self._refresh_profile_task = None
-        # global sequence
         self.global_sequence = GlobalSequence(
             client_manager=self, context=self.context)
-        # managers
         self.task_manager = TaskManager(
             client_manager=self, context=self.context)
         self.lifecycle_manager = LifecycleManager()
+        self._refresh_profile_task = None
 
     @property
     def profile_manager(self):
@@ -201,6 +200,8 @@ class ClientManager:
         while True:
             try:
                 await sleep(REFRESH_PROFILE_INTERVAL_MS, "ms")
+                if self.deleted:
+                    return
                 await self._refresh_profile()
             except asyncio.CancelledError as error:
                 raise error

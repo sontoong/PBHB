@@ -3,8 +3,8 @@ from typing import TYPE_CHECKING
 import asyncio
 import re
 import dearpygui.dearpygui as dpg
-from bot.managers import ProfileManager
 from bot.utils import get_image_path
+from bot.managers import ProfileManager
 from bot.constants import DUNGEON_LIST_IMAGES, EXPEDITION_LIST_IMAGES, DUNGEON_IMAGES, EXPEDITION_IMAGES
 from bot.ui.components.profiles_page.function_priority_dialog import FunctionPriorityDialog
 from bot.ui.components.profiles_page.bribe_list_dialog import BribeListDialog
@@ -205,7 +205,8 @@ class SettingsPanel:
     # ------------------------------Helpers
 
     async def _fetch_and_populate(self):
-        profile = await ProfileManager(self._username, self._context).load_profile()
+        manager = self._context.client_store.get(self._username)
+        profile = manager.profile if manager else await ProfileManager(self._username, self._context).load_profile()
         self._context.queue_ui_task(lambda: self._build(profile))
 
     def _patch(self, profile: dict, path: list[str], value):
@@ -213,6 +214,7 @@ class SettingsPanel:
         for key in path[:-1]:
             node = node[key]
         node[path[-1]] = value
+
         asyncio.run_coroutine_threadsafe(
             ProfileManager(
                 self._username, self._context).save_profile(profile),
@@ -249,9 +251,8 @@ class SettingsPanel:
             self._patch(profile, ["expedition", "selectedPortal"], first)
 
     def _get_dungeon_list(self) -> list[str]:
-        client_manager = self._context.profile_registry.get_client_manager(
-            self._username)
-        window_config = client_manager.profile["platform"]["browser"]["window"] if client_manager else None
+        client = self._context.client_store.get(self._username)
+        window_config = client.profile["platform"]["browser"]["window"] if client else None
         base_dir = get_image_path(window_config, DUNGEON_IMAGES)
         path = base_dir / DUNGEON_LIST_IMAGES
 
@@ -266,9 +267,8 @@ class SettingsPanel:
         return [f.rsplit(".", 1)[0] for f in sorted((f.name for f in path.iterdir()), key=sort_key)]
 
     def _get_expedition_portals(self) -> dict:
-        client_manager = self._context.profile_registry.get_client_manager(
-            self._username)
-        window_config = client_manager.profile["platform"]["browser"]["window"] if client_manager else None
+        client = self._context.client_store.get(self._username)
+        window_config = client.profile["platform"]["browser"]["window"] if client else None
         base_dir = get_image_path(window_config, EXPEDITION_IMAGES)
         path = base_dir / EXPEDITION_LIST_IMAGES
 

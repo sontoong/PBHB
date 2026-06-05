@@ -17,35 +17,28 @@ if TYPE_CHECKING:
 _ROOT = Path(DEFAULT_DATA_FOLDER)
 
 
-def _rename_profile_folder(old: str, new: str):
-    old_path = _ROOT / old
-    new_path = _ROOT / new
-    if old_path.exists():
-        shutil.move(str(old_path), str(new_path))
-
-
 class ProfileTab:
-    def __init__(self, username: str, creds: dict, context: AppContext, on_save_cb=None, on_deleted_cb=None):
+    def __init__(self, username: str, profile: dict, context: AppContext, on_save_cb=None, on_deleted_cb=None):
         self._username = username
-        self._creds = creds
+        self._profile = profile
         self._context = context
         self._delete_dialog = DeleteDialog(
             context, on_deleted_cb=on_deleted_cb)
         self._on_save_cb = on_save_cb
 
     def build(self, parent: str):
-        creds = self._creds
+        profile = self._profile
 
         dpg.add_text("Username *", parent=parent)
         dpg.add_input_text(tag="cfg_edit_username", width=-1, parent=parent,
-                           default_value=creds.get("username", ""))
+                           default_value=profile.get("username", ""))
         dpg.add_text("UID", parent=parent)
         dpg.add_input_text(tag="cfg_edit_uid", width=-1, parent=parent,
-                           default_value=creds.get("uid", ""))
+                           default_value=profile.get("uid", ""))
         dpg.add_text("Token", parent=parent)
         with dpg.group(horizontal=True, parent=parent):
             dpg.add_input_text(tag="cfg_edit_token", width=-120,
-                               password=True, default_value=creds.get("token", ""))
+                               password=True, default_value=profile.get("token", ""))
             dpg.add_button(label="Copy Token", width=115,
                            callback=self._copy_token)
         dpg.add_text("", tag="cfg_result_message", parent=parent)
@@ -77,29 +70,33 @@ class ProfileTab:
             self._set_result_message("Username is required.")
             return
 
-        existing = [p["username"]
-                    for p in self._context.profile_registry.get_profiles()]
+        existing = [client.profile["username"]
+                    for client in self._context.client_store.get_all()]
         if new_username != old_username and new_username in existing:
             self._set_result_message(f'"{new_username}" already exists.')
             return
 
-        self._set_result_message("Save successful!", is_error=False)
+        manager = self._context.client_store.get(old_username)
+        if manager:
+            manager.profile["uid"] = uid
+            manager.profile["token"] = token
+            manager.profile["username"] = new_username
 
         if new_username != old_username:
-            _rename_profile_folder(old_username, new_username)
+            self._rename_profile_folder(old_username, new_username)
+            self._context.client_store.rekey(old_username, new_username)
 
-        creds = {"username": new_username, "uid": uid, "token": token}
         asyncio.run_coroutine_threadsafe(
             CredentialManager(
-                new_username, self._context).save_credentials(creds),
+                new_username, self._context).save_credentials({"username": new_username, "uid": uid, "token": token}),
             self._context.loop,
         )
-        self._context.profile_registry.update_profile(old_username, creds)
 
         self._username = new_username
-
         if self._on_save_cb:
             self._on_save_cb(old_username, new_username)
+
+        self._set_result_message("Save successful!", is_error=False)
 
     def _open_data_folder(self):
         path = _ROOT / self._username
@@ -125,3 +122,9 @@ class ProfileTab:
             return
         dpg.set_clipboard_text(token)
         self._set_result_message("Token copied!", is_error=False)
+
+    def _rename_profile_folder(self, old: str, new: str):
+        old_path = _ROOT / old
+        new_path = _ROOT / new
+        if old_path.exists():
+            shutil.move(str(old_path), str(new_path))

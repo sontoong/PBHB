@@ -37,7 +37,7 @@ class ProfilesPage(BasePage):
                                callback=self._on_stop_all)
 
             with dpg.child_window(tag="user_list", autosize_x=True, height=-1):
-                with dpg.table(tag="profiles_table", header_row=False, no_clip=True, policy=dpg.mvTable_SizingFixedFit):
+                with dpg.table(tag="profiles_table", header_row=False, no_clip=True):
                     dpg.add_table_column(
                         width_fixed=True, init_width_or_weight=100)  # uid
                     dpg.add_table_column(
@@ -60,41 +60,38 @@ class ProfilesPage(BasePage):
     #   ------------------------------Render
 
     def _refresh_list(self):
-        for profile in self._context.profile_registry.get_profiles() or []:
-            if dpg.does_item_exist(f"row_{profile['username']}"):
-                dpg.delete_item(f"row_{profile['username']}")
-        for profile in self._context.profile_registry.get_profiles() or []:
-            self._add_row(profile)
+        for client in self._context.client_store.get_all() or []:
+            username = client.profile["username"]
+            if dpg.does_item_exist(f"row_{username}"):
+                dpg.delete_item(f"row_{username}")
+            self._add_row(client.profile)
 
     def _refresh_button_states(self):
-        profiles = self._context.profile_registry.get_profiles() or []
-        managers = self._context.profile_registry.get_client_managers()
-        running = [m for m in managers if m.browser is not None]
+        clients = self._context.client_store.get_all()
+        running = [m for m in clients if m.browser is not None]
 
         any_unpaused = any(
             m for m in running if not self._paused.get(m.profile["username"]))
         any_paused = any(
             m for m in running if self._paused.get(m.profile["username"]))
 
-        for profile in profiles:
-            username = profile["username"]
-            manager = next(
-                (m for m in managers if m.profile["username"] == username), None)
-            is_running = manager is not None and manager.browser is not None
+        for client in clients:
+            username = client.profile["username"]
+            is_running = client.browser is not None
 
             self._set_enabled(f"start_btn_{username}", not is_running)
             self._set_enabled(f"pause_btn_{username}", is_running)
             self._set_enabled(f"stop_btn_{username}", is_running)
             self._set_enabled(f"delete_btn_{username}", not is_running)
 
-        self._set_enabled("start_all_btn",  len(running) < len(profiles))
+        self._set_enabled("start_all_btn",  len(running) < len(clients))
         self._set_enabled("stop_all_btn",   len(running) > 0)
         self._set_enabled("pause_all_btn",  any_unpaused)
         self._set_enabled("resume_all_btn", any_paused)
 
-    def _add_row(self, profile: dict):
-        username = profile["username"]
-        uid = profile.get("uid") or "N/A"
+    def _add_row(self, creds: dict):
+        username = creds["username"]
+        uid = creds.get("uid") or "N/A"
         self._paused.setdefault(username, False)
 
         with dpg.table_row(tag=f"row_{username}", parent="profiles_table"):
@@ -104,13 +101,13 @@ class ProfilesPage(BasePage):
             dpg.add_text("")
             with dpg.group(horizontal=True):
                 dpg.add_button(label="Start", tag=f"start_btn_{username}",
-                               callback=self._on_start, user_data=profile)
+                               callback=self._on_start, user_data=creds)
                 dpg.add_button(label="Pause", tag=f"pause_btn_{username}",
-                               callback=self._on_pause, user_data=profile)
+                               callback=self._on_pause, user_data=creds)
                 dpg.add_button(label="Stop", tag=f"stop_btn_{username}",
-                               callback=self._on_stop, user_data=profile)
+                               callback=self._on_stop, user_data=creds)
                 dpg.add_button(label="Settings", tag=f"game_settings_btn_{username}",
-                               callback=lambda s, a, u: self._game_settings_dialog.open(u["username"]), user_data=profile)
+                               callback=lambda s, a, u: self._game_settings_dialog.open(u["username"]), user_data=creds)
 
     def _remove_row(self, username: str):
         if dpg.does_item_exist(f"row_{username}"):
@@ -140,32 +137,32 @@ class ProfilesPage(BasePage):
         self._context.client_service.stop_client(username)
 
     def _on_start_all(self):
-        for p in self._context.profile_registry.get_profiles() or []:
-            self._context.client_service.start_client(p["username"])
+        for client in self._context.client_store.get_all():
+            profile = client.profile
+            self._context.client_service.start_client(profile["username"])
 
     def _on_stop_all(self):
-        for p in self._context.profile_registry.get_profiles() or []:
-            username = p["username"]
+        for client in self._context.client_store.get_all():
+            profile = client.profile
+            username = profile["username"]
             self._paused[username] = False
             dpg.set_item_label(f"pause_btn_{username}", "Pause")
             self._context.client_service.stop_client(username)
 
     def _on_pause_all(self):
-        for p in self._context.profile_registry.get_profiles() or []:
-            username = p["username"]
-            manager = self._context.profile_registry.get_client_manager(
-                username)
-            if manager and manager.browser and not self._paused.get(username):
+        for client in self._context.client_store.get_all():
+            profile = client.profile
+            username = profile["username"]
+            if client.browser and not self._paused.get(username):
                 self._paused[username] = True
                 self._context.client_service.pause_client(username)
                 dpg.set_item_label(f"pause_btn_{username}", "Resume")
 
     def _on_resume_all(self):
-        for p in self._context.profile_registry.get_profiles():
-            username = p["username"]
-            manager = self._context.profile_registry.get_client_manager(
-                username)
-            if manager and manager.browser and self._paused.get(username):
+        for client in self._context.client_store.get_all():
+            profile = client.profile
+            username = profile["username"]
+            if client.browser and self._paused.get(username):
                 self._paused[username] = False
                 self._context.client_service.resume_client(username)
                 dpg.set_item_label(f"pause_btn_{username}", "Pause")

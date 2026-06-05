@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 import json
 import time
 import copy
+import shutil
 from pathlib import Path
 from bot.constants import DEFAULT_DATA_FOLDER, DEFAULT_PLAYER_DATA_FILE
 
@@ -133,19 +134,11 @@ class ProfileManager:
             await self._context.logger.error(f"[{self.username}] Error saving profile:", error)
             return False
 
-    async def update_profile(self, updates):
-        try:
-            current_profile = await self.load_profile()
-            updated_profile = self._merge_deep(current_profile, updates)
-            await self.save_profile(updated_profile)
-            return updated_profile
-        except Exception as error:
-            await self._context.logger.error(f"[{self.username}] Error updating profile:", error)
-            raise error
-
     async def delete_profile(self):
         try:
-            self.file_path.unlink()
+            folder = self.file_path.parent
+            if folder.exists():
+                shutil.rmtree(folder)
             return True
         except Exception as error:
             if isinstance(error, FileNotFoundError):

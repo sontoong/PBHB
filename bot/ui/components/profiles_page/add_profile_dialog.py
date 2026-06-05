@@ -47,8 +47,8 @@ class AddProfileDialog:
             self._set_result_message("Username is required.")
             return
 
-        existing = [p["username"]
-                    for p in self._context.profile_registry.get_profiles()]
+        existing = [client.profile["username"]
+                    for client in self._context.client_store.get_all()]
         if username in existing:
             self._set_result_message(f'"{username}" already exists.')
             return
@@ -58,8 +58,7 @@ class AddProfileDialog:
             creds, self._context.config, self._context)
         credential_manager = CredentialManager(username, self._context)
 
-        self._context.profile_registry.add_profile(creds)
-        self._context.profile_registry.add_client_manager(client_manager)
+        self._context.client_store.add(client_manager)
 
         asyncio.run_coroutine_threadsafe(
             credential_manager.save_credentials(creds), self._context.loop)

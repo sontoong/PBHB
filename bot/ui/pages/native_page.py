@@ -90,8 +90,7 @@ class NativePage(BasePage):
     def _refresh_button_states(self):
         if not self._selected_profile:
             return
-        client_manager = self._context.profile_registry.get_client_manager(
-            self._selected_profile)
+        client_manager = self._context.client_store.get(self._selected_profile)
         is_running = client_manager is not None and client_manager.native_driver is not None
 
         dpg.configure_item("native_start_btn", enabled=not is_running)
@@ -114,8 +113,8 @@ class NativePage(BasePage):
             dpg.configure_item("native_window_combo", items=[f"Error: {e}"])
 
     def _refresh_profiles(self):
-        profiles = self._context.profile_registry.get_profiles()
-        names = [p["username"] for p in profiles]
+        clients = self._context.client_store.get_all()
+        names = [client.profile["username"] for client in clients]
         dpg.configure_item("native_profile_combo", items=names)
         if names:
             dpg.set_value("native_profile_combo", names[0])

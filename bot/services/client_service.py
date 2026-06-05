@@ -29,8 +29,7 @@ class ClientService:
 
     #   ------------------------------Async threads
     async def start_client_async(self, username: str):
-        client_manager = self._context.profile_registry.get_client_manager(
-            username)
+        client_manager = self._context.client_store.get(username)
         if client_manager:
             try:
                 await client_manager.lifecycle_manager.start(client_manager.start_task_browser)
@@ -41,20 +40,17 @@ class ClientService:
                 await self.restart_client_async(username)
 
     async def pause_client_async(self, username: str):
-        client_manager = self._context.profile_registry.get_client_manager(
-            username)
+        client_manager = self._context.client_store.get(username)
         if client_manager:
             client_manager.task_manager.pause()
 
     async def resume_client_async(self, username: str):
-        client_manager = self._context.profile_registry.get_client_manager(
-            username)
+        client_manager = self._context.client_store.get(username)
         if client_manager:
             client_manager.task_manager.run()
 
     async def stop_client_async(self, username: str):
-        client_manager = self._context.profile_registry.get_client_manager(
-            username)
+        client_manager = self._context.client_store.get(username)
         if client_manager:
             client_manager.intentional_stop = True
             try:
@@ -91,8 +87,7 @@ class ClientService:
 
     #   ------------------------------Async threads
     async def start_native_async(self, username: str, window_title: str):
-        client_manager = self._context.profile_registry.get_client_manager(
-            username)
+        client_manager = self._context.client_store.get(username)
         if client_manager:
             driver = NativeDriver(username, window_title, self._context)
             try:
@@ -102,8 +97,7 @@ class ClientService:
                 await self.stop_native_async(username)
 
     async def stop_native_async(self, username: str, should_close_target: bool = False):
-        client_manager = self._context.profile_registry.get_client_manager(
-            username)
+        client_manager = self._context.client_store.get(username)
         if client_manager:
             await client_manager.lifecycle_manager.stop(client_manager.destroy)
             if should_close_target and client_manager.native_driver:
@@ -129,17 +123,16 @@ class ClientService:
         self._did_shutdown = True
 
         try:
-            profiles = self._context.profile_registry.get_profiles()
+            client_list = self._context.client_store.get_all()
             coros = []
-            for p in profiles:
-                client_manager = self._context.profile_registry.get_client_manager(
-                    p["username"])
-                if client_manager and client_manager.native_driver:
+            for client_manager in client_list:
+                username = client_manager.profile["username"]
+                if client_manager.native_driver:
                     coros.append(
-                        self._context.client_service.stop_native_async(p["username"]))
+                        self._context.client_service.stop_native_async(username))
                 else:
                     coros.append(
-                        self._context.client_service.stop_client_async(p["username"]))
+                        self._context.client_service.stop_client_async(username))
             await asyncio.gather(*coros, return_exceptions=True)
         except Exception as e:
             await self._context.logger.error(f"[shutdown] {type(e).__name__}: {e}")

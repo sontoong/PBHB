@@ -36,14 +36,11 @@ class Application:
 
                 await self._context.logger.initialize(self._context.config_manager.get_logging_config())
 
-                for profile in await TokenLoader(self._context).get_tokens():
-                    self._context.profile_registry.add_profile(profile)
-
-                for profile in self._context.profile_registry.get_profiles() or []:
+                for creds in await TokenLoader(self._context).get_tokens():
                     manager = ClientManager(
-                        profile, self._context.config, self._context)
+                        creds, self._context.config, self._context)
                     await manager.initialize()
-                    self._context.profile_registry.add_client_manager(manager)
+                    self._context.client_store.add(manager)
 
                 await asyncio.to_thread(self._ensure_playwright_browsers, on_progress=lambda msg: self._context.queue_ui_task(lambda: self._ui.set_status(msg)))
 
@@ -84,7 +81,7 @@ class Application:
                 rss_mb = total_rss / 1024 / 1024
                 self._context.memory_mb = rss_mb
 
-                managers = self._context.profile_registry.get_client_managers()
+                managers = self._context.client_store.get_all()
                 active = [m for m in managers if m.browser is not None]
                 active_count = len(active)
 
@@ -111,9 +108,9 @@ class Application:
                 await self._context.logger.error("Restarting all clients...")
                 baseline_mb = None
                 invalidate_global_cache()
-                for profile in self._context.profile_registry.get_profiles() or []:
+                for manager in self._context.client_store.get_all():
                     self._context.client_service.restart_client(
-                        profile["username"])
+                        manager.profile["username"])
 
             await sleep(1)
 

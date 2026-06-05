@@ -68,7 +68,7 @@ class PlatformTab:
             dpg.add_checkbox(
                 label="",
                 default_value=profile["platform"]["browser"]["speedMultiplier"]["enabled"],
-                callback=lambda s, v: self._on_speed_enabled_change(
+                callback=lambda s, v: self._on_speed_toggle(
                     profile, v),
             )
             dpg.add_input_float(
@@ -96,22 +96,21 @@ class PlatformTab:
             self._patch(profile, ["platform", "browser",
                                   "window", "height"], preset["height"])
 
-    def _on_speed_enabled_change(self, profile: dict, value: bool):
+    def _on_speed_toggle(self, profile: dict, value: bool):
         self._patch(profile, ["platform", "browser",
                     "speedMultiplier", "enabled"], value)
         dpg.configure_item("cfg_speed_input", enabled=not value)
         self._on_speed_change(profile)
 
     def _on_speed_change(self, profile: dict):
-        client_manager = self._context.profile_registry.get_client_manager(
-            self._username)
-        if client_manager and client_manager.page:
+        client = self._context.client_store.get(self._username)
+        if client and client.page:
             multiplier = profile["platform"]["browser"][
                 "speedMultiplier"]["multiplier"] if profile["platform"]["browser"][
                 "speedMultiplier"]["enabled"] is False else 1
 
             asyncio.run_coroutine_threadsafe(
-                client_manager.page.evaluate(
+                client.page.evaluate(
                     speed_apply_script(multiplier)),
                 self._context.loop,
             )

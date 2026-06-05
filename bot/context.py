@@ -5,7 +5,7 @@ import queue
 from bot.managers import ConfigManager
 from bot.loaders import ConfigLoader
 from bot.utils import Logger
-from bot.profile_registry import ProfileRegistry
+from bot.stores import ClientStore
 
 if TYPE_CHECKING:
     from bot.services import ClientService
@@ -18,7 +18,7 @@ class AppContext:
         self.config_manager: ConfigManager | None = None
         self.logger: Logger = Logger()
         self.window_manager: WindowManager | None = None
-        self.profile_registry = ProfileRegistry()
+        self.client_store = ClientStore()
         self.loop = asyncio.new_event_loop()
         self.ui_queue: queue.SimpleQueue = queue.SimpleQueue()
         self.memory_mb: float = 0.0
