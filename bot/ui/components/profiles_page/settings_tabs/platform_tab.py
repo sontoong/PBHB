@@ -107,7 +107,7 @@ class PlatformTab:
         if client and client.page:
             multiplier = profile["platform"]["browser"][
                 "speedMultiplier"]["multiplier"] if profile["platform"]["browser"][
-                "speedMultiplier"]["enabled"] is False else 1
+                "speedMultiplier"]["enabled"] else 1
 
             asyncio.run_coroutine_threadsafe(
                 client.page.evaluate(
