@@ -6,13 +6,13 @@ _cache: dict[str, int] = {}
 
 def apply_global_theme():
     with dpg.theme() as global_theme:
+        # Disabled button
         with dpg.theme_component(dpg.mvButton, enabled_state=False):
             dpg.add_theme_color(dpg.mvThemeCol_Button, (60, 60, 60, 100))
             dpg.add_theme_color(
                 dpg.mvThemeCol_ButtonHovered, (60, 60, 60, 100))
             dpg.add_theme_color(dpg.mvThemeCol_ButtonActive, (60, 60, 60, 100))
             dpg.add_theme_style(dpg.mvStyleVar_Alpha, 0.5)
-
     dpg.bind_theme(global_theme)
 
 

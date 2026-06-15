@@ -4,12 +4,15 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
-import dearpygui.dearpygui as dpg
 import asyncio
+import dearpygui.dearpygui as dpg
 from bot.managers import CredentialManager
 from bot.constants import DEFAULT_DATA_FOLDER
 from bot.ui.components.profiles_page import DeleteDialog
 from bot.ui.theme import danger_button
+from bot.models import KongUser
+from bot.utils import get_uid_token
+
 
 if TYPE_CHECKING:
     from bot.context import AppContext
@@ -36,11 +39,13 @@ class ProfileTab:
         dpg.add_input_text(tag="cfg_edit_uid", width=-1, parent=parent,
                            default_value=profile.get("uid", ""))
         dpg.add_text("Token", parent=parent)
+        dpg.add_input_text(tag="cfg_edit_token", width=-1, parent=parent,
+                           password=True, default_value=profile.get("token", ""))
         with dpg.group(horizontal=True, parent=parent):
-            dpg.add_input_text(tag="cfg_edit_token", width=-120,
-                               password=True, default_value=profile.get("token", ""))
-            dpg.add_button(label="Copy Token", width=115,
+            dpg.add_button(label="Copy Token", width=80,
                            callback=self._copy_token)
+            dpg.add_button(label="Get uid & token", tag="cfg_auto_fill_btn", width=120,
+                           callback=self._fill_uid_token)
         dpg.add_text("", tag="cfg_result_message", parent=parent)
         with dpg.table(header_row=False, parent=parent, no_clip=True):
             dpg.add_table_column(width_fixed=True)
@@ -128,3 +133,32 @@ class ProfileTab:
         new_path = _ROOT / new
         if old_path.exists():
             shutil.move(str(old_path), str(new_path))
+
+    def _fill_uid_token(self):
+        dpg.disable_item("cfg_auto_fill_btn")
+
+        def _on_done(fut):
+            try:
+                result: KongUser = fut.result()
+                self._context.queue_ui_task(
+                    lambda uid=result.uid: dpg.set_value("cfg_edit_uid", uid))
+                self._context.queue_ui_task(
+                    lambda token=result.token: dpg.set_value("cfg_edit_token", token))
+                self._context.queue_ui_task(
+                    lambda: self._set_result_message(
+                        "Uid loaded successfully!", is_error=False)
+                )
+            except Exception as e:
+                self._context.queue_ui_task(
+                    lambda e=e: self._set_result_message("Failed to get UID")
+                )
+            finally:
+                self._context.queue_ui_task(
+                    lambda: dpg.enable_item("cfg_auto_fill_btn"))
+
+        future = asyncio.run_coroutine_threadsafe(
+            get_uid_token(),
+            self._context.loop,
+        )
+
+        future.add_done_callback(_on_done)

@@ -28,15 +28,15 @@ class AddProfileDialog:
             dpg.add_text("UID")
             dpg.add_input_text(tag="add_uid", width=-1)
             dpg.add_text("Token")
+            dpg.add_input_text(tag="add_token", width=-1, password=True)
             with dpg.group(horizontal=True):
-                dpg.add_input_text(tag="add_token", width=-120, password=True)
-                dpg.add_button(label="Copy Token", width=115,
+                dpg.add_button(label="Copy Token", width=80,
                                callback=self._copy_token)
+                dpg.add_button(label="Get uid & token", tag="auto_fill_btn", width=120,
+                               callback=self._fill_uid_token)
             dpg.add_text("", tag="result_message")
             with dpg.group(horizontal=True):
                 dpg.add_button(label="Add", width=80, callback=self._confirm)
-                dpg.add_button(label="Get uid & token", tag="auto_fill_btn", width=120,
-                               callback=self._fill_uid_token)
 
     def _confirm(self):
         username = dpg.get_value("add_username").strip()
