@@ -1,10 +1,10 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 import asyncio
-import httpx
 import sys
 import subprocess
 from pathlib import Path
+import httpx
 import dearpygui.dearpygui as dpg
 from packaging import version as pkg_version
 from playwright._impl._errors import TargetClosedError

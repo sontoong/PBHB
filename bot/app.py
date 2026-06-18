@@ -1,10 +1,10 @@
 import os
 import asyncio
 import threading
-import psutil
 import subprocess
 import sys
 from pathlib import Path
+import psutil
 from playwright._impl._driver import compute_driver_executable
 from bot.loaders import TokenLoader
 from bot.managers import ConfigManager, ClientManager, WindowManager

@@ -3,9 +3,9 @@ from typing import TYPE_CHECKING, Literal
 
 from datetime import datetime
 import asyncio
+from pathlib import Path
 import cv2
 import numpy as np
-from pathlib import Path
 from bot.utils.image import get_image_path, take_screenshot, save_screenshot
 from bot.utils.cache import number_char_template_cache
 from bot.constants import NUMBERS_LIST_IMAGES, CHARACTERS_LIST_IMAGES, GLOBAL_IMAGES, DEFAULT_DEBUG_FOLDER
