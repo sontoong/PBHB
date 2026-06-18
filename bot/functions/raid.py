@@ -43,6 +43,7 @@ class Raid(BaseTask):
                 anchor_location = await self._locate_image(f"{GLOBAL_IMAGES}/persuade_anchor.png")
                 if anchor_location:
                     familiar_name = await self._find_text(box_top=anchor_location[1]-5, box_left=anchor_location[0]-250, box_width=240, box_height=25)
+                    await self._context.logger.info(f"[{self._profile['username']}] Found familiar: {familiar_name}")
                     bribed = await self._should_bribe(familiar_name)
                     if bribed:
                         await self._click_image(f"{RAID_IMAGES}/bribe_button.png")
