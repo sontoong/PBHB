@@ -89,15 +89,14 @@ jobs:
           echo "${{ steps.version.outputs.VERSION }}" > dist/version
 
       - name: Create release zip
-        shell: bash
+        shell: pwsh
         run: |
-          FOLDER="PBHB"
-          mkdir -p "release/$FOLDER/_internal/tools"
-          cp dist/PBHB.exe "release/$FOLDER/PBHB.exe"
-          cp dist/version "release/$FOLDER/_internal/version"
-          cp tools/dist/updater.exe "release/$FOLDER/_internal/tools/updater.exe"
-          cd release
-          zip -r "../dist/download.zip" "$FOLDER/"
+          $folder = "PBHB"
+          New-Item -ItemType Directory -Force "release/$folder/_internal/tools"
+          Copy-Item "dist/PBHB.exe" "release/$folder/PBHB.exe"
+          Copy-Item "dist/version" "release/$folder/_internal/version"
+          Copy-Item "tools/dist/updater.exe" "release/$folder/_internal/tools/updater.exe"
+          Compress-Archive -Path "release/$folder" -DestinationPath "dist/download.zip"
 
       - uses: softprops/action-gh-release@v3
         with:
