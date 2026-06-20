@@ -56,7 +56,7 @@ class Dungeon(BaseTask):
                     await self._click_image(f"{DUNGEON_IMAGES}/decline_button.png")
 
         # Persuade familiar
-        if await self._locate_image(f"{DUNGEON_IMAGES}/for.png", confidence=0.9):
+        if await self._locate_image(f"{DUNGEON_IMAGES}/for.png", confidence=0.89):
             await self._click_image(f"{DUNGEON_IMAGES}/yes_button.png", stable_ms=300)
 
         # Persuade familiar
