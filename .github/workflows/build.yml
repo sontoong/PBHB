@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
   build-app:
@@ -79,7 +80,9 @@ jobs:
           key: updater-${{ github.run_id }}
 
       - name: Write version file
-        run: echo "${{ steps.version.outputs.VERSION }}" > dist/version
+        run: |
+          mkdir -p dist
+          echo "${{ steps.version.outputs.VERSION }}" > dist/version
 
       - name: Create release zip
         run: |
