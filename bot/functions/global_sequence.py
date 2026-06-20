@@ -105,7 +105,7 @@ class GlobalSequence(BaseTask):
             await self._click_image(f"{GLOBAL_IMAGES}/close_icon_button.png", stable_ms=300)
 
         # Case: Items popup
-        if await self._locate_image(f"{GLOBAL_IMAGES}/items.png"):
+        if await self._locate_image(f"{GLOBAL_IMAGES}/items.png", confidence=0.85):
             await self._click_image(f"{GLOBAL_IMAGES}/close_icon_button.png")
 
         # Case: Dialog popup

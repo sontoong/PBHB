@@ -92,7 +92,7 @@ class MainUI:
         if dpg.does_item_exist("update_btn"):
             return
 
-        dpg.add_tab_button(
+        update_btn = dpg.add_tab_button(
             label=f"Update v{version}",
             tag="update_btn",
             callback=self._on_update_clicked,
@@ -100,15 +100,14 @@ class MainUI:
             trailing=True,
             no_tooltip=True,
         )
-        dpg.bind_item_theme("update_btn", primary_button())
+        dpg.bind_item_theme(update_btn, primary_button())
 
     #   ------------------------------Helpers
 
     def _on_tab_changed(self, tag):
-        for entry in _NAV:
-            if f"nav_tab_{entry.label}" == tag:
-                self._navigate(entry.label)
-                break
+        label = dpg.get_item_label(tag)
+        if label in self._pages:
+            self._navigate(label)
 
     def _navigate(self, label: str):
         if label == self._active:

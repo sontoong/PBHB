@@ -9,7 +9,7 @@ import dearpygui.dearpygui as dpg
 from bot.managers import CredentialManager
 from bot.constants import DEFAULT_DATA_FOLDER
 from bot.ui.components.profiles_page import DeleteDialog
-from bot.ui.theme import danger_button
+from bot.ui.theme import danger_button, primary_button
 from bot.models import KongUser
 from bot.utils import get_uid_token
 
@@ -55,15 +55,16 @@ class ProfileTab:
             with dpg.table_row():
                 with dpg.table_cell():
                     with dpg.group(horizontal=True):
-                        dpg.add_button(label="Save", width=80,
-                                       callback=self._confirm)
+                        save_btn = dpg.add_button(label="Save", width=80,
+                                                  callback=self._confirm)
+                        dpg.bind_item_theme(save_btn, primary_button())
                         dpg.add_button(label="Data", width=80,
                                        callback=self._open_data_folder)
                 dpg.add_table_cell()
                 with dpg.table_cell():
-                    dpg.add_button(label="Delete profile", width=120,
-                                   tag="delete_btn", callback=self._delete_profile)
-                    dpg.bind_item_theme("delete_btn", danger_button())
+                    delete_btn = dpg.add_button(label="Delete profile", width=120,
+                                                tag="delete_btn", callback=self._delete_profile)
+                    dpg.bind_item_theme(delete_btn, danger_button())
 
     def _confirm(self):
         old_username = self._username

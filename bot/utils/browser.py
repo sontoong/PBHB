@@ -267,3 +267,9 @@ async def get_uid_token() -> KongUser:
 
         await browser.close()
         return KongUser(uid, token)
+
+
+def to_keyboard_key(key: str, keyboard_map: dict[str, str]) -> str:
+    if key in keyboard_map:
+        return keyboard_map[key]
+    raise ValueError(f"Key {key} not found in keyboard mapping")

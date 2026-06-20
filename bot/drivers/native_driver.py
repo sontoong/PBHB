@@ -8,8 +8,9 @@ import pygetwindow as gw
 from pygetwindow import Win32Window
 import mss
 import pyautogui
-from bot.utils import WindowError, sleep
+from bot.utils import WindowError, sleep, to_keyboard_key
 from bot.base.driver import BaseDriver
+from bot.constants import PYAUTOGUI_KEYBOARD
 
 if TYPE_CHECKING:
     from bot.context import AppContext
@@ -55,8 +56,12 @@ class NativeDriver(BaseDriver):
             await asyncio.to_thread(lambda: pyautogui.moveTo(monitor["left"], monitor["top"]))
 
     async def press(self, key: str, presses: int = 1, interval_ms: int = 1000) -> None:
+        pyautogui_key = to_keyboard_key(key, PYAUTOGUI_KEYBOARD)
+
         for _ in range(presses):
-            await asyncio.to_thread(lambda: pyautogui.press(key))
+            await asyncio.to_thread(pyautogui.keyDown, pyautogui_key)
+            await sleep(250, "ms")
+            await asyncio.to_thread(pyautogui.keyUp, pyautogui_key)
             await sleep(interval_ms, "ms")
 
     async def close(self):

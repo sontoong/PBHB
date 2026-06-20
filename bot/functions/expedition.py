@@ -24,7 +24,8 @@ class Expedition(BaseTask):
         # Auto increase difficulty
         if auto_increase_difficulty:
             await self._click_image(f"{EXPEDITION_IMAGES}/difficulty_counter.png", offset_x=20, offset_y=40, stable_ms=300)
-            if await self._click_image(f"{EXPEDITION_IMAGES}/difficulty_picker.png", offset_x=20, offset_y=100, stable_ms=300):
+            await self._click_image(f"{EXPEDITION_IMAGES}/difficulty_picker.png", offset_x=20, offset_y=100, stable_ms=300)
+            if await self._locate_image(f"{EXPEDITION_IMAGES}/difficulty_picker.png"):
                 await self._press(key="Escape")
 
         # Play sequence

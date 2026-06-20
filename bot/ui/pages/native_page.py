@@ -6,6 +6,7 @@ import dearpygui.dearpygui as dpg
 import pygetwindow as gw
 from bot.base.page import BasePage
 from bot.ui.components.native_page import SettingsPanel
+from bot.constants import APP_NAME
 
 if TYPE_CHECKING:
     from bot.context import AppContext
@@ -90,8 +91,8 @@ class NativePage(BasePage):
     def _refresh_button_states(self):
         if not self._selected_profile:
             return
-        client_manager = self._context.client_store.get(self._selected_profile)
-        is_running = client_manager is not None and client_manager.native_driver is not None
+        client = self._context.client_store.get(self._selected_profile)
+        is_running = client is not None and client.native_driver is not None
 
         dpg.configure_item("native_start_btn", enabled=not is_running)
         dpg.configure_item("native_stop_btn", enabled=is_running)
@@ -107,7 +108,7 @@ class NativePage(BasePage):
         filter_keys = self._context.config["platform"]["native"]["filterKeys"]
         try:
             titles = [t for t in gw.getAllTitles() if any(
-                key.lower() in t.lower() for key in filter_keys) and t.strip() != ""]
+                key.lower() in t.lower() for key in filter_keys) and t.strip() != "" and APP_NAME not in t.strip()]
             dpg.configure_item("native_window_combo", items=titles)
         except Exception as e:
             dpg.configure_item("native_window_combo", items=[f"Error: {e}"])

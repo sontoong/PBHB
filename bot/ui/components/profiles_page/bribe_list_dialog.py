@@ -4,6 +4,7 @@ import asyncio
 import dearpygui.dearpygui as dpg
 from bot.managers import ProfileManager
 from bot.utils import center
+from bot.ui.theme import primary_button
 
 if TYPE_CHECKING:
     from bot.context import AppContext
@@ -37,7 +38,9 @@ class BribeListDialog:
                                  autosize_x=True, height=310)
 
             with dpg.group(horizontal=True):
-                dpg.add_button(label="Save",   width=80, callback=self._save)
+                save_btn = dpg.add_button(
+                    label="Save", width=80, callback=self._save)
+                dpg.bind_item_theme(save_btn, primary_button())
                 dpg.add_button(label="Cancel", width=80,
                                callback=lambda: dpg.delete_item(self.TAG))
 

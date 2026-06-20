@@ -56,9 +56,21 @@ async def wait_for_game(client_manager: ClientManager, timeout_ms: int = 15 * 60
     auto_change_gamemode = client_manager.profile["global"]["autoChangeGamemode"]
 
     async def _wait_for_town() -> None:
+        active_time = 0.0
+        start_time = asyncio.get_event_loop().time()
+
         while True:
             while not client_manager.task_manager.is_running:
+                start_time = asyncio.get_event_loop().time()
                 await sleep(1)
+                continue
+
+            now = asyncio.get_event_loop().time()
+            active_time += now - start_time
+            start_time = now
+
+            if active_time * 1000 >= timeout_ms:
+                raise asyncio.TimeoutError()
 
             driver = client_manager.driver
             page = client_manager.page
@@ -119,7 +131,7 @@ async def wait_for_game(client_manager: ClientManager, timeout_ms: int = 15 * 60
                 return
 
     try:
-        await asyncio.wait_for(_wait_for_town(), timeout_ms/1000)
+        await _wait_for_town()
         await asyncio.wait_for(_check_gamemodes(), timeout_ms/1000)
     except asyncio.TimeoutError:
         # Debug----------------

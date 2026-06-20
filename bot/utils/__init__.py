@@ -8,7 +8,7 @@ from bot.utils.page import center_window, center
 from bot.utils.cache import invalidate_page_cache, invalidate_global_cache, canvas_bbox_cache
 from bot.utils.exceptions import CanvasError, WindowError
 from bot.utils.template_matching import find_text
-from bot.utils.browser import speed_init_script, speed_apply_script, inject_fps_counter_script, preserve_drawing_buffer_script, browser_init_script, get_uid_token
+from bot.utils.browser import speed_init_script, speed_apply_script, inject_fps_counter_script, preserve_drawing_buffer_script, browser_init_script, get_uid_token, to_keyboard_key
 
 __all__ = ['Logger', 'sleep', 'click', 'press', 'random_integer', 'sort_object_by_value_length', 'locate_image', 'locate_all', 'click_image', 'save_screenshot',
-           'take_screenshot', 'get_image_path', 'get_image_path_with_warning', 'reload_and_wait', 'center_window', 'center', 'hex_to_rgba', 'strip_ansi', 'wait_for_game', 'wait_for_unity', 'invalidate_page_cache', 'invalidate_global_cache', 'CanvasError', 'WindowError', 'find_text', 'canvas_bbox_cache', 'speed_init_script', 'speed_apply_script', 'inject_fps_counter_script', 'preserve_drawing_buffer_script', 'browser_init_script', 'get_uid_token', 'shutdown']
+           'take_screenshot', 'get_image_path', 'get_image_path_with_warning', 'reload_and_wait', 'center_window', 'center', 'hex_to_rgba', 'strip_ansi', 'wait_for_game', 'wait_for_unity', 'invalidate_page_cache', 'invalidate_global_cache', 'CanvasError', 'WindowError', 'find_text', 'canvas_bbox_cache', 'speed_init_script', 'speed_apply_script', 'inject_fps_counter_script', 'preserve_drawing_buffer_script', 'browser_init_script', 'get_uid_token', 'shutdown', 'to_keyboard_key']
