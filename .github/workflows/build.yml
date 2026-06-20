@@ -62,29 +62,34 @@ jobs:
 
   upload:
     name: Upload release assets
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     needs: [build-app, build-updater]
     steps:
       - name: Extract version from tag
         id: version
+        shell: bash
         run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
 
       - uses: actions/cache/restore@v5
         with:
           path: dist/PBHB.exe
           key: pbhb-${{ github.run_id }}
+          fail-on-cache-miss: true
 
       - uses: actions/cache/restore@v5
         with:
           path: tools/dist/updater.exe
           key: updater-${{ github.run_id }}
+          fail-on-cache-miss: true
 
       - name: Write version file
+        shell: bash
         run: |
           mkdir -p dist
           echo "${{ steps.version.outputs.VERSION }}" > dist/version
 
       - name: Create release zip
+        shell: bash
         run: |
           FOLDER="PBHB"
           mkdir -p "release/$FOLDER/_internal/tools"
