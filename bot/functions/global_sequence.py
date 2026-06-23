@@ -31,7 +31,7 @@ class GlobalSequence(BaseTask):
             await self._handle_check_2()
             self._last_check_2 = self._now()
 
-        if now - self._last_check_3 >= 20*1000:
+        if now - self._last_check_3 >= 15*1000:
             await self._handle_check_3()
             self._last_check_3 = self._now()
 
