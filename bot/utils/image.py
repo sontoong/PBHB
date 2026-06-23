@@ -6,10 +6,11 @@ from datetime import datetime
 import asyncio
 import cv2
 import numpy as np
+from PIL import Image
 from bot.utils.sleep import sleep
 from bot.utils.controls import click
 from bot.utils.cache import img_scale_cache
-from bot.constants import DEFAULT_CONFIDENCE, DEFAULT_GRAYSCALE, DEFAULT_RESOLUTION, DEFAULT_IMAGE_FOLDER
+from bot.constants import DEFAULT_CONFIDENCE, DEFAULT_GRAYSCALE, DEFAULT_RESOLUTION, DEFAULT_IMAGE_FOLDER, DEFAULT_IMAGE_TEXTURE
 
 # pylint: disable=no-member
 
@@ -222,15 +223,13 @@ async def save_screenshot(driver: BaseDriver, save_directory: Path, filename=Non
 async def take_screenshot(driver: BaseDriver):
     return await driver.screenshot()
 
-#   ------------------------------Helpers
 
-
-def get_image_path(config, path: str) -> Path:
-    image_path, _ = get_image_path_with_warning(config, path)
+def resolve_image_path(config, path: str) -> Path:
+    image_path, _ = resolve_image_path_with_warning(config, path)
     return image_path
 
 
-def get_image_path_with_warning(config, path: str) -> tuple[Path, bool]:
+def resolve_image_path_with_warning(config, path: str) -> tuple[Path, bool]:
     window_w, window_h = config["width"], config["height"]
     subpath = f"{window_w}x{window_h}/{path}"
 
@@ -241,6 +240,26 @@ def get_image_path_with_warning(config, path: str) -> tuple[Path, bool]:
         return Path(str(DEFAULT_IMAGE_FOLDER.joinpath(subpath))), False
 
     return full_path, True
+
+
+def load_texture_data_from_path(img_path: Path | None, container: tuple[int, int]) -> list[float]:
+    try:
+        if not img_path:
+            raise Exception
+        img = Image.open(img_path).convert("RGBA")
+        img.thumbnail(container, Image.Resampling.LANCZOS)
+        canvas = Image.new("RGBA", container, (0, 0, 0, 0))
+        offset = (
+            (container[0] - img.width) // 2,
+            (container[1] - img.height) // 2,
+        )
+        canvas.paste(img, offset)
+        arr = np.array(canvas, dtype=np.float32) / 255.0
+        return arr.flatten().tolist()
+    except Exception:
+        return DEFAULT_IMAGE_TEXTURE
+
+#   ------------------------------Helpers
 
 
 def _deduplicate(points: list, min_distance: int = 10) -> list:

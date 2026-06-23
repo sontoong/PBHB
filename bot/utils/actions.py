@@ -5,7 +5,7 @@ import asyncio
 from pathlib import Path
 from playwright._impl._errors import TargetClosedError
 from bot.utils.browser import inject_fps_counter_script
-from bot.utils.image import locate_image, get_image_path, get_image_path_with_warning, click_image, save_screenshot
+from bot.utils.image import locate_image, resolve_image_path, resolve_image_path_with_warning, click_image, save_screenshot
 from bot.utils.sleep import sleep
 from bot.utils.cache import invalidate_page_cache
 from bot.utils.browser import speed_apply_script
@@ -78,7 +78,7 @@ async def wait_for_game(client_manager: ClientManager, timeout_ms: int = 15 * 60
             if not driver:
                 raise TargetClosedError()
 
-            chat_image_path, is_correct_config = get_image_path_with_warning(
+            chat_image_path, is_correct_config = resolve_image_path_with_warning(
                 window_config, f"{GLOBAL_IMAGES}/chat.png")
             if not is_correct_config:
                 current_w, current_h = window_config["width"], window_config["height"]
@@ -87,18 +87,18 @@ async def wait_for_game(client_manager: ClientManager, timeout_ms: int = 15 * 60
 
             results = await asyncio.gather(
                 locate_image(driver, chat_image_path),
-                locate_image(driver, get_image_path(
+                locate_image(driver, resolve_image_path(
                     window_config, f"{GLOBAL_IMAGES}/news_label.png")),
-                locate_image(driver, get_image_path(
+                locate_image(driver, resolve_image_path(
                     window_config, f"{GLOBAL_IMAGES}/season_rewards.png")),
-                locate_image(driver, get_image_path(
+                locate_image(driver, resolve_image_path(
                     window_config, f"{GLOBAL_IMAGES}/auto_red.png")),
             )
 
             if any(results):
                 await client_manager.context.logger.info(f"[{client_manager.profile['username']}] Town loaded successfully")
                 return
-            if await locate_image(driver, get_image_path(window_config, f"{GLOBAL_IMAGES}/maintenance.png")) or await locate_image(driver, get_image_path(window_config, f"{GLOBAL_IMAGES}/maintenance2.png")):
+            if await locate_image(driver, resolve_image_path(window_config, f"{GLOBAL_IMAGES}/maintenance.png")) or await locate_image(driver, resolve_image_path(window_config, f"{GLOBAL_IMAGES}/maintenance2.png")):
                 # Maintenance handle only available to browser
                 if page:
                     invalidate_page_cache(page)
@@ -106,7 +106,7 @@ async def wait_for_game(client_manager: ClientManager, timeout_ms: int = 15 * 60
                 else:
                     await client_manager.context.client_service.stop_native_async(client_manager.profile["username"])
                     return
-            await click_image(driver, get_image_path(window_config, f"{GLOBAL_IMAGES}/reconnect_button.png"))
+            await click_image(driver, resolve_image_path(window_config, f"{GLOBAL_IMAGES}/reconnect_button.png"))
             await sleep(1000, "ms")
 
     async def _check_gamemodes():
@@ -123,7 +123,7 @@ async def wait_for_game(client_manager: ClientManager, timeout_ms: int = 15 * 60
         keys = [key for key, _ in gamemode_images]
 
         for key, img in gamemode_images:
-            if await locate_image(driver, get_image_path(window_config, img)):
+            if await locate_image(driver, resolve_image_path(window_config, img)):
                 for k in keys:
                     client_manager.profile["global"]["functions"][k]["enabled"] = (
                         k == key)

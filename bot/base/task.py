@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Literal
 import asyncio
 from pathlib import Path
 from playwright._impl._errors import TargetClosedError
-from bot.utils import locate_image, click_image, locate_all, get_image_path, sleep, reload_and_wait, save_screenshot, click, press, CanvasError, WindowError, find_text
+from bot.utils import locate_image, click_image, locate_all, resolve_image_path, sleep, reload_and_wait, save_screenshot, click, press, CanvasError, WindowError, find_text
 from bot.constants import STATUS, DEFAULT_DEBUG_FOLDER
 from bot.models import BoundingBox
 
@@ -104,17 +104,17 @@ class BaseTask:
     async def _locate_image(self, path: str, **kwargs):
         window_config = self._client_manager.profile["platform"]["browser"]["window"]
         if self._driver and self._is_running:
-            return await locate_image(self._driver, get_image_path(window_config, path), **kwargs)
+            return await locate_image(self._driver, resolve_image_path(window_config, path), **kwargs)
 
     async def _click_image(self, path: str, **kwargs):
         window_config = self._client_manager.profile["platform"]["browser"]["window"]
         if self._driver and self._is_running:
-            return await click_image(self._driver, get_image_path(window_config, path), **kwargs)
+            return await click_image(self._driver, resolve_image_path(window_config, path), **kwargs)
 
     async def _locate_all(self, path: str, **kwargs):
         window_config = self._client_manager.profile["platform"]["browser"]["window"]
         if self._driver and self._is_running:
-            return await locate_all(self._driver, get_image_path(window_config, path), **kwargs)
+            return await locate_all(self._driver, resolve_image_path(window_config, path), **kwargs)
 
     async def _click(self, **kwargs):
         if self._driver and self._is_running:

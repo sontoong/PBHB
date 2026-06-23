@@ -6,7 +6,7 @@ import asyncio
 from pathlib import Path
 import cv2
 import numpy as np
-from bot.utils.image import get_image_path, take_screenshot, save_screenshot
+from bot.utils.image import resolve_image_path, take_screenshot, save_screenshot
 from bot.utils.cache import number_char_template_cache
 from bot.constants import NUMBERS_LIST_IMAGES, CHARACTERS_LIST_IMAGES, GLOBAL_IMAGES, DEFAULT_DEBUG_FOLDER
 from bot.models import BoundingBox
@@ -56,7 +56,7 @@ def _load_templates(config, match_type: str) -> dict:
     if cache_key in number_char_template_cache:
         return number_char_template_cache[cache_key]
 
-    base_dir = get_image_path(config, GLOBAL_IMAGES)
+    base_dir = resolve_image_path(config, GLOBAL_IMAGES)
 
     number_templates = {}
     for i in range(10):
