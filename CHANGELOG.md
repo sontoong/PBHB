@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.2.0](https://github.com/sontoong/PBHB/compare/v2.1.0...v2.2.0) (2026-06-23)
+
+
+### Features
+
+* **settings:** enhance dungeon and expedition settings with previews ([ab6d05a](https://github.com/sontoong/PBHB/commit/ab6d05acf3ee02571fa1beda99c52b77e3c75a7b))
+
+
+### Bug Fixes
+
+* **global_sequence:** adjust timing for check 3 from 20s to 15s ([d9633f0](https://github.com/sontoong/PBHB/commit/d9633f084d7f1664e9a5b8623a2661f92a7423f7))
+
 ## [2.1.0](https://github.com/sontoong/PBHB/compare/v2.0.3...v2.1.0) (2026-06-20)
 
 
