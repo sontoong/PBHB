@@ -1,8 +1,9 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 import re
+from pathlib import Path
 import dearpygui.dearpygui as dpg
-from bot.utils import get_image_path
+from bot.utils import resolve_image_path, load_texture_data_from_path
 from bot.constants import DUNGEON_LIST_IMAGES, EXPEDITION_LIST_IMAGES, DUNGEON_IMAGES, EXPEDITION_IMAGES
 from bot.ui.components.profiles_page.function_priority_dialog import FunctionPriorityDialog
 from bot.ui.components.profiles_page.bribe_list_dialog import BribeListDialog
@@ -13,6 +14,8 @@ if TYPE_CHECKING:
 
 
 class GameTab:
+    TAG = "game_tab"
+
     def __init__(self, username: str, profile: dict, patch_fn, context: AppContext):
         self._username = username
         self._profile = profile
@@ -20,6 +23,8 @@ class GameTab:
         self._context = context
         self._priority_dialog: FunctionPriorityDialog | None = None
         self._bribe_list_dialog: BribeListDialog | None = None
+        self._dungeon_image_preview_container = (150, 125)
+        self._expedition_image_preview_container = (150, 75)
 
     def build(self, parent: str):
         profile = self._profile
@@ -137,57 +142,132 @@ class GameTab:
 
         #   ------------------------------Dungeon
         section(parent, "Dungeon")
-        dropdown(
-            parent=parent,
-            label="",
-            value=profile["dungeon"]["selectedDungeon"],
-            items=self._get_dungeon_list(profile),
-            on_change=lambda v: self._patch(
-                profile, ["dungeon", "selectedDungeon"], v),
-        )
-        for label, key in [
-            ("Auto catch by gold",  "autoCatchByGold"),
-            ("Auto bribe",          "autoBribe"),
-            ("Auto open chest",     "autoOpenChest"),
-            ("Auto change armory",  "autoChangeArmory"),
-        ]:
-            checkbox(
-                parent=parent,
-                label=label,
-                value=profile["dungeon"][key],
-                on_change=lambda v, k=key: self._patch(
-                    profile, ["dungeon", k], v),
+        with dpg.group(horizontal=True, parent=parent):
+            left_col = dpg.add_group()
+            dropdown(
+                parent=left_col,
+                label="",
+                value=profile["dungeon"]["selectedDungeon"],
+                items=self._get_dungeon_list_names_sorted(profile),
+                on_change=lambda v: self._on_dungeon_changed(profile, v),
+            )
+            for label, key in [
+                ("Auto catch by gold", "autoCatchByGold"),
+                ("Auto bribe", "autoBribe"),
+                ("Auto open chest", "autoOpenChest"),
+                ("Auto change armory", "autoChangeArmory"),
+            ]:
+                checkbox(
+                    parent=left_col,
+                    label=label,
+                    value=profile["dungeon"][key],
+                    on_change=lambda v, k=key: self._patch(
+                        profile, ["dungeon", k], v),
+                )
+
+            self._refresh_dungeon_texture(profile)
+            dpg.add_image(
+                f"{self.TAG}_dungeon_texture",
+                width=self._dungeon_image_preview_container[0],
+                height=self._dungeon_image_preview_container[1],
+                tag=f"{self.TAG}_dungeon_preview",
             )
 
         #   ------------------------------Expedition
         section(parent, "Expedition")
-        checkbox(
-            parent=parent,
-            label="Auto increase difficulty",
-            value=profile["expedition"]["autoIncreaseDifficulty"],
-            on_change=lambda v: self._patch(
-                profile, ["expedition", "autoIncreaseDifficulty"], v),
-        )
-        expedition_portals = self._get_expedition_portals(profile)
-        dropdown(
-            parent=parent,
-            label="",
-            value=profile["expedition"]["selectedExpedition"],
-            items=list(expedition_portals.keys()),
-            on_change=lambda v: self._on_expedition_changed(profile, v),
-            tag="cfg_expedition_dd",
-        )
-        dropdown(
-            parent=parent,
-            label="",
-            value=profile["expedition"]["selectedPortal"],
-            items=list(expedition_portals.get(
-                profile["expedition"]["selectedExpedition"], {}).keys()),
-            on_change=lambda v: self._patch(
-                profile, ["expedition", "selectedPortal"], v),
-            tag="cfg_portal_dd",
-        )
+        with dpg.group(horizontal=True, parent=parent):
+            left_col = dpg.add_group()
+            checkbox(
+                parent=left_col,
+                label="Auto increase difficulty",
+                value=profile["expedition"]["autoIncreaseDifficulty"],
+                on_change=lambda v: self._patch(
+                    profile, ["expedition", "autoIncreaseDifficulty"], v),
+            )
+            expedition_portals = self._load_expeditions(profile)
+            dropdown(
+                parent=left_col,
+                label="",
+                value=profile["expedition"]["selectedExpedition"],
+                items=list(expedition_portals.keys()),
+                on_change=lambda v: self._on_expedition_changed(profile, v),
+                tag=f"{self.TAG}_expedition_dd",
+            )
+            dropdown(
+                parent=left_col,
+                label="",
+                value=profile["expedition"]["selectedPortal"],
+                items=list(expedition_portals.get(
+                    profile["expedition"]["selectedExpedition"], {}).keys()),
+                on_change=lambda v: self._on_expedition_portal_changed(
+                    profile, v),
+                tag=f"{self.TAG}_portal_dd",
+            )
 
+            self._refresh_expedition_texture(profile)
+            dpg.add_image(
+                f"{self.TAG}_expedition_texture",
+                width=self._expedition_image_preview_container[0],
+                height=self._expedition_image_preview_container[1],
+                tag=f"{self.TAG}_expedition_preview",
+            )
+
+    #   ------------------------------Helpers
+    def _refresh_dungeon_texture(self, profile: dict):
+        selected = profile["dungeon"]["selectedDungeon"]
+
+        img_path = self._get_dungeon_image_path(profile, selected)
+        texture_data = load_texture_data_from_path(
+            img_path, self._dungeon_image_preview_container)
+        if not dpg.does_item_exist(f"{self.TAG}_dungeon_texture"):
+            with dpg.texture_registry():
+                dpg.add_dynamic_texture(
+                    width=self._dungeon_image_preview_container[0],
+                    height=self._dungeon_image_preview_container[1],
+                    default_value=texture_data,
+                    tag=f"{self.TAG}_dungeon_texture",
+                )
+        else:
+            dpg.set_value(f"{self.TAG}_dungeon_texture", texture_data)
+
+    def _refresh_expedition_texture(self, profile: dict):
+        selected_expedition = profile["expedition"]["selectedExpedition"]
+        selected_portal = profile["expedition"]["selectedPortal"]
+
+        img_path = self._get_expedition_image_path(
+            profile, selected_expedition, selected_portal)
+        texture_data = load_texture_data_from_path(
+            img_path, self._expedition_image_preview_container)
+        if not dpg.does_item_exist(f"{self.TAG}_expedition_texture"):
+            with dpg.texture_registry():
+                dpg.add_dynamic_texture(
+                    width=self._expedition_image_preview_container[0],
+                    height=self._expedition_image_preview_container[1],
+                    default_value=texture_data,
+                    tag=f"{self.TAG}_expedition_texture",
+                )
+        else:
+            dpg.set_value(f"{self.TAG}_expedition_texture", texture_data)
+
+    def _get_dungeon_image_path(self, profile: dict, dungeon_name: str):
+        return self._load_dungeons(profile).get(dungeon_name)
+
+    def _get_expedition_image_path(self, profile: dict, expedition: str, portal: str) -> Path | None:
+        portals = self._load_expeditions(profile)
+        img_path_str = portals.get(expedition, {}).get(portal)
+        return Path(img_path_str) if img_path_str else None
+
+    def _get_dungeon_list_names_sorted(self, profile: dict) -> list[str]:
+        def sort_key(s):
+            match = re.match(r't(\d+)d(\d+)(?:\.[^.]*)?$', s)
+            if match:
+                return (int(match.group(1)), int(match.group(2)))
+            return [int(text) if text.isdigit() else text.lower()
+                    for text in re.split(r'(\d+)', s)]
+
+        return sorted(self._load_dungeons(profile).keys(), key=sort_key)
+
+    #   ------------------------------Button callbacks
     def _open_function_priority_dialog(self, profile: dict):
         self._priority_dialog = FunctionPriorityDialog(
             context=self._context,
@@ -206,43 +286,43 @@ class GameTab:
         )
         self._bribe_list_dialog.open()
 
+    def _on_dungeon_changed(self, profile: dict, dungeon_name: str):
+        self._patch(profile, ["dungeon", "selectedDungeon"], dungeon_name)
+        self._refresh_dungeon_texture(profile)
+
     def _on_expedition_changed(self, profile: dict, expedition: str):
         self._patch(profile, ["expedition", "selectedExpedition"], expedition)
-        portals = self._get_expedition_portals(profile)
+        portals = self._load_expeditions(profile)
         portal_keys = list(portals.get(expedition, {}).keys())
 
-        dpg.configure_item("cfg_portal_dd", items=portal_keys)
+        dpg.configure_item(f"{self.TAG}_portal_dd", items=portal_keys)
         first = portal_keys[0] if portal_keys else ""
-        dpg.set_value("cfg_portal_dd", first)
+        dpg.set_value(f"{self.TAG}_portal_dd", first)
         self._patch(profile, ["expedition", "selectedPortal"], first)
+        self._refresh_expedition_texture(profile)
 
-    def _get_dungeon_list(self, profile: dict) -> list[str]:
+    def _on_expedition_portal_changed(self, profile: dict, portal: str):
+        self._patch(profile, ["expedition", "selectedPortal"], portal)
+        self._refresh_expedition_texture(profile)
+
+    #   ------------------------------Load data
+    def _load_dungeons(self, profile: dict) -> dict[str, Path]:
         window_config = profile["platform"]["browser"]["window"]
-        base_dir = get_image_path(window_config, DUNGEON_IMAGES)
-        path = base_dir / DUNGEON_LIST_IMAGES
-
-        def sort_key(s):
-            match = re.match(r't(\d+)d(\d+)(?:\.[^.]*)?$', s)
-            if match:
-                return (int(match.group(1)), int(match.group(2)))
-            return [int(text) if text.isdigit() else text.lower()
-                    for text in re.split(r'(\d+)', s)]
-
+        path = resolve_image_path(
+            window_config, DUNGEON_IMAGES) / DUNGEON_LIST_IMAGES
         if not path.exists():
-            return []
+            return {}
+        return {f.stem: f for f in path.iterdir()}
 
-        files = sorted((f.name for f in path.iterdir()), key=sort_key)
-        return [f.rsplit(".", 1)[0] for f in files]
-
-    def _get_expedition_portals(self, profile: dict) -> dict:
+    def _load_expeditions(self, profile: dict) -> dict[str, dict[str, str]]:
         window_config = profile["platform"]["browser"]["window"]
-        base_dir = get_image_path(window_config, EXPEDITION_IMAGES)
-        path = base_dir / EXPEDITION_LIST_IMAGES
+        base_dir = resolve_image_path(window_config, EXPEDITION_IMAGES)
+        expedition_list = base_dir / EXPEDITION_LIST_IMAGES
 
         result = {}
-        if not path.exists():
+        if not expedition_list.exists():
             return result
-        for exp_path in path.iterdir():
+        for exp_path in expedition_list.iterdir():
             if exp_path.is_dir():
                 result[exp_path.name] = {
                     p.stem: str(p)

@@ -10,6 +10,8 @@ if TYPE_CHECKING:
 
 
 class PlatformTab:
+    TAG = "platform_tab"
+
     def __init__(self, username: str, profile: dict, patch_fn, context: AppContext):
         self._username = username
         self._profile = profile
@@ -73,7 +75,7 @@ class PlatformTab:
             )
             dpg.add_input_float(
                 label="Speed multiplier",
-                tag="cfg_speed_input",
+                tag=f"{self.TAG}_speed_input",
                 default_value=profile["platform"]["browser"]["speedMultiplier"]["multiplier"],
                 min_value=0.1,
                 max_value=20.0,
@@ -99,7 +101,7 @@ class PlatformTab:
     def _on_speed_toggle(self, profile: dict, value: bool):
         self._patch(profile, ["platform", "browser",
                     "speedMultiplier", "enabled"], value)
-        dpg.configure_item("cfg_speed_input", enabled=not value)
+        dpg.configure_item(f"{self.TAG}_speed_input", enabled=not value)
         self._on_speed_change(profile)
 
     def _on_speed_change(self, profile: dict):

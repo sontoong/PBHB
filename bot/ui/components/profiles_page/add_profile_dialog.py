@@ -5,6 +5,7 @@ import dearpygui.dearpygui as dpg
 from bot.managers import CredentialManager, ClientManager
 from bot.utils import center, get_uid_token
 from bot.models import KongUser
+from bot.ui.theme import primary_button
 
 
 if TYPE_CHECKING:
@@ -36,7 +37,9 @@ class AddProfileDialog:
                                callback=self._fill_uid_token)
             dpg.add_text("", tag="result_message")
             with dpg.group(horizontal=True):
-                dpg.add_button(label="Add", width=80, callback=self._confirm)
+                add_btn = dpg.add_button(
+                    label="Add", width=80, callback=self._confirm)
+                dpg.bind_item_theme(add_btn, primary_button())
 
     def _confirm(self):
         username = dpg.get_value("add_username").strip()

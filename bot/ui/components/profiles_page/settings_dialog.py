@@ -28,8 +28,10 @@ class SettingsDialog:
         vp_h = dpg.get_viewport_client_height()
         w, h = 420, min(520, vp_h - 40)
         with dpg.window(label=f"Settings - {username}", tag=self.TAG, no_close=False, width=w, height=h, pos=center(w, h)):
-            dpg.add_text("Loading...", tag="cfg_status", color=(160, 160, 160))
-            dpg.add_child_window(tag="cfg_body", autosize_x=True, border=False)
+            dpg.add_text(
+                "Loading...", tag=f"{self.TAG}_status", color=(160, 160, 160))
+            dpg.add_child_window(
+                tag=f"{self.TAG}_body", autosize_x=True, border=False)
 
         asyncio.run_coroutine_threadsafe(
             self._fetch_and_populate(),
@@ -40,26 +42,26 @@ class SettingsDialog:
         if not dpg.does_item_exist(self.TAG):
             return
 
-        if dpg.does_item_exist("cfg_status"):
-            dpg.delete_item("cfg_status")
+        if dpg.does_item_exist(f"{self.TAG}_status"):
+            dpg.delete_item(f"{self.TAG}_status")
 
-        with dpg.tab_bar(parent="cfg_body"):
+        with dpg.tab_bar(parent=f"{self.TAG}_body"):
             with dpg.tab(label="Game"):
-                dpg.add_child_window(tag="cfg_game_body",
+                dpg.add_child_window(tag=f"{self.TAG}_game_body",
                                      autosize_x=True, height=-1)
             with dpg.tab(label="Platform"):
                 dpg.add_child_window(
-                    tag="cfg_platform_body", autosize_x=True, height=-1)
+                    tag=f"{self.TAG}_platform_body", autosize_x=True, height=-1)
             with dpg.tab(label="Profile"):
                 dpg.add_child_window(
-                    tag="cfg_profile_body", autosize_x=True, height=-1)
+                    tag=f"{self.TAG}_profile_body", autosize_x=True, height=-1)
 
         GameTab(self._username, profile, self._patch,
-                self._context).build("cfg_game_body")
+                self._context).build(f"{self.TAG}_game_body")
         PlatformTab(self._username, profile, self._patch,
-                    self._context).build("cfg_platform_body")
+                    self._context).build(f"{self.TAG}_platform_body")
         ProfileTab(self._username, profile, self._context,
-                   on_save_cb=self._on_profile_saved, on_deleted_cb=self._on_profile_deleted).build("cfg_profile_body")
+                   on_save_cb=self._on_profile_saved, on_deleted_cb=self._on_profile_deleted).build(f"{self.TAG}_profile_body")
 
     #   ------------------------------Helpers
 

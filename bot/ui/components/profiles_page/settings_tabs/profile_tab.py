@@ -21,6 +21,8 @@ _ROOT = Path(DEFAULT_DATA_FOLDER)
 
 
 class ProfileTab:
+    TAG = "profile_tab"
+
     def __init__(self, username: str, profile: dict, context: AppContext, on_save_cb=None, on_deleted_cb=None):
         self._username = username
         self._profile = profile
@@ -33,20 +35,20 @@ class ProfileTab:
         profile = self._profile
 
         dpg.add_text("Username *", parent=parent)
-        dpg.add_input_text(tag="cfg_edit_username", width=-1, parent=parent,
+        dpg.add_input_text(tag=f"{self.TAG}_edit_username", width=-1, parent=parent,
                            default_value=profile.get("username", ""))
         dpg.add_text("UID", parent=parent)
-        dpg.add_input_text(tag="cfg_edit_uid", width=-1, parent=parent,
+        dpg.add_input_text(tag=f"{self.TAG}_edit_uid", width=-1, parent=parent,
                            default_value=profile.get("uid", ""))
         dpg.add_text("Token", parent=parent)
-        dpg.add_input_text(tag="cfg_edit_token", width=-1, parent=parent,
+        dpg.add_input_text(tag=f"{self.TAG}_edit_token", width=-1, parent=parent,
                            password=True, default_value=profile.get("token", ""))
         with dpg.group(horizontal=True, parent=parent):
             dpg.add_button(label="Copy Token", width=80,
                            callback=self._copy_token)
-            dpg.add_button(label="Get uid & token", tag="cfg_auto_fill_btn", width=120,
+            dpg.add_button(label="Get uid & token", tag=f"{self.TAG}_auto_fill_btn", width=120,
                            callback=self._fill_uid_token)
-        dpg.add_text("", tag="cfg_result_message", parent=parent)
+        dpg.add_text("", tag=f"{self.TAG}_result_message", parent=parent)
         with dpg.table(header_row=False, parent=parent, no_clip=True):
             dpg.add_table_column(width_fixed=True)
             dpg.add_table_column(width_stretch=True)
@@ -68,9 +70,9 @@ class ProfileTab:
 
     def _confirm(self):
         old_username = self._username
-        new_username = dpg.get_value("cfg_edit_username").strip()
-        uid = dpg.get_value("cfg_edit_uid").strip()
-        token = dpg.get_value("cfg_edit_token").strip()
+        new_username = dpg.get_value(f"{self.TAG}_edit_username").strip()
+        uid = dpg.get_value(f"{self.TAG}_edit_uid").strip()
+        token = dpg.get_value(f"{self.TAG}_edit_token").strip()
 
         if not new_username:
             self._set_result_message("Username is required.")
@@ -118,12 +120,12 @@ class ProfileTab:
         self._delete_dialog.open(self._username)
 
     def _set_result_message(self, text: str, is_error: bool = True):
-        dpg.set_value("cfg_result_message", text)
+        dpg.set_value(f"{self.TAG}_result_message", text)
         color = (255, 80, 80) if is_error else (80, 255, 80)
-        dpg.configure_item("cfg_result_message", color=color)
+        dpg.configure_item(f"{self.TAG}_result_message", color=color)
 
     def _copy_token(self):
-        token = dpg.get_value("cfg_edit_token").strip()
+        token = dpg.get_value(f"{self.TAG}_edit_token").strip()
         if not token:
             return
         dpg.set_clipboard_text(token)
@@ -136,15 +138,15 @@ class ProfileTab:
             shutil.move(str(old_path), str(new_path))
 
     def _fill_uid_token(self):
-        dpg.disable_item("cfg_auto_fill_btn")
+        dpg.disable_item(f"{self.TAG}_auto_fill_btn")
 
         def _on_done(fut):
             try:
                 result: KongUser = fut.result()
                 self._context.queue_ui_task(
-                    lambda uid=result.uid: dpg.set_value("cfg_edit_uid", uid))
+                    lambda uid=result.uid: dpg.set_value(f"{self.TAG}_edit_uid", uid))
                 self._context.queue_ui_task(
-                    lambda token=result.token: dpg.set_value("cfg_edit_token", token))
+                    lambda token=result.token: dpg.set_value(f"{self.TAG}_edit_token", token))
                 self._context.queue_ui_task(
                     lambda: self._set_result_message(
                         "Uid loaded successfully!", is_error=False)
@@ -155,7 +157,7 @@ class ProfileTab:
                 )
             finally:
                 self._context.queue_ui_task(
-                    lambda: dpg.enable_item("cfg_auto_fill_btn"))
+                    lambda: dpg.enable_item(f"{self.TAG}_auto_fill_btn"))
 
         future = asyncio.run_coroutine_threadsafe(
             get_uid_token(),
