@@ -14,11 +14,11 @@ def checkbox(parent: int | str, label: str, value: bool, on_change, tag: str = "
     )
 
 
-def int_input(parent: int | str, label: str, value: int, min_val: int, on_change, tag: str = ""):
+def int_input(parent: int | str, label: str, value: int, min_val: int, on_change, tag: str = "", step: int = 1, step_fast: int = 1):
     dpg.add_input_int(
         tag=tag, label=label, default_value=value,
         min_value=min_val, min_clamped=True,
-        width=120, parent=parent, callback=lambda s, v: on_change(v)
+        width=120, parent=parent, callback=lambda s, v: on_change(v), step=step, step_fast=step_fast
     )
 
 
