@@ -1,5 +1,23 @@
 # Changelog
 
+## [2.3.0](https://github.com/sontoong/PBHB/compare/v2.2.0...v2.3.0) (2026-08-29)
+
+
+### Features
+
+* **app:** add memory usage state and improve service error handling ([c0c1a69](https://github.com/sontoong/PBHB/commit/c0c1a69827fa833c3047a4adab7bac7036150bce))
+* **config:** save window size and active tab ([ed7122d](https://github.com/sontoong/PBHB/commit/ed7122d75b885ff4e004a7ccc1dc7ffaaa3f3942))
+* **constants:** add memory state and task type enums ([a02de57](https://github.com/sontoong/PBHB/commit/a02de574f83e6c6baf385a2540160eab5a356ab5))
+* **ui:** add functions panel and warning dialog for native mode ([dde17e1](https://github.com/sontoong/PBHB/commit/dde17e1f36dbb256d5753d240b6a8db55fb66f44))
+* **ui:** add profile poller for live updates ([7d31091](https://github.com/sontoong/PBHB/commit/7d31091f639aeeaf1717645da993252c06f783b6))
+* **ui:** improve profiles page with selection and functions panel ([68db2c1](https://github.com/sontoong/PBHB/commit/68db2c1d62eb2a972a2cbe4173b5222b8e075e22))
+* **utils:** add browser display scripts and merge helper ([7ea5f3e](https://github.com/sontoong/PBHB/commit/7ea5f3eef2b0a5534d50bf5a57cd35700f574fc6))
+
+
+### Bug Fixes
+
+* **driver:** rewrite native driver screenshot and close logic ([a412fe6](https://github.com/sontoong/PBHB/commit/a412fe6bb1dd8fa2e5c3a449997ec635546c8edf))
+
 ## [2.2.0](https://github.com/sontoong/PBHB/compare/v2.1.0...v2.2.0) (2026-06-23)
 
 
