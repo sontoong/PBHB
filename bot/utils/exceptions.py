@@ -4,3 +4,7 @@ class CanvasError(RuntimeError):
 
 class WindowError(RuntimeError):
     pass
+
+
+class MissingCredentialsError(RuntimeError):
+    pass

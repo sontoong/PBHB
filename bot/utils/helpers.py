@@ -48,3 +48,19 @@ def hex_to_rgba(hex_color: int, alpha: int = 255) -> tuple:
 
 def strip_ansi(text: str) -> str:
     return re.compile(r'\x1b\[[0-9;]*m').sub('', text)
+
+
+def merge_deep(base, overlay):
+    if isinstance(base, dict) and isinstance(overlay, dict):
+        result = base.copy()
+        for key, value in overlay.items():
+            if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+                result[key] = merge_deep(result[key], value)
+            else:
+                result[key] = value
+        return result
+
+    if overlay is None:
+        return base
+
+    return overlay

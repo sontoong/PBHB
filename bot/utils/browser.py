@@ -35,11 +35,15 @@ def speed_init_script() -> str:
             dateNow: true,
             raf: true,
         };
-
+        
+        window.__nativePerfNow = originalPerformanceNow;
         window.__setSpeed = (multiplier) => {
-            cfg.speed = multiplier;
+            const validateSpeed = (s) => (s > 0 ? s : 1);
+
+            cfg.speed = validateSpeed(multiplier);
             reloadTimers();
         };
+        window.__getSpeed = () => cfg.speed;
 
         // --- setInterval ---
         let timers = [];
@@ -73,12 +77,6 @@ def speed_init_script() -> str:
 
         window.clearTimeout = (id) => {
             originalClearTimeout(id);
-            timers.forEach((t) => {
-                if (t.id == id) {
-                    t.finished = true;
-                    if (t.customTimerId) originalClearTimeout(t.customTimerId);
-                }
-            });
         };
 
         window.setInterval = (handler, timeout, ...args) => {
@@ -134,41 +132,15 @@ def speed_init_script() -> str:
         })();
 
         // --- requestAnimationFrame ---
-        (() => {
-            let disabled = false;
-            const callbackFunctions = [];
-            const callbackTick = [];
-
-            window.requestAnimationFrame = (callback) => {
-                if (disabled) return 1;
-
-                const id = originalSetInterval(() => {
-                    originalClearInterval(id);
-
-                    const index = callbackFunctions.indexOf(callback);
-                    if (index === -1) {
-                        callbackFunctions.push(callback);
-                        callbackTick.push(0);
-                        callback(performance.now());
-                    } else if (cfg.raf) {
-                        let tick = callbackTick[index] + cfg.speed;
-
-                        while (tick >= 1) {
-                            try { callback(performance.now()); } catch(e) { console.error(e); }
-                            disabled = true;
-                            tick -= 1;
-                        }
-                        disabled = false;
-
-                        callbackTick[index] = tick;
-                    } else {
-                        callback(performance.now());
-                    }
-                }, 0);
-
-                return id;
-            };
-        })();
+        window.requestAnimationFrame = (callback) => {
+            return originalRAF((timestamp) => {
+                if (cfg.raf) {
+                    callback(window.performance.now());
+                } else {
+                    callback(timestamp);
+                }
+            });
+        };
     })();
     """
 
@@ -202,6 +174,8 @@ def inject_fps_counter_script() -> str:
         (() => {
             if (document.getElementById('__fps_overlay')) return;
 
+            const nativeNow = window.__nativePerfNow || window.performance.now.bind(window.performance);
+
             const overlay = document.createElement('div');
             overlay.id = '__fps_overlay';
             overlay.style.cssText = `
@@ -221,12 +195,12 @@ def inject_fps_counter_script() -> str:
             document.body.appendChild(overlay);
 
             let frames = 0;
-            let lastTime = performance.now();
+            let lastTime = nativeNow();
 
             const origRAF = window.requestAnimationFrame;
             const tick = () => {
                 frames++;
-                const now = performance.now();
+                const now = nativeNow();
                 const elapsed = now - lastTime;
                 if (elapsed >= 500) {
                     const fps = (frames / elapsed * 1000).toFixed(0);
@@ -238,6 +212,68 @@ def inject_fps_counter_script() -> str:
             };
             origRAF(tick);
         })();
+    """
+
+
+def inject_speed_display_script() -> str:
+    return """
+        (() => {
+            if (document.getElementById('__speed_overlay')) return;
+
+            const overlay = document.createElement('div');
+            overlay.id = '__speed_overlay';
+            overlay.style.cssText = `
+                position: fixed;
+                top: 30px;
+                left: 8px;
+                background: rgba(0,0,0,0.6);
+                color: #ffaa00;
+                font: bold 12px monospace;
+                padding: 3px 7px;
+                border-radius: 4px;
+                z-index: 99999;
+                pointer-events: none;
+                user-select: none;
+            `;
+            overlay.textContent = 'Speed: 1.0x';
+            document.body.appendChild(overlay);
+
+            const updateSpeed = () => {
+                const speed = window.__getSpeed ? window.__getSpeed() : 1;
+                overlay.textContent = `Speed: ${speed.toFixed(1)}x`;
+            };
+
+            updateSpeed();
+            setInterval(updateSpeed, 100);
+        })();
+    """
+
+
+def inject_task_display_script(task_name: str) -> str:
+    return f"""
+        (() => {{
+            const overlayId = '__task_overlay';
+            let overlay = document.getElementById(overlayId);
+            if (!overlay) {{
+                overlay = document.createElement('div');
+                overlay.id = overlayId;
+                overlay.style.cssText = `
+                    position: fixed;
+                    top: 52px;   /* below the speed overlay (if used) */
+                    left: 8px;
+                    background: rgba(0,0,0,0.6);
+                    color: #00ccff;
+                    font: bold 12px monospace;
+                    padding: 3px 7px;
+                    border-radius: 4px;
+                    z-index: 99999;
+                    pointer-events: none;
+                    user-select: none;
+                `;
+                document.body.appendChild(overlay);
+            }}
+            overlay.textContent = 'Task: {task_name}';
+        }})();
     """
 
 #   ------------------------------functions

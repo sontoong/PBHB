@@ -32,7 +32,6 @@ async def locate_image(
     stable_timeout_ms: int = 10000,
     center: bool = False
 ) -> tuple[int, int] | None:
-
     async def _locate_once(image_path: Path) -> tuple[tuple[int, int] | None, float]:
         cache_key = str(image_path)
 
@@ -72,10 +71,15 @@ async def locate_image(
                 best_scale = scale
 
         # DEBUG
-        name = Path(cache_key).name
-        match_pct = f"{best_val * 100:.1f}%"
-        status = "OK" if best_val >= confidence else "X"
-        print(f"[{driver.uid}][Vision] {status} {name}: {match_pct} (need {confidence * 100:.0f}%, scale={best_scale:.2f})", flush=True)
+        # name = Path(cache_key).name
+        # match_pct = f"{best_val * 100:.1f}%"
+        # confidence_pct = f"{confidence * 100:.0f}%"
+        # status = "OK" if best_val >= confidence else "X"
+        # print(f"[{driver.uid}][Vision] {status} {name}: {match_pct} (need {confidence_pct}, scale={best_scale:.2f})", flush=True)
+        # if 0.8 <= best_val < 0.9 and name not in ["auto_red.png"]:
+        #     await save_screenshot(driver, save_directory=Path(DEFAULT_DEBUG_FOLDER) / "checking", filename=f"{name}_({match_pct})", add_timestamp=True)
+        #     print(
+        #         f"[Warning] {name} ({match_pct}) might be a false positive (< 90%)", flush=True)
 
         if cache_key not in img_scale_cache and best_val >= confidence:
             img_scale_cache[cache_key] = best_scale
@@ -203,9 +207,6 @@ async def click_image(
 
 
 async def save_screenshot(driver: BaseDriver, save_directory: Path, filename=None, add_timestamp=True):
-    if not save_directory:
-        raise ValueError("save_directory must be specified")
-
     save_directory.mkdir(parents=True, exist_ok=True)
 
     timestamp_str = f"_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}" if add_timestamp else ""

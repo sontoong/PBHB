@@ -39,7 +39,7 @@ async def find_text(driver: BaseDriver, config, logger: Logger, box: BoundingBox
             await asyncio.wait_for(save_screenshot(
                 driver,
                 save_directory=Path(DEFAULT_DEBUG_FOLDER) / "familiars",
-                filename=f"{recognized_text if recognized_text != '' else f'empty_{timestamp_str}'}", add_timestamp=False
+                filename=f"{recognized_text if recognized_text != '' else f'NOT_RECOGNIZED_{timestamp_str}'}", add_timestamp=False
             ), timeout=10)
         except Exception as e:
             await logger.error(f"Failed to save timeout screenshot: {type(e).__name__}: {e}")
