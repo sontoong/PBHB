@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.4.0](https://github.com/sontoong/PBHB/compare/v2.3.0...v2.4.0) (2026-08-29)
+
+
+### Features
+
+* **ui:** adjust functions panel visibility and list height dynamically ([f456c0e](https://github.com/sontoong/PBHB/commit/f456c0e98119faf3f504e67ee3c9c0ec0fa7707c))
+
 ## [2.3.0](https://github.com/sontoong/PBHB/compare/v2.2.0...v2.3.0) (2026-08-29)
 
 
