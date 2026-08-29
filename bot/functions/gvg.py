@@ -3,7 +3,7 @@ from bot.base.task import BaseTask
 
 
 class GVG(BaseTask):
-    MAX_TIME = 5*60
+    TASK_KEY = "gvg"
 
     async def _run(self):
         opponent_placement = self._profile["gvg"]["opponentPlacement"]

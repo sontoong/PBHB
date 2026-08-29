@@ -4,7 +4,7 @@ from bot.base.task import BaseTask
 
 
 class Raid(BaseTask):
-    MAX_TIME = 15*60
+    TASK_KEY = "raid"
 
     async def _run(self):
         auto_open_chest = self._profile["raid"]["autoOpenChest"]
@@ -55,7 +55,7 @@ class Raid(BaseTask):
                     await self._click_image(f"{RAID_IMAGES}/decline_button.png")
 
         # Persuade familiar
-        if await self._locate_image(f"{RAID_IMAGES}/for.png", confidence=0.9):
+        if await self._locate_image(f"{RAID_IMAGES}/for.png", confidence=0.88):
             await self._click_image(f"{RAID_IMAGES}/yes_button.png", stable_ms=300)
 
         # Persuade familiar
@@ -68,7 +68,7 @@ class Raid(BaseTask):
             await self._press(key="Space")
 
         # Collect button (may appear randomly)
-        if await self._click_image(f"{RAID_IMAGES}/collect_button.png", stable_ms=300):
+        if await self._click_image(f"{RAID_IMAGES}/collect_button.png", stable_ms=2000):
             return None
 
         # Rerun or exit raid

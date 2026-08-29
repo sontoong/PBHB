@@ -3,7 +3,7 @@ from bot.base.task import BaseTask
 
 
 class Invasion(BaseTask):
-    MAX_TIME = 30*60
+    TASK_KEY = "invasion"
 
     def __init__(self, client_manager, context):
         super().__init__(client_manager, context)

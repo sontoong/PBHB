@@ -4,7 +4,7 @@ from bot.base.task import BaseTask
 
 
 class Dungeon(BaseTask):
-    MAX_TIME = 15*60
+    TASK_KEY = "dungeon"
 
     async def _run(self):
         selected_dungeon = self._profile["dungeon"]["selectedDungeon"]
@@ -56,7 +56,7 @@ class Dungeon(BaseTask):
                     await self._click_image(f"{DUNGEON_IMAGES}/decline_button.png")
 
         # Persuade familiar
-        if await self._locate_image(f"{DUNGEON_IMAGES}/for.png", confidence=0.89):
+        if await self._locate_image(f"{DUNGEON_IMAGES}/for.png", confidence=0.88):
             await self._click_image(f"{DUNGEON_IMAGES}/yes_button.png", stable_ms=300)
 
         # Persuade familiar
@@ -69,7 +69,7 @@ class Dungeon(BaseTask):
             await self._press(key="Space")
 
         # Collect button (may appear randomly)
-        if await self._click_image(f"{DUNGEON_IMAGES}/collect_button.png", stable_ms=300):
+        if await self._click_image(f"{DUNGEON_IMAGES}/collect_button.png", stable_ms=2000):
             return None
 
         # Rerun or exit dungeon

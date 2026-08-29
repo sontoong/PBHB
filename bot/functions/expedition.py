@@ -3,7 +3,7 @@ from bot.base.task import BaseTask
 
 
 class Expedition(BaseTask):
-    MAX_TIME = 15*60
+    TASK_KEY = "expedition"
 
     async def _run(self):
         auto_increase_difficulty = self._profile["expedition"]["autoIncreaseDifficulty"]

@@ -3,7 +3,7 @@ from bot.base.task import BaseTask
 
 
 class WorldBoss(BaseTask):
-    MAX_TIME = 5*60
+    TASK_KEY = "worldboss"
 
     async def _run(self):
         num_of_player = self._profile["worldboss"]["numOfPlayer"]
@@ -31,12 +31,10 @@ class WorldBoss(BaseTask):
             return None
         if await self._click_image(f"{WB_IMAGES}/summon_button2.png", stable_ms=300):
             return None
-        if await self._click_image(f"{WB_IMAGES}/summon_button.png", stable_ms=300):
-            return None
 
         # Solo or wait for players
         if num_of_player != 1:
-            move_down_buttons = await self._locate_all(f"{WB_IMAGES}/move_down_button.png", stable_ms=300) or []
+            move_down_buttons = await self._locate_all(f"{WB_IMAGES}/move_down_button.png") or []
             if len(move_down_buttons) >= num_of_player:
                 if not await self._click_image(f"{WB_IMAGES}/start_button.png"):
                     await self._click_image(f"{WB_IMAGES}/ready_button.png")

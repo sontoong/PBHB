@@ -1,8 +1,8 @@
 import asyncio
 from pathlib import Path
 from bot.base.task import BaseTask
-from bot.constants import GLOBAL_IMAGES, DEFAULT_DATA_FOLDER
-from bot.utils import reload_and_wait, save_screenshot
+from bot.constants import GLOBAL_IMAGES, DEFAULT_DATA_FOLDER, TASKTYPE
+from bot.utils import reload_and_wait, save_screenshot, wait_for_game
 
 
 class GlobalSequence(BaseTask):
@@ -44,7 +44,7 @@ class GlobalSequence(BaseTask):
 
     async def _handle_check_1(self):
         # Case: Auto is not on
-        await self._click_image(f"{GLOBAL_IMAGES}/auto_red.png", confidence=0.85, grayscale=False, stable_ms=1000)
+        await self._click_image(f"{GLOBAL_IMAGES}/auto_red.png", confidence=0.88, grayscale=False, stable_ms=2000)
 
         # Case: Chat/DM window open
         if self._profile["global"]["autoCloseDm"] and await self._locate_image(f"{GLOBAL_IMAGES}/send_msg_button.png"):
@@ -83,7 +83,7 @@ class GlobalSequence(BaseTask):
 
         # Case: Battle victory screen
         if await self._locate_image(f"{GLOBAL_IMAGES}/victory_label.png"):
-            await self._click_image(f"{GLOBAL_IMAGES}/continue_button.png")
+            await self._click_image(f"{GLOBAL_IMAGES}/continue_button.png", stable_ms=300)
 
     async def _handle_check_3(self):
         # Case: News alert
@@ -93,11 +93,16 @@ class GlobalSequence(BaseTask):
         # Case: Disconnected
         if await self._locate_image(f"{GLOBAL_IMAGES}/reconnect_button.png"):
             await self._context.logger.warn(f"[{self._profile["username"]}] Game disconnected.")
-            await reload_and_wait(self._client_manager)
+            if self._client_manager.task_manager.task_type == TASKTYPE.BROWSER:
+                await reload_and_wait(self._client_manager)
+            if self._client_manager.task_manager.task_type == TASKTYPE.NATIVE:
+                await self._click_image(f"{GLOBAL_IMAGES}/reconnect_button.png")
 
         # Case: Disconnected from dungeon
         if await self._locate_image(f"{GLOBAL_IMAGES}/disconnected_from_dungeon.png"):
             await self._click_image(f"{GLOBAL_IMAGES}/yes_button.png")
+            await self._context.logger.info(f"[{self._profile["username"]}] Reconnecting to dungeon.")
+            await wait_for_game(self._client_manager)
 
         # Case: Claim daily reward
         if await self._locate_image(f"{GLOBAL_IMAGES}/season_rewards.png"):

@@ -3,7 +3,7 @@ from bot.base.task import BaseTask
 
 
 class PVP(BaseTask):
-    MAX_TIME = 5*60
+    TASK_KEY = "pvp"
 
     async def _run(self):
         opponent_placement = self._profile["pvp"]["opponentPlacement"]
@@ -33,7 +33,7 @@ class PVP(BaseTask):
             return None
 
         # Enter sequence
-        if await self._click_image(f"{PVP_IMAGES}/accept_button.png", stable_ms=300):
+        if await self._click_image(f"{PVP_IMAGES}/accept_button.png", stable_ms=400):
             return None
 
         # Enter PVP
