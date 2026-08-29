@@ -1,7 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
-
 import json
 import time
 import copy
@@ -55,28 +54,35 @@ class ProfileManager:
                 "closeAfterRegen": False
             },
             "invasion": {
+                "maxTime": 1800,
                 "autoIncreaseWave": False,
                 "maxWave": 10
             },
             "tg": {
+                "maxTime": 900,
                 "autoIncreaseDifficulty": False
             },
             "pvp": {
+                "maxTime": 300,
                 "opponentPlacement": 1
             },
             "gvg": {
+                "maxTime": 300,
                 "opponentPlacement": 1
             },
             "worldboss": {
+                "maxTime": 300,
                 "numOfPlayer": 1
             },
             "raid": {
+                "maxTime": 900,
                 "autoCatchByGold": True,
                 "autoBribe": False,
                 "autoOpenChest": False,
                 "autoChangeArmory": False
             },
             "dungeon": {
+                "maxTime": 900,
                 "selectedDungeon": "t1d1",
                 "autoCatchByGold": True,
                 "autoBribe": False,
@@ -84,6 +90,7 @@ class ProfileManager:
                 "autoChangeArmory": False
             },
             "expedition": {
+                "maxTime": 900,
                 "selectedExpedition": "inferno_dimension",
                 "selectedPortal": "raleibs_portal",
                 "autoIncreaseDifficulty": False,

@@ -11,8 +11,8 @@ from bot.functions.gvg import GVG
 from bot.functions.worldboss import WorldBoss
 from bot.functions.dungeon import Dungeon
 from bot.functions.expedition import Expedition
-from bot.constants import STATUS
-from bot.utils import WindowError, CanvasError, sleep
+from bot.constants import STATUS, TASKTYPE
+from bot.utils import WindowError, CanvasError, sleep, check_gamemodes, inject_task_display_script
 from bot.base.task import BaseTask
 
 if TYPE_CHECKING:
@@ -38,7 +38,6 @@ class TaskManager:
         self._client_manager = client_manager
         self._config = client_manager.config
         self._context = context
-        self._current_tasks: list[asyncio.Task] = []
 
     @property
     def _page(self):
@@ -56,54 +55,82 @@ class TaskManager:
     def is_ready(self):
         return self._tracking_status == STATUS.READY
 
+    @property
+    def task_type(self) -> TASKTYPE | None:
+        if self._client_manager.page:
+            return TASKTYPE.BROWSER
+        if self._client_manager.native_driver:
+            return TASKTYPE.NATIVE
+        return None
+
     async def start(self):
         self._tracking_status = STATUS.READY
         should_close_game = self._profile["global"]["closeAfterRegen"]
+        previous_tasks = None
 
-        while True:
-            functions_to_run = self._get_functions_to_run()
+        try:
+            while True:
+                while self._status == STATUS.PAUSED:
+                    await asyncio.sleep(1)
 
-            if not functions_to_run:
-                await self._context.logger.warn(f"[{self._profile["username"]}] No functions configured to run.")
-                return
+                ran_this_round: set[str] = set()
+                error_count = 0
+                finish_count = 0
+                total_this_round = 0
 
-            error_count = 0
-            finish_count = 0
+                while True:
+                    functions_to_run = await self._get_functions_to_run()
+                    current_tasks = tuple(functions_to_run)
 
-            for function_name in functions_to_run:
-                await self._context.logger.info(
-                    f"[{self._profile["username"]}] Starting task: {function_name}")
+                    if current_tasks != previous_tasks:
+                        if functions_to_run:
+                            await self._context.logger.info(f"[{self._profile['username']}] Running tasks: {', '.join(functions_to_run)}")
+                        else:
+                            raise RuntimeError(
+                                f"[{self._profile['username']}] No enabled functions to run")
+                        previous_tasks = current_tasks
 
-                try:
-                    result = await self._run_task(function_name)
+                    enabled_tasks = set(functions_to_run)
+                    # remove disabled tasks from current
+                    ran_this_round -= (ran_this_round - enabled_tasks)
 
-                    if result and result is not STATUS.ESC:
-                        finish_count += 1
-                    if result:
-                        await self._context.logger.info(
-                            f"[{self._profile["username"]}] Task {function_name} result: {result}")
+                    remaining = [
+                        f for f in functions_to_run if f not in ran_this_round]
+                    if not remaining:
+                        break
 
-                except (TargetClosedError, WindowError, CanvasError):
-                    raise
+                    function_name = remaining[0]
+                    total_this_round += 1
 
-                except Exception as error:
-                    error_count += 1
-                    await self._context.logger.error(f"[{self._profile["username"]}] Task {function_name} failed: {error}")
+                    try:
+                        await check_gamemodes(client_manager=self._client_manager)
+                        await self._context.logger.info(f"[{self._profile['username']}] Starting task: {function_name}")
 
-            # All tasks finished successfully
-            if finish_count == len(functions_to_run) and should_close_game:
-                await self._context.logger.success(f"[{self._profile["username"]}] All tasks complete, closing game.")
-                if self._client_manager.native_driver:
-                    await self._context.client_service.stop_native_async(self._profile["username"], True)
-                else:
-                    await self._context.client_service.stop_client_async(self._profile["username"])
-                break
+                        result = await self._run_task(function_name)
 
-            # All tasks failed
-            if error_count == len(functions_to_run):
-                raise RuntimeError(
-                    f"[{self._profile["username"]}] All tasks failed. Check game state.")
+                        if result and result is not STATUS.ESC:
+                            finish_count += 1
+                        if result:
+                            await self._context.logger.info(
+                                f"[{self._profile['username']}] Task {function_name} result: {result}")
 
+                    except (TargetClosedError, WindowError, CanvasError):
+                        raise
+
+                    except Exception as error:
+                        error_count += 1
+                        await self._context.logger.error(f"[{self._profile['username']}] Task {function_name} failed: {error}")
+
+                    ran_this_round.add(function_name)
+
+                if total_this_round and finish_count == total_this_round and should_close_game:
+                    await self._context.logger.success(f"[{self._profile['username']}] All tasks complete, closing game.")
+                    return STATUS.CLOSE_GAME
+
+                if total_this_round and error_count == total_this_round:
+                    raise RuntimeError(
+                        f"[{self._profile['username']}] All tasks failed. Check game state.")
+        finally:
             self.reset()
 
     def pause(self):
@@ -123,50 +150,55 @@ class TaskManager:
         if not func:
             raise ValueError(f"Unknown function: {function_name}")
 
+        if self._page:
+            try:
+                await self._page.evaluate(inject_task_display_script(function_name))
+            except Exception as e:
+                await self._context.logger.error(f"Failed to inject task display: {e}")
+
         task_coro = asyncio.create_task(
             func(self._client_manager, self._context).run_loop())
         watcher_coro = asyncio.create_task(
             self._watch_task(function_name, task_coro))
 
-        self._current_tasks = [task_coro, watcher_coro]
-
         try:
-            await asyncio.wait([task_coro, watcher_coro], return_when=asyncio.FIRST_COMPLETED)
-        finally:
-            await self._cancel_task()
+            _, pending = await asyncio.wait([task_coro, watcher_coro], return_when=asyncio.FIRST_COMPLETED)
 
-        if not task_coro.cancelled() and task_coro.exception():
-            exc = task_coro.exception()
-            if exc:
-                raise exc
+            for task in pending:
+                task.cancel()
+
+            if pending:
+                await asyncio.wait(pending, timeout=5.0)
+        finally:
+            for t in (task_coro, watcher_coro):
+                if not t.done():
+                    t.cancel()
+                    try:
+                        await t
+                    except asyncio.CancelledError:
+                        pass
 
         if task_coro.cancelled():
             return STATUS.ESC
 
-        return task_coro.result()
+        if task_coro.done():
+            task_exc = task_coro.exception()
+            if task_exc:
+                raise task_exc
+            return task_coro.result()
 
     async def _watch_task(self, function_name: str, task_coro: asyncio.Task):
         while True:
-            await sleep(2)  # Need await for yielding
+            await sleep(100, "ms")  # Need await for yielding
             functions = self._profile["global"]["functions"]
             if not functions[function_name]["enabled"]:
                 await self._context.logger.info(f"[{self._profile['username']}] {function_name} disabled, cancelling task.")
                 task_coro.cancel()
                 return
 
-    def _get_functions_to_run(self) -> list[str]:
+    async def _get_functions_to_run(self) -> list[str]:
         functions = self._profile["global"]["functions"]
         enabled = [(key, val) for key, val in functions.items()
                    if val.get("enabled", False)]
         enabled.sort(key=lambda x: x[1].get("priority", 999))
         return [key for key, _ in enabled]
-
-    async def _cancel_task(self):
-        for task in self._current_tasks:
-            if not task.done():
-                task.cancel()
-                try:
-                    await task
-                except (asyncio.CancelledError, Exception):
-                    pass
-        self._current_tasks = []

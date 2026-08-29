@@ -11,8 +11,10 @@ from bot.managers.profile_manager import ProfileManager
 from bot.functions.global_sequence import GlobalSequence
 from bot.managers.task_manager import TaskManager
 from bot.managers.lifecycle_manager import LifecycleManager
-from bot.constants import DEFAULT_DATA_FOLDER, REFRESH_PROFILE_INTERVAL_MS
+from bot.constants import DEFAULT_DATA_FOLDER, REFRESH_PROFILE_INTERVAL_MS, TASKTYPE, STATUS
 from bot.drivers import PlaywrightDriver
+from bot.utils import WindowError, CanvasError, MissingCredentialsError
+
 
 if TYPE_CHECKING:
     from bot.context import AppContext
@@ -41,7 +43,7 @@ class ClientManager:
 
     @property
     def profile_manager(self):
-        return ProfileManager(self.profile["username"], self.context)
+        return ProfileManager(username=self.profile["username"], context=self.context)
 
     @property
     def driver(self) -> BaseDriver | None:
@@ -59,7 +61,7 @@ class ClientManager:
     async def start_task_browser(self):
         if not self.profile["uid"] or not self.profile["token"]:
             await self.context.logger.warn(f"[{self.profile['username']}] Skipped: missing uid or token.")
-            raise TargetClosedError()
+            raise MissingCredentialsError()
 
         await self.context.logger.info(f"[{self.profile["username"]}] Launching...")
 
@@ -101,24 +103,19 @@ class ClientManager:
             args=args,
             viewport={"width": window_w, "height": window_h},
         )
-        self.browser.on("close", self._on_browser_disconnected)
 
         await self.browser.add_init_script(browser_init_script())
         await self.browser.add_init_script(preserve_drawing_buffer_script())
         await self.browser.add_init_script(speed_init_script())
 
         self.page = self.browser.pages[0] if self.browser.pages else await self.browser.new_page()
-        try:
-            await asyncio.wait_for(self.page.goto(url, wait_until="domcontentloaded", timeout=0), timeout=60)
-        except asyncio.TimeoutError:
-            raise
-        except Exception as e:
-            raise TargetClosedError from e
 
+        await asyncio.wait_for(self.page.goto(url, wait_until="domcontentloaded", timeout=0), timeout=60)
         await wait_for_unity(self)
         await wait_for_game(self)
 
         self.start_task = asyncio.create_task(self.task_manager.start())
+        self.start_task.add_done_callback(self._on_start_task_done)
 
     async def start_task_native(self, driver: NativeDriver):
         self.native_driver = driver
@@ -126,8 +123,9 @@ class ClientManager:
         await wait_for_game(self)
 
         self.start_task = asyncio.create_task(self.task_manager.start())
+        self.start_task.add_done_callback(self._on_start_task_done)
 
-    async def destroy(self):
+    async def destroy(self, should_close_native: bool = False):
         # Cancel start task
         if self.start_task and not self.start_task.done():
             self.start_task.cancel()
@@ -171,24 +169,12 @@ class ClientManager:
                 self.pw_instance = None
 
         elif self.native_driver:
+            if should_close_native:
+                await self.native_driver.close()
             self.native_driver = None
             await self.context.logger.success(f"[{self.profile['username']}] Client closed successfully")
 
-        self.task_manager.reset()
-
     #   ------------------------------Helpers
-
-    def _on_browser_disconnected(self, _):
-        async def on_disconnected():
-            if self.intentional_stop is False:
-                if not self.profile["platform"]["browser"]["autoRestart"]:
-                    await self.context.logger.warn(f"[{self.profile['username']}] Browser disconnected unexpectedly")
-                    await self.context.client_service.stop_client_async(self.profile['username'])
-                else:
-                    await self.context.logger.warn(f"[{self.profile['username']}] Browser disconnected unexpectedly, restarting...")
-                    await self.context.client_service.restart_client_async(self.profile['username'])
-
-        asyncio.run_coroutine_threadsafe(on_disconnected(), self.context.loop)
 
     async def _refresh_profile(self):
         loaded = await self.profile_manager.load_profile()
@@ -207,3 +193,47 @@ class ClientManager:
                 raise error
             except Exception as error:
                 await self.context.logger.error(f"[{self.profile['username']}] Profile refresh failed:", error)
+
+    def _on_start_task_done(self, task: asyncio.Task):
+        async def _handle_native_crash(exc: BaseException):
+            username = self.profile['username']
+            if isinstance(exc, WindowError):
+                await self.context.logger.warn(f"[{username}] Window closed during run, stopping...")
+            else:
+                await self.context.logger.error(f"[{username}] Task window crashed unexpectedly:", exc)
+            await self.context.client_service.stop_native_async(username)
+
+        async def _handle_browser_crash(exc: BaseException):
+            username = self.profile['username']
+            if isinstance(exc, (CanvasError, TargetClosedError)):
+                await self._recover_browser(username=username, reason="Client lost during run")
+            else:
+                await self.context.logger.error(f"[{username}] Task browser crashed unexpectedly:", exc)
+                await self.context.client_service.stop_client_async(username)
+
+        if task.cancelled():
+            return
+
+        exc = task.exception()
+        if exc:
+            if self.task_manager.task_type == TASKTYPE.NATIVE:
+                asyncio.create_task(_handle_native_crash(exc))
+            elif self.task_manager.task_type == TASKTYPE.BROWSER:
+                asyncio.create_task(_handle_browser_crash(exc))
+        if task.result() == STATUS.CLOSE_GAME:
+            if self.task_manager.task_type == TASKTYPE.NATIVE:
+                asyncio.create_task(
+                    self.context.client_service.stop_native_async(self.profile["username"], True))
+            elif self.task_manager.task_type == TASKTYPE.BROWSER:
+                asyncio.create_task(
+                    self.context.client_service.stop_client_async(self.profile["username"]))
+
+    async def _recover_browser(self, username: str, reason: str):
+        if self.intentional_stop:
+            return
+        if self.profile["platform"]["browser"]["autoRestart"]:
+            await self.context.logger.warn(f"[{username}] {reason}, restarting...")
+            await self.context.client_service.restart_client_async(username)
+        else:
+            await self.context.logger.warn(f"[{username}] {reason}, stopping...")
+            await self.context.client_service.stop_client_async(username)

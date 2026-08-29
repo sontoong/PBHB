@@ -4,7 +4,7 @@ import asyncio
 from pathlib import Path
 from playwright._impl._errors import TargetClosedError
 from bot.utils import locate_image, click_image, locate_all, resolve_image_path, sleep, reload_and_wait, save_screenshot, click, press, CanvasError, WindowError, find_text
-from bot.constants import STATUS, DEFAULT_DEBUG_FOLDER
+from bot.constants import STATUS, DEFAULT_DEBUG_FOLDER, DEFAULT_MAX_TIME
 from bot.models import BoundingBox
 
 if TYPE_CHECKING:
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 
 class BaseTask:
-    MAX_TIME = None
+    TASK_KEY = None
 
     def __init__(self, client_manager: ClientManager, context: AppContext):
         self._client_manager = client_manager
@@ -35,6 +35,12 @@ class BaseTask:
     def _is_running(self):
         return self._client_manager.task_manager.is_running
 
+    @property
+    def _max_time(self):
+        if self.TASK_KEY and self._profile:
+            return self._profile[self.TASK_KEY]["maxTime"]
+        return DEFAULT_MAX_TIME
+
     async def run_loop(self):
         username = self._client_manager.profile['username']
         task_name = self.__class__.__name__
@@ -43,21 +49,27 @@ class BaseTask:
 
         while True:
             try:
-                if self.MAX_TIME and deadline is None:
-                    deadline = asyncio.get_running_loop().time() + self.MAX_TIME
+                max_time = self._max_time
 
+                # Init deadline
+                if max_time and deadline is None:
+                    deadline = asyncio.get_running_loop().time() + max_time
+
+                # Task pausing
                 while not self._is_running:
                     pause_start = asyncio.get_running_loop().time()
                     await sleep(1)
                     if deadline is not None:
                         deadline += asyncio.get_running_loop().time() - pause_start
 
+                # Run task
                 if deadline is not None:
                     remaining = deadline - asyncio.get_running_loop().time()
                     result = await asyncio.wait_for(self._run(), timeout=remaining)
                 else:
                     result = await self._run()
 
+                # Handle result
                 if result == STATUS.PROGRESS:
                     deadline = None
                     loop_count += 1
