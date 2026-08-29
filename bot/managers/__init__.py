@@ -5,6 +5,7 @@ from bot.managers.task_manager import TaskManager
 from bot.managers.client_manager import ClientManager
 from bot.managers.window_manager import WindowManager
 from bot.managers.lifecycle_manager import LifecycleManager
+from bot.managers.profile_poller import ProfilePoller
 
 __all__ = ['ConfigManager', 'ProfileManager',
-           'TaskManager', 'CredentialManager', 'ClientManager', 'WindowManager', 'LifecycleManager']
+           'TaskManager', 'CredentialManager', 'ClientManager', 'WindowManager', 'LifecycleManager', 'ProfilePoller']

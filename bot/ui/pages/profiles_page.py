@@ -4,7 +4,10 @@ from typing import TYPE_CHECKING
 import dearpygui.dearpygui as dpg
 from bot.base.page import BasePage
 from bot.ui.components.profiles_page import AddProfileDialog, SettingsDialog
+from bot.ui.components.native_page import FunctionsPanel
 from bot.ui.animate import PulseAnimator
+from bot.ui.components.common import WarningDialog
+from bot.managers import ProfilePoller
 
 if TYPE_CHECKING:
     from bot.context import AppContext
@@ -18,10 +21,16 @@ class ProfilesPage(BasePage):
         self._paused: dict[str, bool] = {}
         self._loading: set[str] = set()
         self._pulse = PulseAnimator()
+        self._selected_profile: str | None = None
 
         self._add_dialog = AddProfileDialog(self._context, self._add_row)
         self._game_settings_dialog = SettingsDialog(
             self._context, profile_save_cb=self._profile_save_cb, profile_delete_cb=self._profile_delete_cb)
+        self._warning_dialog = WarningDialog(self._context)
+        self._functions_panel = FunctionsPanel(self._context)
+
+        self._poller = ProfilePoller(self._context)
+        self._poller.subscribe(self._functions_panel._on_profile_fetched)
 
     def build(self, parent: str):
         with dpg.child_window(tag=self.TAG, parent=parent,
@@ -39,14 +48,15 @@ class ProfilesPage(BasePage):
                 dpg.add_button(label="Stop All",  tag="stop_all_btn",
                                callback=self._on_stop_all)
 
-            with dpg.child_window(tag="user_list", autosize_x=True, height=-1):
+            with dpg.child_window(tag="user_list", autosize_x=True, height=-125):
                 with dpg.table(tag="profiles_table", header_row=False, no_clip=True):
                     dpg.add_table_column(
                         width_fixed=True, init_width_or_weight=100)  # uid
-                    dpg.add_table_column(
-                        width_fixed=True, init_width_or_weight=160)  # username
-                    dpg.add_table_column(width_stretch=True)
+                    dpg.add_table_column(width_stretch=True)  # username
                     dpg.add_table_column(width_fixed=True)  # actions
+
+            dpg.add_child_window(
+                tag="profiles_functions_panel", autosize_x=True, height=150)
 
     def show(self):
         dpg.configure_item(self.TAG, show=True)
@@ -57,18 +67,49 @@ class ProfilesPage(BasePage):
     def on_frame(self):
         self._refresh_button_states()
         self._pulse.tick()
+        self._poller.poll()
 
     def on_profiles_loaded(self):
         self._refresh_list()
 
     #   ------------------------------Render
 
+    def _add_row(self, creds: dict):
+        username = creds["username"]
+        uid = creds.get("uid") or "N/A"
+        self._paused.setdefault(username, False)
+
+        with dpg.table_row(tag=f"row_{username}", parent="profiles_table"):
+            dpg.add_text(f"uid: {uid}", color=(130, 130, 150))
+            dpg.add_selectable(
+                label=username,
+                tag=f"select_name_{username}",
+                callback=lambda s, a, u: self._on_row_selected(u), user_data=username,
+            )
+            with dpg.group(horizontal=True):
+                dpg.add_button(label="Start", tag=f"start_btn_{username}",
+                               callback=self._on_start, user_data=creds)
+                dpg.add_button(label="Pause", tag=f"pause_btn_{username}",
+                               callback=self._on_pause, user_data=creds)
+                dpg.add_button(label="Stop", tag=f"stop_btn_{username}",
+                               callback=self._on_stop, user_data=creds)
+                dpg.add_button(label="Settings", tag=f"game_settings_btn_{username}",
+                               callback=lambda s, a, u: self._game_settings_dialog.open(u["username"]), user_data=creds)
+
     def _refresh_list(self):
-        for client in self._context.client_store.get_all() or []:
+        clients = self._context.client_store.get_all() or []
+        for client in clients:
             username = client.profile["username"]
             if dpg.does_item_exist(f"row_{username}"):
                 dpg.delete_item(f"row_{username}")
             self._add_row(client.profile)
+
+        if clients:
+            usernames = {c.profile["username"] for c in clients}
+            if self._selected_profile not in usernames:
+                self._on_row_selected(clients[0].profile["username"])
+        else:
+            self._selected_profile = None
 
     def _refresh_button_states(self):
         clients = self._context.client_store.get_all()
@@ -121,41 +162,35 @@ class ProfilesPage(BasePage):
         self._set_enabled("pause_all_btn",  any_unpaused)
         self._set_enabled("resume_all_btn", any_paused)
 
-    def _add_row(self, creds: dict):
-        username = creds["username"]
-        uid = creds.get("uid") or "N/A"
-        self._paused.setdefault(username, False)
-
-        with dpg.table_row(tag=f"row_{username}", parent="profiles_table"):
-            dpg.add_text(f"uid: {uid}", color=(130, 130, 150))
-            dpg.add_text(
-                username, tag=f"lbl_{username}", color=(220, 220, 220))
-            dpg.add_text("")
-            with dpg.group(horizontal=True):
-                dpg.add_button(label="Start", tag=f"start_btn_{username}",
-                               callback=self._on_start, user_data=creds)
-                dpg.add_button(label="Pause", tag=f"pause_btn_{username}",
-                               callback=self._on_pause, user_data=creds)
-                dpg.add_button(label="Stop", tag=f"stop_btn_{username}",
-                               callback=self._on_stop, user_data=creds)
-                dpg.add_button(label="Settings", tag=f"game_settings_btn_{username}",
-                               callback=lambda s, a, u: self._game_settings_dialog.open(u["username"]), user_data=creds)
-
     def _remove_row(self, username: str):
         if dpg.does_item_exist(f"row_{username}"):
             dpg.delete_item(f"row_{username}")
+
         self._paused.pop(username, None)
         for suffix in ("start_btn", "stop_btn"):
             tag = f"{suffix}_{username}"
             self._loading.discard(tag)
             self._pulse.remove_item(tag)
 
+        if self._selected_profile == username:
+            self._selected_profile = None
+            for child in dpg.get_item_children("profiles_functions_panel", slot=1) or []:
+                dpg.delete_item(child)
+
     #   ------------------------------Button Callbacks
 
     def _on_start(self, _, __, user_data):
         username = user_data["username"]
-        self._set_loading(f"start_btn_{username}", True)
-        self._context.client_service.start_client(username)
+        uid = user_data["uid"]
+        token = user_data["token"]
+
+        if not uid or not token:
+            self._warning_dialog.open(
+                "This profile is missing a UID or Token."
+            )
+        else:
+            self._set_loading(f"start_btn_{username}", True)
+            self._context.client_service.start_client(username)
 
     def _on_pause(self, _, __, user_data):
         username = user_data["username"]
@@ -176,12 +211,33 @@ class ProfilesPage(BasePage):
         self._context.client_service.stop_client(username)
 
     def _on_start_all(self):
+        any_started = False
+        skipped = []
         for client in self._context.client_store.get_all():
-            username = client.profile["username"]
-            if client.browser is None:
-                self._set_loading(f"start_btn_{username}", True)
+            profile = client.profile
+            username = profile["username"]
+            uid = profile.get("uid")
+            token = profile.get("token")
+
+            if client.browser is not None:
+                continue
+
+            if not uid or not token:
+                skipped.append(username)
+                continue
+
+            self._set_loading(f"start_btn_{username}", True)
             self._context.client_service.start_client(username)
-        self._set_loading("start_all_btn", True)
+            any_started = True
+
+        if any_started:
+            self._set_loading("start_all_btn", True)
+
+        if skipped:
+            self._warning_dialog.open(
+                "The following profiles are missing a UID or Token and were not started: "
+                + ", ".join(skipped)
+            )
 
     def _on_stop_all(self):
         for client in self._context.client_store.get_all():
@@ -211,6 +267,25 @@ class ProfilesPage(BasePage):
                 self._context.client_service.resume_client(username)
                 dpg.set_item_label(f"pause_btn_{username}", "Pause")
 
+    def _on_row_selected(self, username: str):
+        def set_row_highlighted(username: str, value: bool):
+            for tag in [
+                f"select_name_{username}",
+            ]:
+                if dpg.does_item_exist(tag):
+                    dpg.set_value(tag, value)
+
+        if self._selected_profile == username:
+            return
+
+        if self._selected_profile:
+            set_row_highlighted(self._selected_profile, False)
+        set_row_highlighted(username, True)
+
+        self._selected_profile = username
+        self._poller.start(username)
+        self._rebuild_functions_panel(username)
+
     #   ------------------------------Helpers
 
     def _set_enabled(self, tag: str, enabled: bool):
@@ -233,3 +308,8 @@ class ProfilesPage(BasePage):
             self._loading.discard(tag)
             self._pulse.stop(tag)
             dpg.bind_item_theme(tag, 0)
+
+    def _rebuild_functions_panel(self, username: str):
+        for child in dpg.get_item_children("profiles_functions_panel", slot=1) or []:
+            dpg.delete_item(child)
+        self._functions_panel.build("profiles_functions_panel", username)

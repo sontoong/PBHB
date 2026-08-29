@@ -5,8 +5,9 @@ import keyboard
 import dearpygui.dearpygui as dpg
 import pygetwindow as gw
 from bot.base.page import BasePage
-from bot.ui.components.native_page import SettingsPanel
+from bot.ui.components.native_page import SettingsPanel, FunctionsPanel
 from bot.constants import APP_NAME
+from bot.managers import ProfilePoller
 
 if TYPE_CHECKING:
     from bot.context import AppContext
@@ -19,8 +20,12 @@ class NativePage(BasePage):
         super().__init__(context)
         self._selected_profile: str | None = None
         self._selected_window: str | None = None
-
         self._settings_panel = SettingsPanel(self._context)
+        self._functions_panel = FunctionsPanel(self._context)
+
+        self._poller = ProfilePoller(self._context)
+        self._poller.subscribe(self._functions_panel._on_profile_fetched)
+        self._poller.subscribe(self._settings_panel._on_profile_fetched)
 
     def build(self, parent: str):
         # Keybind
@@ -36,10 +41,6 @@ class NativePage(BasePage):
                         width=200,
                         callback=lambda s, v: self._on_profile_selected(v),
                     )
-                    dpg.add_button(
-                        label="Refresh",
-                        callback=self._refresh_profiles,
-                    )
 
                 with dpg.group(horizontal=True):
                     dpg.add_text("Window:")
@@ -48,10 +49,6 @@ class NativePage(BasePage):
                         tag="native_window_combo",
                         width=300,
                         callback=lambda s, v: self._on_window_selected(v),
-                    )
-                    dpg.add_button(
-                        label="Refresh",
-                        callback=self._refresh_windows,
                     )
 
                 with dpg.group(horizontal=True):
@@ -62,26 +59,29 @@ class NativePage(BasePage):
                         width=80,
                     )
                     dpg.add_button(
-                        label="Stop (Esc to stop)",
+                        label="Stop (Esc)",
                         tag="native_stop_btn",
                         callback=self._on_stop,
-                        width=120,
+                        width=80,
                         enabled=False,
                     )
 
+            dpg.add_child_window(tag="native_functions_panel",
+                                 autosize_x=True, height=100)
             dpg.add_child_window(tag="native_settings_panel",
                                  autosize_x=True, height=-1)
 
     def show(self):
         dpg.configure_item(self.TAG, show=True)
-        keyboard.add_hotkey("escape", self._on_hotkey_stop)
 
     def hide(self):
         dpg.configure_item(self.TAG, show=False)
-        keyboard.remove_hotkey("escape")
 
     def on_frame(self):
         self._refresh_button_states()
+        self._refresh_profiles()
+        self._refresh_windows()
+        self._poller.poll()
 
     def on_profiles_loaded(self):
         self._refresh_profiles()
@@ -99,6 +99,8 @@ class NativePage(BasePage):
 
     def _on_profile_selected(self, username: str):
         self._selected_profile = username
+        self._poller.start(username)
+        self._rebuild_functions_panel(username)
         self._rebuild_settings_panel(username)
 
     def _on_window_selected(self, window_name: str):
@@ -109,17 +111,31 @@ class NativePage(BasePage):
         try:
             titles = [t for t in gw.getAllTitles() if any(
                 key.lower() in t.lower() for key in filter_keys) and t.strip() != "" and APP_NAME not in t.strip()]
-            dpg.configure_item("native_window_combo", items=titles)
         except Exception as e:
-            dpg.configure_item("native_window_combo", items=[f"Error: {e}"])
+            titles = [f"Error: {e}"]
+
+        current = dpg.get_item_configuration("native_window_combo")["items"]
+        if titles != current:
+            dpg.configure_item("native_window_combo", items=titles)
 
     def _refresh_profiles(self):
         clients = self._context.client_store.get_all()
         names = [client.profile["username"] for client in clients]
-        dpg.configure_item("native_profile_combo", items=names)
-        if names:
+
+        current = dpg.get_item_configuration("native_profile_combo")["items"]
+        if names != current:
+            dpg.configure_item("native_profile_combo", items=names)
+
+        current_profile = dpg.get_value("native_profile_combo")
+        if current_profile not in names:
             dpg.set_value("native_profile_combo", names[0])
             self._on_profile_selected(names[0])
+
+    def _rebuild_functions_panel(self, username: str):
+        for child in dpg.get_item_children("native_functions_panel", slot=1) or []:
+            dpg.delete_item(child)
+
+        self._functions_panel.build("native_functions_panel", username)
 
     def _rebuild_settings_panel(self, username: str):
         for child in dpg.get_item_children("native_settings_panel", slot=1) or []:
