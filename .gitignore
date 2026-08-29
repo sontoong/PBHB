@@ -130,6 +130,7 @@ env.bak/
 venv.bak/
 venv-linux/
 venv/
+*.local.*
 
 # Spyder project settings
 .spyderproject
@@ -174,5 +175,4 @@ logs
 ssh/*
 local/*
 
-*.txt
 config.json
