@@ -1,8 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
-import asyncio
 import dearpygui.dearpygui as dpg
-from bot.managers import ProfileManager
 from bot.utils import center
 from bot.ui.theme import primary_button
 
@@ -10,14 +8,14 @@ if TYPE_CHECKING:
     from bot.context import AppContext
 
 FUNCTION_LABELS = {
-    "pvp":       "PVP",
-    "gvg":       "GVG",
-    "invasion":  "Invasion",
+    "pvp": "PVP",
+    "gvg": "GVG",
+    "invasion": "Invasion",
     "expedition": "Expedition",
-    "tg":        "Trials / Gauntlet",
+    "tg": "Trials / Gauntlet",
     "worldboss": "World Boss",
-    "raid":      "Raid",
-    "dungeon":   "Dungeon",
+    "raid": "Raid",
+    "dungeon": "Dungeon",
 }
 
 
@@ -32,16 +30,26 @@ class FunctionPriorityDialog:
         self._functions: dict = {
             k: dict(v) for k, v in profile["global"]["functions"].items()
         }
+        self._auto_change_gamemode: bool = profile["global"]["autoChangeGamemode"]
 
     def open(self):
         if dpg.does_item_exist(self.TAG):
             dpg.delete_item(self.TAG)
 
-        w, h = 340, 420
-        with dpg.window(label="Function priority", tag=self.TAG, no_close=False, width=w, height=h, pos=center(w, h), modal=True):
+        vp_h = dpg.get_viewport_client_height()
+        w, h = 340, min(390, vp_h - 40)
+        with dpg.window(label="Game Mode Priority", tag=self.TAG, no_close=False, width=w, height=h, pos=center(w, h), modal=True):
             dpg.add_text(
                 "Up = Higher Priority / Down = Lower Priority", color=(160, 160, 160))
-            dpg.add_child_window(tag="fn_list", autosize_x=True, height=-26)
+            dpg.add_child_window(tag="fn_list", autosize_x=True, height=-65)
+            dpg.add_spacer(height=1)
+            dpg.add_checkbox(
+                label="Auto change game mode (Exped, GvG, Invasion)",
+                default_value=self._auto_change_gamemode,
+                tag="fn_priority_auto_change_gamemode",
+                callback=lambda s, v: self._set_auto_change_gamemode(v),
+            )
+            dpg.add_spacer(height=1)
             with dpg.group(horizontal=True):
                 save_btn = dpg.add_button(
                     label="Save", width=80, callback=self._save)
@@ -92,6 +100,9 @@ class FunctionPriorityDialog:
     def _set_enabled(self, fn_key: str, value: bool):
         self._functions[fn_key]["enabled"] = value
 
+    def _set_auto_change_gamemode(self, value: bool):
+        self._auto_change_gamemode = value
+
     def _move(self, fn_key: str, direction: int):
         cur = self._functions[fn_key]["priority"]
         target = cur + direction
@@ -104,13 +115,6 @@ class FunctionPriorityDialog:
         self._rebuild_list()
 
     def _save(self):
-        self._profile["global"]["functions"] = {
-            k: dict(v) for k, v in self._functions.items()
-        }
-        asyncio.run_coroutine_threadsafe(
-            ProfileManager(self._username, self._context).save_profile(
-                self._profile),
-            self._context.loop,
-        )
+        functions = {k: dict(v) for k, v in self._functions.items()}
         dpg.delete_item(self.TAG)
-        self._on_saved()
+        self._on_saved(functions, self._auto_change_gamemode)

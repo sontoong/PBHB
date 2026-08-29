@@ -28,17 +28,14 @@ class SettingsDialog:
         vp_h = dpg.get_viewport_client_height()
         w, h = 420, min(520, vp_h - 40)
         with dpg.window(label=f"Settings - {username}", tag=self.TAG, no_close=False, width=w, height=h, pos=center(w, h)):
-            dpg.add_text(
-                "Loading...", tag=f"{self.TAG}_status", color=(160, 160, 160))
             dpg.add_child_window(
                 tag=f"{self.TAG}_body", autosize_x=True, border=False)
 
-        asyncio.run_coroutine_threadsafe(
-            self._fetch_and_populate(),
-            self._context.loop,
-        )
+        client = self._context.client_store.get(username)
+        if client:
+            self._rebuild_with_data(client.profile)
 
-    def _build(self, profile: dict):
+    def _rebuild_with_data(self, profile: dict):
         if not dpg.does_item_exist(self.TAG):
             return
 
@@ -65,11 +62,6 @@ class SettingsDialog:
 
     #   ------------------------------Helpers
 
-    async def _fetch_and_populate(self):
-        manager = self._context.client_store.get(self._username)
-        profile = manager.profile if manager else await ProfileManager(self._username, self._context).load_profile()
-        self._context.queue_ui_task(lambda: self._build(profile))
-
     def _patch(self, profile: dict, path: list[str], value):
         node = profile
         for key in path[:-1]:
@@ -77,8 +69,8 @@ class SettingsDialog:
         node[path[-1]] = value
 
         asyncio.run_coroutine_threadsafe(
-            ProfileManager(
-                self._username, self._context).save_profile(profile),
+            ProfileManager(username=self._username,
+                           context=self._context).save_profile(profile),
             self._context.loop,
         )
 

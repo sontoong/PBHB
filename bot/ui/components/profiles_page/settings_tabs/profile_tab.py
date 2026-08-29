@@ -10,12 +10,12 @@ from bot.managers import CredentialManager
 from bot.constants import DEFAULT_DATA_FOLDER
 from bot.ui.components.profiles_page import DeleteDialog
 from bot.ui.theme import danger_button, primary_button
-from bot.models import KongUser
 from bot.utils import get_uid_token
 
 
 if TYPE_CHECKING:
     from bot.context import AppContext
+    from bot.models import KongUser
 
 _ROOT = Path(DEFAULT_DATA_FOLDER)
 

@@ -1,13 +1,16 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 import re
+import asyncio
 from pathlib import Path
 import dearpygui.dearpygui as dpg
 from bot.utils import resolve_image_path, load_texture_data_from_path
+from bot.managers import ProfileManager
 from bot.constants import DUNGEON_LIST_IMAGES, EXPEDITION_LIST_IMAGES, DUNGEON_IMAGES, EXPEDITION_IMAGES
-from bot.ui.components.profiles_page.function_priority_dialog import FunctionPriorityDialog
-from bot.ui.components.profiles_page.bribe_list_dialog import BribeListDialog
+from bot.ui.components.profiles_page.dialog.function_priority_dialog import FunctionPriorityDialog
+from bot.ui.components.profiles_page.dialog.bribe_list_dialog import BribeListDialog
 from bot.ui.components.common import section, checkbox, dropdown, int_input
+from bot.ui.theme import primary_button
 
 if TYPE_CHECKING:
     from bot.context import AppContext
@@ -45,23 +48,18 @@ class GameTab:
             on_change=lambda v: self._patch(
                 profile, ["global", "autoCloseDm"], v),
         )
-        checkbox(
-            parent=parent,
-            label="Auto change game mode",
-            value=profile["global"]["autoChangeGamemode"],
-            on_change=lambda v: self._patch(
-                profile, ["global", "autoChangeGamemode"], v),
-        )
-        dpg.add_button(
-            label="Function priority",
+        fn_priority_btn = dpg.add_button(
+            label="Game mode priority",
             parent=parent,
             callback=lambda: self._open_function_priority_dialog(profile)
         )
-        dpg.add_button(
-            label="Bribe list",
+        dpg.bind_item_theme(fn_priority_btn, primary_button())
+        bribe_list_btn = dpg.add_button(
+            label="Familiar bribe list",
             parent=parent,
             callback=lambda: self._open_bribe_list_dialog(profile)
         )
+        dpg.bind_item_theme(bribe_list_btn, primary_button())
 
         #   ------------------------------PVP
         section(parent, "PVP")
@@ -73,6 +71,16 @@ class GameTab:
             on_change=lambda v: self._patch(
                 profile, ["pvp", "opponentPlacement"], v),
         )
+        int_input(
+            parent=parent,
+            label="Max time (seconds)",
+            value=profile["pvp"]["maxTime"],
+            min_val=1,
+            on_change=lambda v: self._patch(
+                profile, ["pvp", "maxTime"], v),
+            step=0,
+            step_fast=0
+        )
 
         #   ------------------------------GVG
         section(parent, "GVG")
@@ -83,6 +91,16 @@ class GameTab:
             min_val=1,
             on_change=lambda v: self._patch(
                 profile, ["gvg", "opponentPlacement"], v),
+        )
+        int_input(
+            parent=parent,
+            label="Max time (seconds)",
+            value=profile["gvg"]["maxTime"],
+            min_val=1,
+            on_change=lambda v: self._patch(
+                profile, ["gvg", "maxTime"], v),
+            step=0,
+            step_fast=0
         )
 
         #   ------------------------------Invasion
@@ -102,6 +120,16 @@ class GameTab:
             on_change=lambda v: self._patch(
                 profile, ["invasion", "maxWave"], v),
         )
+        int_input(
+            parent=parent,
+            label="Max time (seconds)",
+            value=profile["invasion"]["maxTime"],
+            min_val=1,
+            on_change=lambda v: self._patch(
+                profile, ["invasion", "maxTime"], v),
+            step=0,
+            step_fast=0
+        )
 
         #   ------------------------------Trials / Gauntlet
         section(parent, "Trials / Gauntlet")
@@ -111,6 +139,16 @@ class GameTab:
             value=profile["tg"]["autoIncreaseDifficulty"],
             on_change=lambda v: self._patch(
                 profile, ["tg", "autoIncreaseDifficulty"], v),
+        )
+        int_input(
+            parent=parent,
+            label="Max time (seconds)",
+            value=profile["tg"]["maxTime"],
+            min_val=1,
+            on_change=lambda v: self._patch(
+                profile, ["tg", "maxTime"], v),
+            step=0,
+            step_fast=0
         )
 
         #   ------------------------------World Boss
@@ -123,14 +161,24 @@ class GameTab:
             on_change=lambda v: self._patch(
                 profile, ["worldboss", "numOfPlayer"], v),
         )
+        int_input(
+            parent=parent,
+            label="Max time (seconds)",
+            value=profile["worldboss"]["maxTime"],
+            min_val=1,
+            on_change=lambda v: self._patch(
+                profile, ["worldboss", "maxTime"], v),
+            step=0,
+            step_fast=0
+        )
 
         #   ------------------------------Raid
         section(parent, "Raid")
         for label, key in [
-            ("Auto catch by gold",  "autoCatchByGold"),
-            ("Auto bribe",          "autoBribe"),
-            ("Auto open chest",     "autoOpenChest"),
-            ("Auto change armory",  "autoChangeArmory"),
+            ("Auto catch by gold", "autoCatchByGold"),
+            ("Auto bribe", "autoBribe"),
+            ("Auto open chest", "autoOpenChest"),
+            ("Auto change armory", "autoChangeArmory"),
         ]:
             checkbox(
                 parent=parent,
@@ -139,6 +187,16 @@ class GameTab:
                 on_change=lambda v, k=key: self._patch(
                     profile, ["raid", k], v),
             )
+        int_input(
+            parent=parent,
+            label="Max time (seconds)",
+            value=profile["raid"]["maxTime"],
+            min_val=1,
+            on_change=lambda v: self._patch(
+                profile, ["raid", "maxTime"], v),
+            step=0,
+            step_fast=0
+        )
 
         #   ------------------------------Dungeon
         section(parent, "Dungeon")
@@ -164,6 +222,16 @@ class GameTab:
                     on_change=lambda v, k=key: self._patch(
                         profile, ["dungeon", k], v),
                 )
+            int_input(
+                parent=left_col,
+                label="Max time (seconds)",
+                value=profile["dungeon"]["maxTime"],
+                min_val=1,
+                on_change=lambda v: self._patch(
+                    profile, ["dungeon", "maxTime"], v),
+                step=0,
+                step_fast=0
+            )
 
             self._refresh_dungeon_texture(profile)
             dpg.add_image(
@@ -202,6 +270,16 @@ class GameTab:
                 on_change=lambda v: self._on_expedition_portal_changed(
                     profile, v),
                 tag=f"{self.TAG}_portal_dd",
+            )
+            int_input(
+                parent=left_col,
+                label="Max time (seconds)",
+                value=profile["expedition"]["maxTime"],
+                min_val=1,
+                on_change=lambda v: self._patch(
+                    profile, ["expedition", "maxTime"], v),
+                step=0,
+                step_fast=0
             )
 
             self._refresh_expedition_texture(profile)
@@ -269,11 +347,20 @@ class GameTab:
 
     #   ------------------------------Button callbacks
     def _open_function_priority_dialog(self, profile: dict):
+        def on_saved(functions, auto_change_gamemode):
+            profile["global"]["functions"] = functions
+            profile["global"]["autoChangeGamemode"] = auto_change_gamemode
+            asyncio.run_coroutine_threadsafe(
+                ProfileManager(username=self._username,
+                               context=self._context).save_profile(profile),
+                self._context.loop,
+            )
+
         self._priority_dialog = FunctionPriorityDialog(
             context=self._context,
             username=self._username,
             profile=profile,
-            on_saved=lambda: None,
+            on_saved=on_saved
         )
         self._priority_dialog.open()
 

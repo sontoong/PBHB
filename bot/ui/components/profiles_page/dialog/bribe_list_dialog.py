@@ -26,7 +26,9 @@ class BribeListDialog:
         if dpg.does_item_exist(self.TAG):
             dpg.delete_item(self.TAG)
 
-        with dpg.window(label="Bribe List", tag=self.TAG, no_close=False, width=380, autosize=True, modal=True, pos=center(380, 422)):
+        vp_h = dpg.get_viewport_client_height()
+        w, h = 380, min(422, vp_h - 40)
+        with dpg.window(label="Familiar Bribe List", tag=self.TAG, no_close=False, width=w, height=h, modal=True, pos=center(w, h)):
             with dpg.group(horizontal=True):
                 dpg.add_input_text(tag="bribe_input_name",
                                    hint="Familiar name", width=180)
@@ -35,7 +37,7 @@ class BribeListDialog:
                 dpg.add_button(label="Add", width=60, callback=self._on_add)
 
             dpg.add_child_window(tag="bribe_list_body",
-                                 autosize_x=True, height=310)
+                                 autosize_x=True, height=-26)
 
             with dpg.group(horizontal=True):
                 save_btn = dpg.add_button(
@@ -103,7 +105,7 @@ class BribeListDialog:
 
         self._profile["global"]["bribeList"] = new_bribe_list
         asyncio.run_coroutine_threadsafe(
-            ProfileManager(self._username, self._context).save_profile(
+            ProfileManager(username=self._username, context=self._context).save_profile(
                 self._profile),
             self._context.loop,
         )

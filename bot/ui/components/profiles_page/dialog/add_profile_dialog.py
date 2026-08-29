@@ -4,12 +4,12 @@ import asyncio
 import dearpygui.dearpygui as dpg
 from bot.managers import CredentialManager, ClientManager
 from bot.utils import center, get_uid_token
-from bot.models import KongUser
 from bot.ui.theme import primary_button
 
 
 if TYPE_CHECKING:
     from bot.context import AppContext
+    from bot.models import KongUser
 
 
 class AddProfileDialog:

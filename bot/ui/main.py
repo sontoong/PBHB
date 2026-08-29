@@ -9,6 +9,7 @@ from bot.ui.pages import ProfilesPage, NativePage
 from bot.base.page import BasePage
 from bot.constants import APP_NAME, APP_VERSION
 from bot.utils import center
+from bot.loaders import ConfigLoader
 
 if TYPE_CHECKING:
     from bot.context import AppContext
@@ -16,13 +17,14 @@ if TYPE_CHECKING:
 
 @dataclass
 class NavEntry:
+    id: str
     label: str
     page_class: type[BasePage]
 
 
 _NAV: list[NavEntry] = [
-    NavEntry(label="Profiles", page_class=ProfilesPage),
-    NavEntry(label="Window Mode", page_class=NativePage),
+    NavEntry(id="browser", label="Browser Mode", page_class=ProfilesPage),
+    NavEntry(id="native", label="Window Mode", page_class=NativePage),
 ]
 
 
@@ -30,26 +32,34 @@ class MainUI:
     def __init__(self, context: AppContext):
         self._context = context
         self._pages: dict[str, BasePage] = {}
-        self._active: str = _NAV[0].label
+
+        default_tab = _NAV[0].id
+        active_from_config = self._context.config["window"]["active_tab"]
+        self._active = active_from_config if active_from_config in {
+            tab.id for tab in _NAV} else default_tab
 
     def run(self):
         dpg.create_context()
         apply_global_font()
         apply_global_theme()
-        dpg.create_viewport(title=f"{APP_NAME} v{APP_VERSION}", width=700,
-                            height=500, disable_close=True)
+        dpg.create_viewport(title=f"{APP_NAME} v{APP_VERSION}", width=self._context.config[
+                            "window"]["width"], height=self._context.config["window"]["height"], disable_close=True)
         dpg.setup_dearpygui()
         apply_viewport_icon()
         dpg.set_exit_callback(self._on_exit)
 
         with dpg.window(label="Control Panel", tag="main", no_close=True):
             with dpg.tab_bar(tag="nav_tab_bar", callback=lambda s, a: self._on_tab_changed(a)):
-                for entry in _NAV:
-                    with dpg.tab(label=entry.label, tag=f"nav_tab_{entry.label}"):
-                        with dpg.child_window(tag=f"page_area_{entry.label}", border=False, autosize_x=True, height=-28):
-                            page = entry.page_class(self._context)
-                            page.build(f"page_area_{entry.label}")
-                            self._pages[entry.label] = page
+                for tab in _NAV:
+                    with dpg.tab(label=tab.label, tag=f"nav_tab_{tab.id}", user_data=tab.id):
+                        with dpg.child_window(tag=f"page_area_{tab.id}", border=False, autosize_x=True, height=-28):
+                            page = tab.page_class(self._context)
+                            page.build(f"page_area_{tab.id}")
+                            self._pages[tab.id] = page
+
+            active_tag = f"nav_tab_{self._active}"
+            if dpg.does_item_exist("nav_tab_bar"):
+                dpg.set_value("nav_tab_bar", active_tag)
 
             dpg.add_text("", tag="status_memory")
 
@@ -58,7 +68,7 @@ class MainUI:
 
         while dpg.is_dearpygui_running():
             dpg.set_value("status_memory",
-                          f"Memory: {self._context.memory_mb:.1f}MB")
+                          f"Memory: {self._context.memory_mb.current_usage:.1f}MB/{self._context.memory_mb.current_threshold:.1f}MB ({self._context.memory_mb.state.value})")
 
             while not self._context.ui_queue.empty():
                 try:
@@ -105,17 +115,23 @@ class MainUI:
     #   ------------------------------Helpers
 
     def _on_tab_changed(self, tag):
-        label = dpg.get_item_label(tag)
-        if label in self._pages:
-            self._navigate(label)
+        tab_id = dpg.get_item_user_data(tag)
+        if tab_id in self._pages:
+            self._navigate(tab_id)
 
-    def _navigate(self, label: str):
-        if label == self._active:
+    def _navigate(self, tab_id: str):
+        if tab_id == self._active:
             return
-        self._active = label
+        self._active = tab_id
+        ConfigLoader.save_active_tab(tab_id)
 
     def _on_exit(self):
         dpg.set_exit_callback(lambda: None)
+
+        width = dpg.get_viewport_width()
+        height = dpg.get_viewport_height()
+        if width > 0 and height > 0:
+            ConfigLoader.save_window_size(width, height)
 
         w, h = 260, 80
         with dpg.window(
