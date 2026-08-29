@@ -126,6 +126,15 @@ class NativePage(BasePage):
         if names != current:
             dpg.configure_item("native_profile_combo", items=names)
 
+        if not names:
+            if self._selected_profile is not None:
+                self._selected_profile = None
+                self._poller.stop()
+                self._clear_functions_panel()
+                self._clear_settings_panel()
+            dpg.set_value("native_profile_combo", "")
+            return
+
         current_profile = dpg.get_value("native_profile_combo")
         if current_profile not in names:
             dpg.set_value("native_profile_combo", names[0])
@@ -158,3 +167,13 @@ class NativePage(BasePage):
 
     def _on_hotkey_stop(self):
         self._context.queue_ui_task(self._on_stop)
+
+    def _clear_functions_panel(self):
+        for child in dpg.get_item_children("native_functions_panel", slot=1) or []:
+            dpg.delete_item(child)
+        self._functions_panel.close()
+
+    def _clear_settings_panel(self):
+        for child in dpg.get_item_children("native_settings_panel", slot=1) or []:
+            dpg.delete_item(child)
+        self._settings_panel.close()

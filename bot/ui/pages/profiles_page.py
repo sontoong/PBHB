@@ -12,6 +12,9 @@ from bot.managers import ProfilePoller
 if TYPE_CHECKING:
     from bot.context import AppContext
 
+FUNCTIONS_PANEL_HEIGHT = 120
+FUNCTIONS_PANEL_MARGIN = 8
+
 
 class ProfilesPage(BasePage):
     TAG = "page_profiles"
@@ -48,7 +51,7 @@ class ProfilesPage(BasePage):
                 dpg.add_button(label="Stop All",  tag="stop_all_btn",
                                callback=self._on_stop_all)
 
-            with dpg.child_window(tag="user_list", autosize_x=True, height=-125):
+            with dpg.child_window(tag="user_list", autosize_x=True, height=-(FUNCTIONS_PANEL_HEIGHT + FUNCTIONS_PANEL_MARGIN)):
                 with dpg.table(tag="profiles_table", header_row=False, no_clip=True):
                     dpg.add_table_column(
                         width_fixed=True, init_width_or_weight=100)  # uid
@@ -56,7 +59,7 @@ class ProfilesPage(BasePage):
                     dpg.add_table_column(width_fixed=True)  # actions
 
             dpg.add_child_window(
-                tag="profiles_functions_panel", autosize_x=True, height=150)
+                tag="profiles_functions_panel", autosize_x=True, height=FUNCTIONS_PANEL_HEIGHT, show=False)
 
     def show(self):
         dpg.configure_item(self.TAG, show=True)
@@ -110,6 +113,7 @@ class ProfilesPage(BasePage):
                 self._on_row_selected(clients[0].profile["username"])
         else:
             self._selected_profile = None
+            self._clear_functions_panel()
 
     def _refresh_button_states(self):
         clients = self._context.client_store.get_all()
@@ -174,8 +178,7 @@ class ProfilesPage(BasePage):
 
         if self._selected_profile == username:
             self._selected_profile = None
-            for child in dpg.get_item_children("profiles_functions_panel", slot=1) or []:
-                dpg.delete_item(child)
+            self._clear_functions_panel()
 
     #   ------------------------------Button Callbacks
 
@@ -313,3 +316,12 @@ class ProfilesPage(BasePage):
         for child in dpg.get_item_children("profiles_functions_panel", slot=1) or []:
             dpg.delete_item(child)
         self._functions_panel.build("profiles_functions_panel", username)
+        dpg.configure_item("profiles_functions_panel", show=True)
+        dpg.configure_item("user_list", height=-
+                           (FUNCTIONS_PANEL_HEIGHT + FUNCTIONS_PANEL_MARGIN))
+
+    def _clear_functions_panel(self):
+        for child in dpg.get_item_children("profiles_functions_panel", slot=1) or []:
+            dpg.delete_item(child)
+        dpg.configure_item("profiles_functions_panel", show=False)
+        dpg.configure_item("user_list", height=-1)
