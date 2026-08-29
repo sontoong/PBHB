@@ -6,6 +6,8 @@ from bot.managers import ConfigManager
 from bot.loaders import ConfigLoader
 from bot.utils import Logger
 from bot.stores import ClientStore
+from bot.models import MemoryUsage
+from bot.constants import MemoryState
 
 if TYPE_CHECKING:
     from bot.services import ClientService
@@ -21,7 +23,7 @@ class AppContext:
         self.client_store = ClientStore()
         self.loop = asyncio.new_event_loop()
         self.ui_queue: queue.SimpleQueue = queue.SimpleQueue()
-        self.memory_mb: float = 0.0
+        self.memory_mb = MemoryUsage(0.0, 0.0, MemoryState.IDLE)
         self._client_service: ClientService | None = None
 
     @property

@@ -7,10 +7,9 @@ from pathlib import Path
 import httpx
 import dearpygui.dearpygui as dpg
 from packaging import version as pkg_version
-from playwright._impl._errors import TargetClosedError
-from bot.constants import GITHUB_REPO, APP_VERSION, DEFAULT_TOOLS_FOLDER
+from bot.constants import GITHUB_REPO, APP_VERSION, DEFAULT_TOOLS_FOLDER, TASKTYPE
 from bot.drivers.native_driver import NativeDriver
-from bot.utils import WindowError
+from bot.utils import WindowError, MissingCredentialsError
 
 if TYPE_CHECKING:
     from bot.context import AppContext
@@ -33,11 +32,18 @@ class ClientService:
         if client_manager:
             try:
                 await client_manager.lifecycle_manager.start(client_manager.start_task_browser)
-            except TargetClosedError:
+            except MissingCredentialsError:
+                pass
+            except asyncio.CancelledError:
                 pass
             except Exception as error:
                 await self._context.logger.error(f"[{username}] Failed to start:", error)
-                await self.restart_client_async(username)
+                if client_manager.intentional_stop:
+                    return
+                if client_manager.profile["platform"]["browser"]["autoRestart"]:
+                    await self.restart_client_async(username)
+                else:
+                    await self.stop_client_async(username)
 
     async def pause_client_async(self, username: str):
         client_manager = self._context.client_store.get(username)
@@ -93,15 +99,13 @@ class ClientService:
             try:
                 await client_manager.lifecycle_manager.start(lambda: client_manager.start_task_native(driver))
             except WindowError:
-                await self._context.logger.warn(f"Window '{driver.window_title}' closed, stopping...")
+                await self._context.logger.warn(f"[{username}] Window '{driver.window_title}' not found, stopping...")
                 await self.stop_native_async(username)
 
     async def stop_native_async(self, username: str, should_close_target: bool = False):
         client_manager = self._context.client_store.get(username)
         if client_manager:
-            await client_manager.lifecycle_manager.stop(client_manager.destroy)
-            if should_close_target and client_manager.native_driver:
-                await client_manager.native_driver.close()
+            await client_manager.lifecycle_manager.stop(lambda: client_manager.destroy(should_close_native=should_close_target))
 
     #   ------------------------------Sync threads
 
@@ -127,10 +131,10 @@ class ClientService:
             coros = []
             for client_manager in client_list:
                 username = client_manager.profile["username"]
-                if client_manager.native_driver:
+                if client_manager.task_manager.task_type == TASKTYPE.NATIVE:
                     coros.append(
                         self._context.client_service.stop_native_async(username))
-                else:
+                elif client_manager.task_manager.task_type == TASKTYPE.BROWSER:
                     coros.append(
                         self._context.client_service.stop_client_async(username))
             await asyncio.gather(*coros, return_exceptions=True)
@@ -143,7 +147,7 @@ class ClientService:
 
     async def check_for_update(self) -> str | None:
         if APP_VERSION == "DEV":
-            return "DEV"
+            return None
         try:
             async with httpx.AsyncClient() as client:
                 resp = await client.get(

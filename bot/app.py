@@ -12,7 +12,7 @@ from bot.services import ClientService
 from bot.utils import sleep, strip_ansi, invalidate_global_cache
 from bot.ui import MainUI
 from bot.context import AppContext
-from bot.constants import APP_NAME
+from bot.constants import APP_NAME, MemoryState
 
 
 class Application:
@@ -79,15 +79,21 @@ class Application:
                     except (psutil.NoSuchProcess, psutil.AccessDenied):
                         pass
                 rss_mb = total_rss / 1024 / 1024
-                self._context.memory_mb = rss_mb
+                self._context.memory_mb.current_usage = rss_mb
 
                 managers = self._context.client_store.get_all()
                 active = [m for m in managers if m.browser is not None]
                 active_count = len(active)
 
+                if active_count == 0:
+                    self._context.memory_mb.current_threshold = 0.0
+                    self._context.memory_mb.state = MemoryState.IDLE
+
                 if active_count != last_active_count:
                     baseline_mb = None
                     last_active_count = active_count
+                    self._context.memory_mb.current_threshold = 0.0
+                    self._context.memory_mb.state = MemoryState.CALCULATING
 
                 if baseline_mb is None:
                     if active and all(m.task_manager and m.task_manager.is_ready for m in active):
@@ -102,6 +108,8 @@ class Application:
                         for manager in active:
                             self._context.client_service.restart_client(
                                 manager.profile["username"])
+                    self._context.memory_mb.current_threshold = threshold
+                    self._context.memory_mb.state = MemoryState.RUNNING
 
             except Exception as e:
                 await self._context.logger.error("Memory monitor error:", e)
