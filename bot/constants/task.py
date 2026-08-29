@@ -1,6 +1,11 @@
 from enum import StrEnum
 
 
+class TASKTYPE(StrEnum):
+    BROWSER = "browser"
+    NATIVE = "native"
+
+
 class STATUS(StrEnum):
     ESC = "escaped"
     OOR = "out of resource"
@@ -9,6 +14,7 @@ class STATUS(StrEnum):
     PAUSED = "paused"
     RUNNING = "running"
     PROGRESS = "progress"
+    CLOSE_GAME = "close game"
 
 
 class LIFECYCLESTATUS(StrEnum):
@@ -16,6 +22,7 @@ class LIFECYCLESTATUS(StrEnum):
     STARTING = "starting"
     RUNNING = "running"
     STOPPING = "stopping"
+    FAILED = "failed"
 
 
-REFRESH_PROFILE_INTERVAL_MS = 500
+DEFAULT_MAX_TIME = 900
