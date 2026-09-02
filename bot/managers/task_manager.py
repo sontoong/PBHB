@@ -65,7 +65,6 @@ class TaskManager:
 
     async def start(self):
         self._tracking_status = STATUS.READY
-        should_close_game = self._profile["global"]["closeAfterRegen"]
         previous_tasks = None
 
         try:
@@ -123,7 +122,7 @@ class TaskManager:
 
                     ran_this_round.add(function_name)
 
-                if total_this_round and finish_count == total_this_round and should_close_game:
+                if total_this_round and finish_count == total_this_round and self._profile["global"]["closeAfterRegen"]:
                     await self._context.logger.success(f"[{self._profile['username']}] All tasks complete, closing game.")
                     return STATUS.CLOSE_GAME
 
