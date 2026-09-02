@@ -36,10 +36,11 @@ class WorldBoss(BaseTask):
         if num_of_player != 1:
             move_down_buttons = await self._locate_all(f"{WB_IMAGES}/move_down_button.png") or []
             if len(move_down_buttons) >= num_of_player:
-                if not await self._click_image(f"{WB_IMAGES}/start_button.png"):
+                if not await self._click_image(f"{WB_IMAGES}/start_button.png", stable_ms=300):
                     await self._click_image(f"{WB_IMAGES}/ready_button.png")
         else:
-            await self._click_image(f"{WB_IMAGES}/start_button.png", stable_ms=300)
+            if not await self._click_image(f"{WB_IMAGES}/start_button.png", stable_ms=300):
+                await self._click_image(f"{WB_IMAGES}/ready_button.png")
 
         # Not full team popup
         if await self._locate_image(f"{GLOBAL_IMAGES}/confirm_start_not_full_team.png"):
