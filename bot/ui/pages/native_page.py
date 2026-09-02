@@ -166,7 +166,12 @@ class NativePage(BasePage):
         self._context.client_service.stop_native(self._selected_profile)
 
     def _on_hotkey_stop(self):
-        self._context.queue_ui_task(self._on_stop)
+        def on_stop_if_active():
+            if dpg.does_item_exist("nav_tab_bar") and dpg.get_value("nav_tab_bar") != "nav_tab_native":
+                return
+            self._on_stop()
+
+        self._context.queue_ui_task(on_stop_if_active)
 
     def _clear_functions_panel(self):
         for child in dpg.get_item_children("native_functions_panel", slot=1) or []:
