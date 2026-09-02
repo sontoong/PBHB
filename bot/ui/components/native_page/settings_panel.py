@@ -169,14 +169,6 @@ class SettingsPanel:
         section(parent, "Global", False)
         checkbox(
             parent=parent,
-            label="Close game after regen",
-            value=profile["global"]["closeAfterRegen"],
-            tag=f"{self.TAG}_chk_closeAfterRegen",
-            on_change=lambda v: self._patch(
-                profile, ["global", "closeAfterRegen"], v),
-        )
-        checkbox(
-            parent=parent,
             label="Auto close DM",
             value=profile["global"]["autoCloseDm"],
             tag=f"{self.TAG}_chk_autoCloseDm",

@@ -12,7 +12,7 @@ from bot.managers import ProfilePoller
 if TYPE_CHECKING:
     from bot.context import AppContext
 
-FUNCTIONS_PANEL_HEIGHT = 120
+FUNCTIONS_PANEL_HEIGHT = 146
 FUNCTIONS_PANEL_MARGIN = 8
 
 

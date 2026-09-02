@@ -118,9 +118,10 @@ class FunctionsPanel:
         self._profile = profile
         global_cfg = profile["global"]
 
-        auto_tag = f"{self._tag}_chk_autoChangeGamemode"
-        if dpg.does_item_exist(auto_tag):
-            dpg.set_value(auto_tag, global_cfg["autoChangeGamemode"])
+        dpg.set_value(f"{self._tag}_chk_autoChangeGamemode",
+                      global_cfg["autoChangeGamemode"])
+        dpg.set_value(f"{self._tag}_chk_closeAfterRegen",
+                      global_cfg["closeAfterRegen"])
 
         for fn_key, fn_val in global_cfg["functions"].items():
             tag = f"{self._tag}_chk_{fn_key}"
@@ -133,6 +134,14 @@ class FunctionsPanel:
         for child in dpg.get_item_children(self._tag, slot=1) or []:
             dpg.delete_item(child)
 
+        checkbox(
+            parent=self._tag,
+            label="Close game after regen",
+            value=profile["global"]["closeAfterRegen"],
+            tag=f"{self._tag}_chk_closeAfterRegen",
+            on_change=lambda v: self._patch(
+                profile, ["global", "closeAfterRegen"], v),
+        )
         checkbox(
             parent=self._tag,
             label="Auto change game mode (Exped, GvG, Invasion)",

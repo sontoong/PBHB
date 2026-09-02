@@ -36,13 +36,6 @@ class GameTab:
         section(parent, "Global", False)
         checkbox(
             parent=parent,
-            label="Close game after regen",
-            value=profile["global"]["closeAfterRegen"],
-            on_change=lambda v: self._patch(
-                profile, ["global", "closeAfterRegen"], v),
-        )
-        checkbox(
-            parent=parent,
             label="Auto close DM",
             value=profile["global"]["autoCloseDm"],
             on_change=lambda v: self._patch(
