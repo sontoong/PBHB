@@ -1,15 +1,70 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, TypedDict, cast, Unpack
 import asyncio
+import dataclasses
 from pathlib import Path
 from playwright._impl._errors import TargetClosedError
-from bot.utils import locate_image, click_image, locate_all, resolve_image_path, sleep, reload_and_wait, save_screenshot, click, press, CanvasError, WindowError, find_text
+from bot.utils import locate_image, click_image, locate_all, resolve_image_path, sleep, reload_and_wait, save_screenshot, click, press, CanvasError, WindowError, find_text, locate_any
 from bot.constants import STATUS, DEFAULT_DEBUG_FOLDER, DEFAULT_MAX_TIME
-from bot.models import BoundingBox
+from bot.models import BoundingBox, Image
 
 if TYPE_CHECKING:
+    import numpy as np
     from bot.managers import ClientManager
     from bot.context import AppContext
+
+
+class _ImageOverrideKwargs(TypedDict, total=False):
+    confidence: float
+    grayscale: bool
+    instance: int
+    center: bool
+    region: tuple[int, int, int, int] | None
+    priority: int
+
+
+class _LocateCallKwargs(TypedDict, total=False):
+    scale_range: tuple[float, float]
+    scale_steps: int
+    stable_ms: int
+    stable_interval_ms: int
+    stable_timeout_ms: int
+    screen: np.ndarray | None
+
+
+class _ClickCallKwargs(TypedDict, total=False):
+    stable_ms: int
+    clicks: int
+    offset_x: int
+    offset_y: int
+    screen: np.ndarray | None
+
+
+class LocateImageKwargs(_ImageOverrideKwargs, _LocateCallKwargs, total=False):
+    pass
+
+
+class ClickImageKwargs(_ImageOverrideKwargs, _ClickCallKwargs, total=False):
+    pass
+
+
+class LocateAnyKwargs(_LocateCallKwargs, total=False):
+    pass
+
+
+class LocateAllKwargs(TypedDict, total=False):
+    confidence: float
+    grayscale: bool
+    screen: np.ndarray | None
+    scale: float | None
+    center: bool
+    region: tuple[int, int, int, int] | None
+    scale_range: tuple[float, float]
+    scale_steps: int
+
+
+def _split_image_kwargs(kwargs: dict) -> _ImageOverrideKwargs:
+    return cast(_ImageOverrideKwargs, {key: kwargs.pop(key) for key in list(kwargs) if key in {"confidence", "grayscale", "instance", "center", "region", "priority", "label"}})
 
 
 class BaseTask:
@@ -37,7 +92,7 @@ class BaseTask:
 
     @property
     def _max_time(self):
-        if self.TASK_KEY and self._profile:
+        if self.TASK_KEY and self._profile and self._profile[self.TASK_KEY]["maxTime"]:
             return self._profile[self.TASK_KEY]["maxTime"]
         return DEFAULT_MAX_TIME
 
@@ -113,17 +168,38 @@ class BaseTask:
 
     #   ------------------------------Helpers
 
-    async def _locate_image(self, path: str, **kwargs):
+    async def _locate_image(self, path: str, **kwargs: Unpack[LocateImageKwargs]):
         window_config = self._client_manager.profile["platform"]["browser"]["window"]
         if self._driver and self._is_running:
-            return await locate_image(self._driver, resolve_image_path(window_config, path), **kwargs)
+            raw = cast(dict, kwargs)
+            image_kwargs = _split_image_kwargs(raw)
+            image = Image(path=resolve_image_path(
+                window_config, path), **image_kwargs)
+            call_kwargs = cast(_LocateCallKwargs, raw)
+            return await locate_image(self._driver, image, **call_kwargs)
 
-    async def _click_image(self, path: str, **kwargs):
+    async def _click_image(self, path: str, **kwargs: Unpack[ClickImageKwargs]):
         window_config = self._client_manager.profile["platform"]["browser"]["window"]
         if self._driver and self._is_running:
-            return await click_image(self._driver, resolve_image_path(window_config, path), **kwargs)
+            raw = cast(dict, kwargs)
+            image_kwargs = _split_image_kwargs(raw)
+            image_kwargs.setdefault("center", True)
+            image = Image(path=resolve_image_path(
+                window_config, path), **image_kwargs)
+            call_kwargs = cast(_ClickCallKwargs, raw)
+            return await click_image(self._driver, image, **call_kwargs)
 
-    async def _locate_all(self, path: str, **kwargs):
+    async def _locate_any(self, images: list[Image], **kwargs: Unpack[LocateAnyKwargs]):
+        window_config = self._client_manager.profile["platform"]["browser"]["window"]
+        if self._driver and self._is_running:
+            resolved = [
+                dataclasses.replace(image, path=resolve_image_path(
+                    window_config, str(image.path)))
+                for image in images
+            ]
+            return await locate_any(self._driver, resolved, **kwargs)
+
+    async def _locate_all(self, path: str, **kwargs: Unpack[LocateAllKwargs]):
         window_config = self._client_manager.profile["platform"]["browser"]["window"]
         if self._driver and self._is_running:
             return await locate_all(self._driver, resolve_image_path(window_config, path), **kwargs)
