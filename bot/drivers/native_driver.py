@@ -25,8 +25,8 @@ if TYPE_CHECKING:
 
 
 class NativeDriver(BaseDriver):
-    def __init__(self, username: str, window_title: str, context: AppContext):
-        self._username = username
+    def __init__(self, profile: dict, window_title: str, context: AppContext):
+        self._profile = profile
         self._win: Win32Window | None = None
         self._monitor = None
         self._context = context
@@ -34,9 +34,9 @@ class NativeDriver(BaseDriver):
 
     @property
     def uid(self) -> str | None:
-        return self._username
+        return self._profile["username"]
 
-    async def screenshot(self) -> np.ndarray:
+    async def screenshot(self, region: tuple[int, int, int, int] | None = None) -> np.ndarray:
         self._resolve_window()
         if not self._win:
             raise WindowError(f"Window not found: '{self.window_title}'")
@@ -81,6 +81,10 @@ class NativeDriver(BaseDriver):
             img = img[offset_y:offset_y + monitor["height"],
                       offset_x:offset_x + monitor["width"]]
 
+            if region is not None:
+                cx, cy, cw, ch = region
+                img = img[cy:cy + ch, cx:cx + cw]
+
             bgr = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
 
             # try:
@@ -113,13 +117,16 @@ class NativeDriver(BaseDriver):
         finally:
             await asyncio.to_thread(lambda: pyautogui.moveTo(monitor["left"], monitor["top"]))
 
-    async def press(self, key: str, presses: int = 1, interval_ms: int = 1000) -> None:
+    async def press(self, key: str, presses: int = 1, interval_ms: int = 1000, skip_delay: bool = False) -> None:
         pyautogui_key = to_keyboard_key(key, PYAUTOGUI_KEYBOARD)
 
         for _ in range(presses):
-            await asyncio.to_thread(pyautogui.keyDown, pyautogui_key)
-            await sleep(250, "ms")
-            await asyncio.to_thread(pyautogui.keyUp, pyautogui_key)
+            if skip_delay:
+                await asyncio.to_thread(pyautogui.press, pyautogui_key)
+            else:
+                await asyncio.to_thread(pyautogui.keyDown, pyautogui_key)
+                await sleep(250, "ms")
+                await asyncio.to_thread(pyautogui.keyUp, pyautogui_key)
             await sleep(interval_ms, "ms")
 
     async def close(self, timeout_s: float = 3.0, poll_interval_ms: int = 200):
@@ -176,20 +183,56 @@ class NativeDriver(BaseDriver):
         self._resolve_window()
         if not self._win:
             raise WindowError(f"Window not found: '{self.window_title}'")
+        if self._monitor is not None:
+            return self._monitor
+
         hwnd = self._win._hWnd  # pylint: disable=protected-access
+
+        self._ensure_window_size(hwnd)
 
         client_left, client_top, client_right, client_bottom = win32gui.GetClientRect(
             hwnd)
         origin_x, origin_y = win32gui.ClientToScreen(hwnd, (0, 0))
 
-        return {
+        self._monitor = {
             "left": origin_x,
             "top": origin_y,
             "width": client_right - client_left,
             "height": client_bottom - client_top,
         }
+        return self._monitor
+
+    def _ensure_window_size(self, hwnd) -> None:
+        window_configs = self._profile["platform"]["browser"]["window"]
+        window_w, window_h = window_configs["width"], window_configs["height"]
+
+        if not window_w or not window_h:
+            return
+
+        if win32gui.IsIconic(hwnd):
+            return
+
+        client_left, client_top, client_right, client_bottom = win32gui.GetClientRect(
+            hwnd)
+        current_width = client_right - client_left
+        current_height = client_bottom - client_top
+
+        if current_width == window_w and current_height == window_h:
+            return
+
+        win_left, win_top, win_right, win_bottom = win32gui.GetWindowRect(hwnd)
+
+        border_width = (win_right - win_left) - current_width
+        border_height = (win_bottom - win_top) - current_height
+
+        new_width = window_w + border_width
+        new_height = window_h + border_height
+
+        win32gui.MoveWindow(hwnd, win_left, win_top,
+                            new_width, new_height, True)
 
     async def _focus_window(self):
+        self._monitor = None
         self._resolve_window()
         if not self._win:
             return
@@ -201,8 +244,17 @@ class NativeDriver(BaseDriver):
             await self._context.logger.error(f"Focus error: {e}")
 
     def _resolve_window(self):
+        if self._win is not None:
+            try:
+                if win32gui.IsWindow(self._win._hWnd):  # pylint: disable=protected-access
+                    return
+            except Exception:
+                pass
+            self._win = None
+            self._monitor = None
         wins = [w for w in gw.getAllWindows() if w.title.lower() ==
                 self.window_title.lower()]
         if not wins:
             raise WindowError(f"Window not found: '{self.window_title}'")
         self._win = wins[0]
+        self._monitor = None
