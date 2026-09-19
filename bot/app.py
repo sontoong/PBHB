@@ -12,7 +12,7 @@ from bot.services import ClientService
 from bot.utils import sleep, strip_ansi, invalidate_global_cache
 from bot.ui import MainUI
 from bot.context import AppContext
-from bot.constants import APP_NAME, MemoryState
+from bot.constants import APP_NAME, MEMORYSTATE
 
 
 class Application:
@@ -85,40 +85,46 @@ class Application:
                 active = [m for m in managers if m.browser is not None]
                 active_count = len(active)
 
-                if active_count == 0:
-                    self._context.memory_mb.current_threshold = 0.0
-                    self._context.memory_mb.state = MemoryState.IDLE
-
                 if active_count != last_active_count:
                     baseline_mb = None
                     last_active_count = active_count
-                    self._context.memory_mb.current_threshold = 0.0
-                    self._context.memory_mb.state = MemoryState.CALCULATING
 
-                if baseline_mb is None:
+                if active_count == 0:
+                    self._context.memory_mb.current_threshold = 0.0
+                    self._context.memory_mb.state = MEMORYSTATE.IDLE
+                elif baseline_mb is None:
+                    self._context.memory_mb.current_threshold = 0.0
+                    self._context.memory_mb.state = MEMORYSTATE.CALCULATING
+
                     if active and all(m.task_manager and m.task_manager.is_ready for m in active):
-                        baseline_mb = rss_mb
+                        baseline_mb = min(rss_mb * 1.8, rss_mb + 1500)
+                        await self._context.logger.info(f"Baseline memory calculated: {baseline_mb:.1f}MB")
 
                 if baseline_mb is not None:
-                    threshold = min(baseline_mb * 1.8, baseline_mb + 1500)
-                    if rss_mb > threshold:
+                    if rss_mb > baseline_mb:
+                        await self._context.logger.error(f"Total memory critical: {rss_mb:.1f}MB/{baseline_mb:.1f}MB, restarting all clients...")
                         baseline_mb = None
-                        await self._context.logger.error(f"Total memory critical: {rss_mb:.1f}MB/{threshold:.1f}MB, restarting all clients...")
+                        self._context.memory_mb.current_threshold = 0.0
+                        self._context.memory_mb.state = MEMORYSTATE.CALCULATING
                         invalidate_global_cache()
                         for manager in active:
                             self._context.client_service.restart_client(
                                 manager.profile["username"])
-                    self._context.memory_mb.current_threshold = threshold
-                    self._context.memory_mb.state = MemoryState.RUNNING
+                    else:
+                        self._context.memory_mb.current_threshold = baseline_mb
+                        self._context.memory_mb.state = MEMORYSTATE.RUNNING
 
             except Exception as e:
                 await self._context.logger.error("Memory monitor error:", e)
                 await self._context.logger.error("Restarting all clients...")
                 baseline_mb = None
+                self._context.memory_mb.current_threshold = 0.0
+                self._context.memory_mb.state = MEMORYSTATE.CALCULATING
                 invalidate_global_cache()
                 for manager in self._context.client_store.get_all():
-                    self._context.client_service.restart_client(
-                        manager.profile["username"])
+                    if manager.browser is not None:
+                        self._context.client_service.restart_client(
+                            manager.profile["username"])
 
             await sleep(1)
 
@@ -142,10 +148,11 @@ class Application:
         ) as process:
             if on_progress:
                 on_progress("Checking browsers...")
-                for line in process.stdout if process.stdout else []:
-                    line = strip_ansi(line).strip()
-                    if not line or any(line.startswith(p) for p in ("|", "(node:", "(Use `node")):
-                        continue
+            for line in process.stdout if process.stdout else []:
+                line = strip_ansi(line).strip()
+                if not line or any(line.startswith(p) for p in ("|", "(node:", "(Use `node")):
+                    continue
+                if on_progress:
                     on_progress(line)
 
     async def _check_for_update(self):

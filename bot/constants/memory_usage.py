@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class MemoryState(Enum):
+class MEMORYSTATE(Enum):
     IDLE = "idle"
     CALCULATING = "calculating..."
     RUNNING = "running"

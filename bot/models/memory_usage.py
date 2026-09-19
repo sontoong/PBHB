@@ -1,9 +1,9 @@
 from dataclasses import dataclass
-from bot.constants import MemoryState
+from bot.constants import MEMORYSTATE
 
 
 @dataclass
 class MemoryUsage:
     current_usage: float
     current_threshold: float
-    state: MemoryState
+    state: MEMORYSTATE
