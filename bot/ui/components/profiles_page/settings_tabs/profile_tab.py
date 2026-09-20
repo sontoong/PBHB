@@ -1,6 +1,5 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
-import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -9,6 +8,7 @@ import dearpygui.dearpygui as dpg
 from bot.managers import CredentialManager
 from bot.constants import DEFAULT_DATA_FOLDER
 from bot.ui.components.profiles_page import DeleteDialog
+from bot.ui.components.common import WarningDialog
 from bot.ui.theme import danger_button, primary_button
 from bot.utils import get_uid_token
 
@@ -29,6 +29,7 @@ class ProfileTab:
         self._context = context
         self._delete_dialog = DeleteDialog(
             context, on_deleted_cb=on_deleted_cb)
+        self._warning_dialog = WarningDialog(context)
         self._on_save_cb = on_save_cb
 
     def build(self, parent: str):
@@ -57,18 +58,25 @@ class ProfileTab:
             with dpg.table_row():
                 with dpg.table_cell():
                     with dpg.group(horizontal=True):
-                        save_btn = dpg.add_button(label="Save", width=80,
-                                                  callback=self._confirm)
+                        save_btn = dpg.add_button(
+                            label="Save", tag=f"{self.TAG}_save_btn", width=80, callback=self._confirm)
                         dpg.bind_item_theme(save_btn, primary_button())
                         dpg.add_button(label="Data", width=80,
                                        callback=self._open_data_folder)
                 dpg.add_table_cell()
                 with dpg.table_cell():
-                    delete_btn = dpg.add_button(label="Delete profile", width=120,
-                                                tag="delete_btn", callback=self._delete_profile)
+                    delete_btn = dpg.add_button(
+                        label="Delete profile", width=120, tag="delete_btn", callback=self._delete_profile)
                     dpg.bind_item_theme(delete_btn, danger_button())
 
+    #   ------------------------------Helpers
+
     def _confirm(self):
+        if self._is_running():
+            self._warning_dialog.open(
+                "This profile is running. Stop it before saving changes.")
+            return
+
         old_username = self._username
         new_username = dpg.get_value(f"{self.TAG}_edit_username").strip()
         uid = dpg.get_value(f"{self.TAG}_edit_uid").strip()
@@ -84,19 +92,24 @@ class ProfileTab:
             self._set_result_message(f'"{new_username}" already exists.')
             return
 
-        manager = self._context.client_store.get(old_username)
+        if new_username != old_username:
+            try:
+                self._rename_profile_folder(old_username, new_username)
+            except OSError as e:
+                self._warning_dialog.open(
+                    f"Could not rename the profile folder:\n{e}")
+                return
+            self._context.client_store.rekey(old_username, new_username)
+
+        manager = self._context.client_store.get(new_username)
         if manager:
             manager.profile["uid"] = uid
             manager.profile["token"] = token
             manager.profile["username"] = new_username
 
-        if new_username != old_username:
-            self._rename_profile_folder(old_username, new_username)
-            self._context.client_store.rekey(old_username, new_username)
-
         asyncio.run_coroutine_threadsafe(
-            CredentialManager(
-                new_username, self._context).save_credentials({"username": new_username, "uid": uid, "token": token}),
+            CredentialManager(new_username, self._context).save_credentials(
+                {"username": new_username, "uid": uid, "token": token}),
             self._context.loop,
         )
 
@@ -117,6 +130,10 @@ class ProfileTab:
             subprocess.run(["xdg-open", str(path)], check=False)
 
     def _delete_profile(self):
+        if self._is_running():
+            self._warning_dialog.open(
+                "This profile is running. Stop it before deleting.")
+            return
         self._delete_dialog.open(self._username)
 
     def _set_result_message(self, text: str, is_error: bool = True):
@@ -134,8 +151,10 @@ class ProfileTab:
     def _rename_profile_folder(self, old: str, new: str):
         old_path = _ROOT / old
         new_path = _ROOT / new
+        if new_path.exists():
+            raise FileExistsError(f'Folder "{new}" already exists')
         if old_path.exists():
-            shutil.move(str(old_path), str(new_path))
+            old_path.rename(new_path)
 
     def _fill_uid_token(self):
         dpg.disable_item(f"{self.TAG}_auto_fill_btn")
@@ -165,3 +184,7 @@ class ProfileTab:
         )
 
         future.add_done_callback(_on_done)
+
+    def _is_running(self) -> bool:
+        client = self._context.client_store.get(self._username)
+        return client is not None and client.browser is not None

@@ -26,11 +26,11 @@ class ProfilesPage(BasePage):
         self._pulse = PulseAnimator()
         self._selected_profile: str | None = None
 
-        self._add_dialog = AddProfileDialog(self._context, self._add_row)
+        self._add_dialog = AddProfileDialog(context, self._add_row)
         self._game_settings_dialog = SettingsDialog(
-            self._context, profile_save_cb=self._profile_save_cb, profile_delete_cb=self._profile_delete_cb)
-        self._warning_dialog = WarningDialog(self._context)
-        self._functions_panel = FunctionsPanel(self._context)
+            context, profile_save_cb=self._profile_save_cb, profile_delete_cb=self._profile_delete_cb)
+        self._warning_dialog = WarningDialog(context)
+        self._functions_panel = FunctionsPanel(context)
 
         self._poller = ProfilePoller(self._context)
         self._poller.subscribe(self._functions_panel._on_profile_fetched)
@@ -87,12 +87,13 @@ class ProfilesPage(BasePage):
             dpg.add_selectable(
                 label=username,
                 tag=f"select_name_{username}",
+                default_value=(username == self._selected_profile),
                 callback=lambda s, a, u: self._on_row_selected(u), user_data=username,
             )
             with dpg.group(horizontal=True):
                 dpg.add_button(label="Start", tag=f"start_btn_{username}",
                                callback=self._on_start, user_data=creds)
-                dpg.add_button(label="Pause", tag=f"pause_btn_{username}",
+                dpg.add_button(label="Resume" if self._paused.get(username) else "Pause", tag=f"pause_btn_{username}",
                                callback=self._on_pause, user_data=creds)
                 dpg.add_button(label="Stop", tag=f"stop_btn_{username}",
                                callback=self._on_stop, user_data=creds)
@@ -174,7 +175,7 @@ class ProfilesPage(BasePage):
         for suffix in ("start_btn", "stop_btn"):
             tag = f"{suffix}_{username}"
             self._loading.discard(tag)
-            self._pulse.remove_item(tag)
+            self._pulse.stop(tag)
 
         if self._selected_profile == username:
             self._selected_profile = None
@@ -296,9 +297,26 @@ class ProfilesPage(BasePage):
             dpg.configure_item(tag, enabled=enabled)
 
     def _profile_save_cb(self, old_username: str, new_username: str):
-        if old_username != new_username:
+        renamed = old_username != new_username
+        was_selected = self._selected_profile == old_username
+
+        if renamed:
             self._paused[new_username] = self._paused.pop(old_username, False)
+
+            for suffix in ("start_btn", "stop_btn"):
+                tag = f"{suffix}_{old_username}"
+                self._set_loading(tag, False)
+
+            dpg.delete_item(f"row_{old_username}")
+
+            if was_selected:
+                self._selected_profile = new_username
+
         self._refresh_list()
+
+        if renamed and was_selected:
+            self._poller.start(new_username)
+            self._rebuild_functions_panel(new_username)
 
     def _profile_delete_cb(self, username: str):
         self._remove_row(username)

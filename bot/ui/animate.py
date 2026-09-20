@@ -42,6 +42,3 @@ class PulseAnimator:
         for (_, alpha_style) in self._items.values():
             if dpg.does_item_exist(alpha_style):
                 dpg.set_value(alpha_style, [alpha])
-
-    def remove_item(self, tag: str):
-        self.stop(tag)
