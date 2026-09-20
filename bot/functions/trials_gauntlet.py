@@ -14,12 +14,22 @@ class TrialsGauntlet(BaseTask):
 
         # Out of tokens
         if await self._locate_image(f"{GLOBAL_IMAGES}/not_enough_tokens.png", stable_ms=300):
-            await self._press(key="Escape", presses=2)
+            await self._press(key="Escape", presses=2, interval=2000)
             return STATUS.OOR
 
         # Exit TG
         if await self._click_image(f"{TG_IMAGES}/town_button.png", stable_ms=300):
             return STATUS.PROGRESS
+
+        # Case: Battle victory screen
+        if await self._locate_image(f"{GLOBAL_IMAGES}/victory_label.png"):
+            await self._click_image(f"{GLOBAL_IMAGES}/continue_button.png", stable_ms=300)
+            return None
+
+        # Familiars tab
+        if await self._locate_image(f"{GLOBAL_IMAGES}/familiars.png"):
+            await self._press(key="Escape")
+            return None
 
         # Auto increase difficulty
         if auto_increase_difficulty:

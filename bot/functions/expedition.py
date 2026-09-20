@@ -21,6 +21,16 @@ class Expedition(BaseTask):
         if await self._click_image(f"{EXPEDITION_IMAGES}/town_button.png", stable_ms=300):
             return STATUS.PROGRESS
 
+        # Case: Battle victory screen
+        if await self._locate_image(f"{GLOBAL_IMAGES}/victory_label.png"):
+            await self._click_image(f"{GLOBAL_IMAGES}/continue_button.png", stable_ms=300)
+            return None
+
+        # Familiars tab
+        if await self._locate_image(f"{GLOBAL_IMAGES}/familiars.png"):
+            await self._press(key="Escape")
+            return None
+
         # Auto increase difficulty
         if auto_increase_difficulty:
             await self._click_image(f"{EXPEDITION_IMAGES}/difficulty_counter.png", offset_x=20, offset_y=40, stable_ms=300)

@@ -1,6 +1,7 @@
 from bot.utils import sleep
 from bot.constants import STATUS, RAID_IMAGES, GLOBAL_IMAGES
 from bot.base.task import BaseTask
+from bot.models import Image
 
 
 class Raid(BaseTask):
@@ -27,18 +28,17 @@ class Raid(BaseTask):
                 await self._click_image(f"{RAID_IMAGES}/open_button.png", stable_ms=300)
             else:
                 await self._click_image(f"{RAID_IMAGES}/decline_button_chest.png", stable_ms=300)
-
             if await self._locate_image(f"{GLOBAL_IMAGES}/not_enough_keys.png", stable_ms=300):
                 await self._press(key="Escape", presses=2)
                 await self._press(key="Space")
             else:
                 await self._click_image(f"{RAID_IMAGES}/yes_button.png", stable_ms=300)
                 await self._click_image(f"{RAID_IMAGES}/collect_button.png", stable_ms=300)
+            return None
 
         # Persuade familiar
         if await self._locate_image(f"{RAID_IMAGES}/persuade_button.png"):
             bribed = False
-
             if auto_bribe:
                 anchor_location = await self._locate_image(f"{GLOBAL_IMAGES}/persuade_anchor.png")
                 if anchor_location:
@@ -47,34 +47,53 @@ class Raid(BaseTask):
                     bribed = await self._should_bribe(familiar_name)
                     if bribed:
                         await self._click_image(f"{RAID_IMAGES}/bribe_button.png")
-
             if not bribed:
                 if auto_catch_by_gold:
                     await self._click_image(f"{RAID_IMAGES}/persuade_button.png")
                 else:
                     await self._click_image(f"{RAID_IMAGES}/decline_button.png")
+            return None
 
         # Persuade familiar
         if await self._locate_image(f"{RAID_IMAGES}/for.png", confidence=0.88):
             await self._click_image(f"{RAID_IMAGES}/yes_button.png", stable_ms=300)
+            return None
 
         # Persuade familiar
         if await self._locate_image(f"{GLOBAL_IMAGES}/not_enough_gems.png"):
             await self._press(key="Escape")
             await self._press(key="Space", presses=2)
+            return None
 
         # Persuade familiar
         if await self._locate_image(f"{GLOBAL_IMAGES}/close_button.png"):
             await self._press(key="Space")
+            return None
 
         # Collect button (may appear randomly)
         if await self._click_image(f"{RAID_IMAGES}/collect_button.png", stable_ms=2000):
             return None
 
+        # Case: Battle victory screen
+        if await self._locate_image(f"{GLOBAL_IMAGES}/victory_label.png"):
+            await self._click_image(f"{GLOBAL_IMAGES}/continue_button.png", stable_ms=300)
+            return None
+
+        # Familiars tab
+        if await self._locate_image(f"{GLOBAL_IMAGES}/familiars.png"):
+            await self._press(key="Escape")
+            return None
+
         # Rerun or exit raid
-        if await self._click_image(f"{RAID_IMAGES}/rerun_button.png", stable_ms=300):
-            return STATUS.PROGRESS
-        if await self._click_image(f"{RAID_IMAGES}/town_button.png", confidence=0.85, stable_ms=300):
+        hit = await self._locate_any([
+            Image(path=f"{RAID_IMAGES}/rerun_button.png",
+                  center=True, priority=1),
+            Image(path=f"{RAID_IMAGES}/town_button.png", center=True),
+            Image(path=f"{RAID_IMAGES}/town_button_2.png", center=True),
+        ], stable_ms=300)
+        if hit:
+            _, pos = hit
+            await self._click(x=pos[0], y=pos[1])
             return STATUS.PROGRESS
 
         # Play sequence
@@ -85,7 +104,7 @@ class Raid(BaseTask):
 
         # Change armory
         if auto_change_armory:
-            armory_buttons = await self._locate_all(f"{GLOBAL_IMAGES}/armory_icon_button.png", confidence=0.9, grayscale=False) or []
+            armory_buttons = await self._locate_all(f"{GLOBAL_IMAGES}/armory_icon_button.png", confidence=0.9, grayscale=False, center=True) or []
             for pos in armory_buttons:
                 await self._click(x=pos[0], y=pos[1])
                 await self._click_image(f"{GLOBAL_IMAGES}/select_button.png", stable_ms=300)
