@@ -140,19 +140,20 @@ def run_update_check(splash: SplashWindow):
         release = fetch_latest_release()
 
         if release is None:
-            splash.set_status("Offline — launching current version…")
+            splash.set_status(
+                "Connection error. Please check your internet connection.")
         else:
             latest = release["tag_name"].lstrip("v")
 
             if version.parse(latest) > version.parse(installed):
-                splash.set_status(f"Update found: v{latest}  —  downloading…")
+                splash.set_status(f"Update found: v{latest}  -  downloading…")
                 splash.show_progress()
                 splash.show_cancel_button()
 
                 download_url = find_asset(release, APP_EXE)
                 if download_url is None:
                     splash.set_status(
-                        "Asset not found — launching current version…")
+                        "Asset not found. Please try again later.")
                 else:
                     tmp = base_dir().parent / f"{APP_EXE}.new"
                     old_exe = base_dir().parent / APP_EXE
@@ -257,7 +258,7 @@ def download_file_with_retry(
                 httpx.TimeoutException) as exc:
             if attempt < DOWNLOAD_MAX_RETRIES:
                 msg = (
-                    f"Connection lost — retrying "
+                    f"Connection lost - retrying "
                     f"({attempt}/{DOWNLOAD_MAX_RETRIES})…"
                 )
                 if splash:
