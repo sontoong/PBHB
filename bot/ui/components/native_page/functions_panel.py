@@ -17,6 +17,7 @@ FUNCTION_LABELS = {
     "worldboss": "World Boss",
     "raid": "Raid",
     "dungeon": "Dungeon",
+    "fishing": "Fishing",
 }
 
 CHECKBOX_GLYPH_WIDTH = 20

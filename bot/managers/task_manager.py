@@ -3,6 +3,9 @@ from typing import TYPE_CHECKING
 
 import asyncio
 from playwright._impl._errors import TargetClosedError
+from bot.constants import STATUS, TASKTYPE
+from bot.utils import WindowError, CanvasError, sleep, check_gamemodes, inject_task_display_script
+from bot.base.task import BaseTask
 from bot.functions.pvp import PVP
 from bot.functions.trials_gauntlet import TrialsGauntlet
 from bot.functions.invasion import Invasion
@@ -11,9 +14,7 @@ from bot.functions.gvg import GVG
 from bot.functions.worldboss import WorldBoss
 from bot.functions.dungeon import Dungeon
 from bot.functions.expedition import Expedition
-from bot.constants import STATUS, TASKTYPE
-from bot.utils import WindowError, CanvasError, sleep, check_gamemodes, inject_task_display_script
-from bot.base.task import BaseTask
+from bot.functions.fishing import Fishing
 
 if TYPE_CHECKING:
     from bot.managers import ClientManager
@@ -28,6 +29,7 @@ FUNCTION_MAP: dict[str, type[BaseTask]] = {
     "worldboss": WorldBoss,
     "dungeon": Dungeon,
     "expedition": Expedition,
+    "fishing": Fishing,
 }
 
 
@@ -70,7 +72,7 @@ class TaskManager:
         try:
             while True:
                 while self._status == STATUS.PAUSED:
-                    await asyncio.sleep(1)
+                    await sleep(1)
 
                 ran_this_round: set[str] = set()
                 error_count = 0
@@ -149,6 +151,7 @@ class TaskManager:
         if not func:
             raise ValueError(f"Unknown function: {function_name}")
 
+        self._client_manager.current_task_name = function_name
         if self._page:
             try:
                 await self._page.evaluate(inject_task_display_script(function_name))
@@ -176,6 +179,7 @@ class TaskManager:
                         await t
                     except asyncio.CancelledError:
                         pass
+            self._client_manager.current_task_name = None
 
         if task_coro.cancelled():
             return STATUS.ESC

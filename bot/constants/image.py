@@ -15,6 +15,7 @@ TG_IMAGES = "trials_gauntlet"
 WB_IMAGES = "world_boss"
 INVASION_IMAGES = "invasion"
 EXPEDITION_IMAGES = "expedition"
+FISHING_IMAGES = "fishing"
 
 NUMBERS_LIST_IMAGES = "numbers"
 CHARACTERS_LIST_IMAGES = "characters"

@@ -48,7 +48,8 @@ class ProfileManager:
                     "tg": {"enabled": True, "priority": 5},
                     "worldboss": {"enabled": True, "priority": 6},
                     "raid": {"enabled": True, "priority": 7},
-                    "dungeon": {"enabled": True, "priority": 8}
+                    "dungeon": {"enabled": True, "priority": 8},
+                    "fishing": {"enabled": False, "priority": 9}
                 },
                 "autoChangeGamemode": True,
                 "closeAfterRegen": False
@@ -94,6 +95,10 @@ class ProfileManager:
                 "selectedExpedition": "inferno_dimension",
                 "selectedPortal": "raleibs_portal",
                 "autoIncreaseDifficulty": False,
+            },
+            "fishing": {
+                "maxTime": 300,
+                "numOfBait": 10,
             }
         }
 

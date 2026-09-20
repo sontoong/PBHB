@@ -283,6 +283,27 @@ class GameTab:
                 tag=f"{self.TAG}_expedition_preview",
             )
 
+        #   ------------------------------Fishing
+        section(parent, "Fishing")
+        int_input(
+            parent=parent,
+            label="Number of baits",
+            value=profile["fishing"]["numOfBait"],
+            min_val=1,
+            on_change=lambda v: self._patch(
+                profile, ["fishing", "numOfBait"], v),
+        )
+        int_input(
+            parent=parent,
+            label="Max time (seconds)",
+            value=profile["fishing"]["maxTime"],
+            min_val=1,
+            on_change=lambda v: self._patch(
+                profile, ["fishing", "maxTime"], v),
+            step=0,
+            step_fast=0
+        )
+
     #   ------------------------------Helpers
     def _refresh_dungeon_texture(self, profile: dict):
         selected = profile["dungeon"]["selectedDungeon"]

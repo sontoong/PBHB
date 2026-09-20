@@ -162,6 +162,12 @@ class SettingsPanel:
             self._last_portal = selected_portal
             self._refresh_expedition_texture(profile)
 
+        #   ------------------------------Fishing
+        set_if_exists(f"{self.TAG}_int_fishing_numOfBait",
+                      profile["fishing"]["numOfBait"])
+        set_if_exists(f"{self.TAG}_int_fishing_maxTime",
+                      profile["fishing"]["maxTime"])
+
     def _build_game_settings(self, profile: dict):
         parent = self.TAG
 
@@ -434,6 +440,29 @@ class SettingsPanel:
                 height=self._expedition_image_preview_container[1],
                 tag=f"{self.TAG}_expedition_preview",
             )
+
+        #   ------------------------------Fishing
+        section(parent, "Fishing")
+        int_input(
+            parent=parent,
+            label="Number of baits",
+            value=profile["fishing"]["numOfBait"],
+            min_val=1,
+            tag=f"{self.TAG}_int_fishing_numOfBait",
+            on_change=lambda v: self._patch(
+                profile, ["fishing", "numOfBait"], v),
+        )
+        int_input(
+            parent=parent,
+            label="Max time (seconds)",
+            value=profile["fishing"]["maxTime"],
+            min_val=1,
+            tag=f"{self.TAG}_int_fishing_maxTime",
+            on_change=lambda v: self._patch(
+                profile, ["fishing", "maxTime"], v),
+            step=0,
+            step_fast=0
+        )
 
     # ------------------------------Helpers
 

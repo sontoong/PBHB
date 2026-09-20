@@ -16,6 +16,7 @@ FUNCTION_LABELS = {
     "worldboss": "World Boss",
     "raid": "Raid",
     "dungeon": "Dungeon",
+    "fishing": "Fishing",
 }
 
 
