@@ -259,7 +259,7 @@ def inject_task_display_script(task_name: str) -> str:
                 overlay.id = overlayId;
                 overlay.style.cssText = `
                     position: fixed;
-                    top: 52px;   /* below the speed overlay (if used) */
+                    top: 52px;
                     left: 8px;
                     background: rgba(0,0,0,0.6);
                     color: #00ccff;
