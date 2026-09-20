@@ -95,7 +95,8 @@ class ClientService:
     async def start_native_async(self, username: str, window_title: str):
         client_manager = self._context.client_store.get(username)
         if client_manager:
-            driver = NativeDriver(username, window_title, self._context)
+            driver = NativeDriver(client_manager.profile,
+                                  window_title, self._context)
             try:
                 await client_manager.lifecycle_manager.start(lambda: client_manager.start_task_native(driver))
             except WindowError:
