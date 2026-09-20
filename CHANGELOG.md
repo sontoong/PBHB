@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.1](https://github.com/sontoong/PBHB/compare/v2.5.0...v2.5.1) (2026-09-20)
+
+
+### Bug Fixes
+
+* correct release classification ([96dcb73](https://github.com/sontoong/PBHB/commit/96dcb7321bc53071628907fa9640b990b8c5d8a4))
+
 ## [2.5.0](https://github.com/sontoong/PBHB/compare/v2.4.1...v2.5.0) (2026-09-20)
 
 
