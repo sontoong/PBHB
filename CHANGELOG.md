@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.5.0](https://github.com/sontoong/PBHB/compare/v2.4.1...v2.5.0) (2026-09-20)
+
+
+### Features
+
+* **client_manager:** add current_task_name attribute to track active tasks ([c02c880](https://github.com/sontoong/PBHB/commit/c02c880905a7d052adfd02b5c376264eb5ca316c))
+* **client_service:** update NativeDriver initialization to use profile from client_manager ([27651c7](https://github.com/sontoong/PBHB/commit/27651c71c7176f808323de19712e3c17792855fc))
+* **driver:** enhance screenshot and press methods with region support and skip delay option ([80bb251](https://github.com/sontoong/PBHB/commit/80bb2514d2de6cb782d8ec6cc8a7985a2b1a53d9))
+* **fishing:** add fishing functionality with UI integration and image assets ([5696e6f](https://github.com/sontoong/PBHB/commit/5696e6fc611a447d32bb53fcf7ea0e6d5fafd1b2))
+* **global_sequence:** enhance image handling in checks with driver validation and screenshot integration ([5e119b3](https://github.com/sontoong/PBHB/commit/5e119b3099f9ad18ba4467c6631143267148f68c))
+* **image:** introduce Image model and enhance image handling in locate and click functions ([a516a3f](https://github.com/sontoong/PBHB/commit/a516a3f1fe84e30a921b576597674e9036093c94))
+* **images:** add new images for dungeon, global, and raid functionalities ([4ba7742](https://github.com/sontoong/PBHB/commit/4ba7742280592522bf84bd4837f13b6b792bd1db))
+* **nav_entry:** add NavEntry model for navigation structure and update main UI integration ([f45fd53](https://github.com/sontoong/PBHB/commit/f45fd53aef3952fdb7f4213f2cd70c9f7b8ddf69))
+
 ## [2.4.1](https://github.com/sontoong/PBHB/compare/v2.4.0...v2.4.1) (2026-09-02)
 
 
