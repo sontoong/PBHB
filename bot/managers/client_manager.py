@@ -40,6 +40,7 @@ class ClientManager:
             client_manager=self, context=self.context)
         self.lifecycle_manager = LifecycleManager()
         self._refresh_profile_task = None
+        self.current_task_name: str | None = None
 
     @property
     def profile_manager(self):
