@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.4.1](https://github.com/sontoong/PBHB/compare/v2.4.0...v2.4.1) (2026-09-02)
+
+
+### Bug Fixes
+
+* **functions_panel:** update checkbox for closing game after regen and adjust panel height ([82e1b08](https://github.com/sontoong/PBHB/commit/82e1b08bf5728614890ceb55481c6b0918373129))
+* **native_page:** ensure stop action only triggers if on the correct tab ([5262428](https://github.com/sontoong/PBHB/commit/52624284edf40fe7040bde90c74802ca5d85975a))
+* **task_manager:** use profile data directly for game closure condition ([5d0b0a4](https://github.com/sontoong/PBHB/commit/5d0b0a4122c898d7d10afb592053a174aeb5a93b))
+* **worldboss:** ensure stable button clicks for starting and ready actions ([504abb1](https://github.com/sontoong/PBHB/commit/504abb1f4bbb9992d0bc6f52d1c803b7103ceabf))
+
 ## [2.4.0](https://github.com/sontoong/PBHB/compare/v2.3.0...v2.4.0) (2026-08-29)
 
 
