@@ -1,6 +1,5 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
-from dataclasses import dataclass
 import queue
 import asyncio
 import dearpygui.dearpygui as dpg
@@ -10,16 +9,10 @@ from bot.base.page import BasePage
 from bot.constants import APP_NAME, APP_VERSION
 from bot.utils import center
 from bot.loaders import ConfigLoader
+from bot.models import NavEntry
 
 if TYPE_CHECKING:
     from bot.context import AppContext
-
-
-@dataclass
-class NavEntry:
-    id: str
-    label: str
-    page_class: type[BasePage]
 
 
 _NAV: list[NavEntry] = [
