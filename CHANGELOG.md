@@ -5,7 +5,7 @@
 
 ### Bug Fixes
 
-* correct release classification ([96dcb73](https://github.com/sontoong/PBHB/commit/96dcb7321bc53071628907fa9640b990b8c5d8a4))
+* add warning dialog for running profiles before save/delete actions, streamline context usage and enhance profile management logic ([c0189fb](https://github.com/sontoong/PBHB/commit/c0189fbaa40e9e27d7db95c11ddb1b5586c7a3c7))
 
 ## [2.5.0](https://github.com/sontoong/PBHB/compare/v2.4.1...v2.5.0) (2026-09-20)
 
