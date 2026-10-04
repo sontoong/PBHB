@@ -4,7 +4,7 @@ from playwright.async_api import Page
 import numpy as np
 import cv2
 from bot.base.driver import BaseDriver
-from bot.utils import canvas_bbox_cache, CanvasError, sleep
+from bot.utils import canvas_element_cache, CanvasError, sleep
 from bot.constants import GAME_SCREEN_ELEMENT_ID
 
 # pylint: disable=no-member
@@ -28,13 +28,13 @@ class PlaywrightDriver(BaseDriver):
         page_id = id(self._page)
 
         try:
-            if page_id not in canvas_bbox_cache:
+            if page_id not in canvas_element_cache:
                 canvas = await self._page.query_selector(GAME_SCREEN_ELEMENT_ID)
                 if canvas is None:
                     raise CanvasError("Canvas not found")
-                canvas_bbox_cache[page_id] = canvas
+                canvas_element_cache[page_id] = canvas
 
-            canvas = canvas_bbox_cache[page_id]
+            canvas = canvas_element_cache[page_id]
 
             result = await canvas.evaluate(
                 """
@@ -70,7 +70,7 @@ class PlaywrightDriver(BaseDriver):
             return img
 
         except Exception:
-            canvas_bbox_cache.pop(page_id, None)
+            canvas_element_cache.pop(page_id, None)
             raise
 
     async def match_color_in_canvas(
@@ -85,12 +85,12 @@ class PlaywrightDriver(BaseDriver):
 
         page_id = id(self._page)
         try:
-            if page_id not in canvas_bbox_cache:
+            if page_id not in canvas_element_cache:
                 canvas = await self._page.query_selector(GAME_SCREEN_ELEMENT_ID)
                 if canvas is None:
                     raise CanvasError("Canvas not found")
-                canvas_bbox_cache[page_id] = canvas
-            canvas = canvas_bbox_cache[page_id]
+                canvas_element_cache[page_id] = canvas
+            canvas = canvas_element_cache[page_id]
 
             result = await canvas.evaluate(
                 """
@@ -114,7 +114,7 @@ class PlaywrightDriver(BaseDriver):
             )
             return bool(result)
         except Exception:
-            canvas_bbox_cache.pop(page_id, None)
+            canvas_element_cache.pop(page_id, None)
             return None
 
     async def click(self, x: int, y: int, clicks: int = 1) -> None:

@@ -141,7 +141,6 @@ class ProfilesPage(BasePage):
                 self._set_enabled(stop_tag, is_running)
 
             self._set_enabled(f"pause_btn_{username}", is_running)
-            self._set_enabled(f"delete_btn_{username}", not is_running)
 
         any_start_loading = any(
             f"start_btn_{c.profile['username']}" in self._loading

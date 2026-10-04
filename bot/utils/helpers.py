@@ -20,22 +20,6 @@ def random_integer(min_val, max_val):
     return random.randint(min_int, max_int)
 
 
-def sort_object_by_value_length(obj, ascending=True):
-    sorted_items = sorted(
-        obj.items(),
-        key=lambda x: len(x[1]),
-        reverse=not ascending
-    )
-    return dict(sorted_items)
-
-
-def hex_to_rgba(hex_color: int, alpha: int = 255) -> tuple:
-    r = (hex_color >> 16) & 0xFF
-    g = (hex_color >> 8) & 0xFF
-    b = hex_color & 0xFF
-    return (r, g, b, alpha)
-
-
 def strip_ansi(text: str) -> str:
     return re.compile(r'\x1b\[[0-9;]*m').sub('', text)
 

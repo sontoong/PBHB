@@ -585,14 +585,6 @@ class SettingsPanel:
         self._last_portal = portal
         self._refresh_expedition_texture(profile)
 
-    def _on_preset_change(self, name: str, presets: list[dict[str, int | str]], profile: dict):
-        preset = next((p for p in presets if p["name"] == name), None)
-        if preset:
-            self._patch(profile, ["platform", "browser",
-                        "window", "width"], preset["width"])
-            self._patch(profile, ["platform", "browser",
-                        "window", "height"], preset["height"])
-
     #   ------------------------------Load data
 
     def _load_dungeons(self, profile: dict) -> dict[str, Path]:

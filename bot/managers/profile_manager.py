@@ -7,7 +7,7 @@ import copy
 import shutil
 from pathlib import Path
 from bot.constants import DEFAULT_DATA_FOLDER, DEFAULT_PLAYER_DATA_FILE
-from bot.utils.helpers import write_json_atomic, backup_corrupt_file
+from bot.utils.helpers import write_json_atomic, backup_corrupt_file, merge_deep
 
 if TYPE_CHECKING:
     from bot.context import AppContext
@@ -131,7 +131,7 @@ class ProfileManager:
 
         self._mark_mtime_seen(mtime_ns_before_read)
 
-        merged_profile = self._merge_deep(self.default_profile, profile)
+        merged_profile = merge_deep(self.default_profile, profile)
 
         if "lastSaved" not in merged_profile:
             merged_profile["lastSaved"] = self._current_timestamp()
@@ -193,18 +193,3 @@ class ProfileManager:
 
     def _current_timestamp(self):
         return int(time.time() * 1000)
-
-    def _merge_deep(self, base, overlay):
-        if isinstance(base, dict) and isinstance(overlay, dict):
-            result = base.copy()
-            for key, value in overlay.items():
-                if key in result and isinstance(result[key], dict) and isinstance(value, dict):
-                    result[key] = self._merge_deep(result[key], value)
-                else:
-                    result[key] = value
-            return result
-
-        if overlay is None:
-            return base
-
-        return overlay

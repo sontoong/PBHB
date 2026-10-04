@@ -104,23 +104,3 @@ class Logger:
         if isinstance(data, BaseException):
             return "\n" + "".join(traceback.format_exception(data)).rstrip()
         return f" {data}"
-
-    def get_color(self, level):
-        colors = {
-            "debug": 0x9B59B6,
-            "info": 0x3498DB,
-            "warn": 0xF39C12,
-            "error": 0xE74C3C,
-            "success": 0x2ECC71,
-        }
-        return colors.get(level, 0x95A5A6)
-
-    def _get_webhook_title(self, level):
-        icons = {
-            "debug": "🔍",
-            "info": "ℹ️",
-            "success": "✅",
-            "warn": "⚠️",
-            "error": "❌",
-        }
-        return f"{icons.get(level, '📝')} {level.upper()}"
