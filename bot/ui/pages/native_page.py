@@ -1,12 +1,13 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
+import time
 import keyboard
 import dearpygui.dearpygui as dpg
 import pygetwindow as gw
 from bot.base.page import BasePage
 from bot.ui.components.native_page import SettingsPanel, FunctionsPanel
-from bot.constants import APP_NAME
+from bot.constants import APP_NAME, WINDOW_LIST_REFRESH_INTERVAL_S
 from bot.managers import ProfilePoller
 
 if TYPE_CHECKING:
@@ -20,6 +21,7 @@ class NativePage(BasePage):
         super().__init__(context)
         self._selected_profile: str | None = None
         self._selected_window: str | None = None
+        self._last_window_refresh = float("-inf")
         self._settings_panel = SettingsPanel(self._context)
         self._functions_panel = FunctionsPanel(self._context)
 
@@ -80,7 +82,7 @@ class NativePage(BasePage):
     def on_frame(self):
         self._refresh_button_states()
         self._refresh_profiles()
-        self._refresh_windows()
+        self._refresh_windows_throttled()
         self._poller.poll()
 
     def on_profiles_loaded(self):
@@ -105,6 +107,13 @@ class NativePage(BasePage):
 
     def _on_window_selected(self, window_name: str):
         self._selected_window = window_name
+
+    def _refresh_windows_throttled(self):
+        now = time.monotonic()
+        if now - self._last_window_refresh < WINDOW_LIST_REFRESH_INTERVAL_S:
+            return
+        self._last_window_refresh = now
+        self._refresh_windows()
 
     def _refresh_windows(self):
         filter_keys = self._context.config["platform"]["native"]["filterKeys"]
