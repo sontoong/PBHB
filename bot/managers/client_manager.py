@@ -137,14 +137,15 @@ class ClientManager:
             self.start_task = None
 
         # Close browser
-        if self.browser and self.page:
+        if self.browser:
             browser = self.browser
             page = self.page
             self.page = None
             self.browser = None
 
             try:
-                invalidate_page_cache(page)
+                if page:
+                    invalidate_page_cache(page)
                 await asyncio.wait_for(browser.close(), timeout=10)
                 await self.context.logger.success(f"[{self.profile['username']}] Client closed successfully")
             except (TargetClosedError, asyncio.TimeoutError, asyncio.CancelledError):
@@ -221,6 +222,8 @@ class ClientManager:
                 asyncio.create_task(_handle_native_crash(exc))
             elif self.task_manager.task_type == TASKTYPE.BROWSER:
                 asyncio.create_task(_handle_browser_crash(exc))
+            return
+
         if task.result() == STATUS.CLOSE_GAME:
             if self.task_manager.task_type == TASKTYPE.NATIVE:
                 asyncio.create_task(

@@ -23,7 +23,7 @@ class LifecycleManager:
         if self._state == LIFECYCLESTATUS.STOPPING:
             await self._stop_event.wait()
 
-        if self._state != LIFECYCLESTATUS.IDLE:
+        if self._state not in (LIFECYCLESTATUS.IDLE, LIFECYCLESTATUS.FAILED):
             return
 
         self._state = LIFECYCLESTATUS.STARTING
@@ -33,8 +33,9 @@ class LifecycleManager:
         try:
             await self._current_start_task
             self._state = LIFECYCLESTATUS.RUNNING
-        except Exception:
-            self._state = LIFECYCLESTATUS.FAILED
+        except BaseException:
+            if self._state == LIFECYCLESTATUS.STARTING:
+                self._state = LIFECYCLESTATUS.FAILED
             raise
         finally:
             self._current_start_task = None

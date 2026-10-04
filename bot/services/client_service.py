@@ -7,7 +7,7 @@ from pathlib import Path
 import httpx
 import dearpygui.dearpygui as dpg
 from packaging import version as pkg_version
-from bot.constants import GITHUB_REPO, APP_VERSION, DEFAULT_TOOLS_FOLDER, TASKTYPE
+from bot.constants import GITHUB_REPO, APP_VERSION, DEFAULT_TOOLS_FOLDER, LIFECYCLESTATUS
 from bot.drivers.native_driver import NativeDriver
 from bot.utils import WindowError, MissingCredentialsError
 
@@ -102,6 +102,9 @@ class ClientService:
             except WindowError:
                 await self._context.logger.warn(f"[{username}] Window '{driver.window_title}' not found, stopping...")
                 await self.stop_native_async(username)
+            except Exception as error:
+                await self._context.logger.error(f"[{username}] Failed to start:", error)
+                await self.stop_native_async(username)
 
     async def stop_native_async(self, username: str, should_close_target: bool = False):
         client_manager = self._context.client_store.get(username)
@@ -128,17 +131,15 @@ class ClientService:
         self._did_shutdown = True
 
         try:
-            client_list = self._context.client_store.get_all()
-            coros = []
-            for client_manager in client_list:
-                username = client_manager.profile["username"]
-                if client_manager.task_manager.task_type == TASKTYPE.NATIVE:
-                    coros.append(
-                        self._context.client_service.stop_native_async(username))
-                elif client_manager.task_manager.task_type == TASKTYPE.BROWSER:
-                    coros.append(
-                        self._context.client_service.stop_client_async(username))
-            await asyncio.gather(*coros, return_exceptions=True)
+            active_clients = [
+                client_manager for client_manager in self._context.client_store.get_all()
+                if client_manager.lifecycle_manager.state != LIFECYCLESTATUS.IDLE
+            ]
+            await asyncio.gather(
+                *(self.stop_client_async(client_manager.profile["username"])
+                  for client_manager in active_clients),
+                return_exceptions=True,
+            )
         except Exception as e:
             await self._context.logger.error(f"[shutdown] {type(e).__name__}: {e}")
 
