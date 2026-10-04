@@ -28,6 +28,7 @@ APP_VERSION = get_app_version()
 BASE_DIR = get_base_dir()
 APP_NAME = "Bit Heroes Bot"
 GITHUB_REPO = "sontoong/PBHB"
+RELEASE_APP_ASSET = "PBHB.exe"
 DEFAULT_TOOLS_FOLDER = str(get_internal_dir() / "tools")
 DEFAULT_DEBUG_FOLDER = str(get_internal_dir() / "debug")
 DEFAULT_DATA_FOLDER = str(get_internal_dir() / "data")

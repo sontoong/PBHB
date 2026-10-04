@@ -8,7 +8,7 @@ from pathlib import Path
 import httpx
 import dearpygui.dearpygui as dpg
 from packaging import version as pkg_version
-from bot.constants import GITHUB_REPO, APP_VERSION, DEFAULT_TOOLS_FOLDER, LIFECYCLESTATUS
+from bot.constants import GITHUB_REPO, APP_VERSION, DEFAULT_TOOLS_FOLDER, LIFECYCLESTATUS, RELEASE_APP_ASSET
 from bot.drivers.native_driver import NativeDriver
 from bot.utils import WindowError, MissingCredentialsError, GameMaintenanceError
 
@@ -162,12 +162,19 @@ class ClientService:
                 )
 
             resp.raise_for_status()
-            latest = resp.json()["tag_name"].lstrip("v")
+            release = resp.json()
+            if not self._has_app_asset(release):
+                return None
+            latest = release["tag_name"].lstrip("v")
             if pkg_version.parse(latest) > pkg_version.parse(APP_VERSION):
                 return latest
             return None
         except Exception:
             return None
+
+    @staticmethod
+    def _has_app_asset(release: dict) -> bool:
+        return any(asset.get("name") == RELEASE_APP_ASSET for asset in release.get("assets", []))
 
     async def apply_update(self):
         await self.shutdown()
