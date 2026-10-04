@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.6.1](https://github.com/sontoong/PBHB/compare/v2.6.0...v2.6.1) (2026-10-04)
+
+
+### Bug Fixes
+
+* **ci:** install from the lockfile without failing on release version bumps ([b36cffa](https://github.com/sontoong/PBHB/commit/b36cffacc3f87fa0768fc789aa36504adb8f331e))
+* **update:** only offer updates that have a downloadable build ([2466ff3](https://github.com/sontoong/PBHB/commit/2466ff3e8e2cf8bbfa33185be5e62694a1993354))
+
 ## [2.6.0](https://github.com/sontoong/PBHB/compare/v2.5.1...v2.6.0) (2026-10-04)
 
 
