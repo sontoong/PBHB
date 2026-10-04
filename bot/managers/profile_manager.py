@@ -7,6 +7,7 @@ import copy
 import shutil
 from pathlib import Path
 from bot.constants import DEFAULT_DATA_FOLDER, DEFAULT_PLAYER_DATA_FILE
+from bot.utils.helpers import write_json_atomic, backup_corrupt_file
 
 if TYPE_CHECKING:
     from bot.context import AppContext
@@ -103,43 +104,38 @@ class ProfileManager:
         }
 
     async def load_profile(self):
+        await self._ensure_data_dir()
+
         try:
-            await self._ensure_data_dir()
-
             profile = json.loads(self.file_path.read_text(encoding='utf-8'))
+        except FileNotFoundError:
+            return await self._reset_to_default()
+        except ValueError:
+            profile = None
 
-            merged_profile = self._merge_deep(self.default_profile, profile)
+        if not isinstance(profile, dict):
+            backup_path = backup_corrupt_file(self.file_path)
+            message = f"[{self.username}] player_data.json was unreadable and has been reset to default settings. The old file was saved as {backup_path.name}."
+            await self._context.logger.warn(message)
+            self._context.warn_user(message)
+            return await self._reset_to_default()
 
-            if "lastSaved" not in merged_profile:
-                merged_profile["lastSaved"] = self._current_timestamp()
+        merged_profile = self._merge_deep(self.default_profile, profile)
 
-            if merged_profile != profile:
-                await self.save_profile(merged_profile)
+        if "lastSaved" not in merged_profile:
+            merged_profile["lastSaved"] = self._current_timestamp()
 
-            return merged_profile
-        except Exception as error:
-            if isinstance(error, FileNotFoundError):
-                profile = copy.deepcopy(self.default_profile)
+        if merged_profile != profile:
+            await self.save_profile(merged_profile)
 
-                if "lastSaved" not in profile:
-                    profile["lastSaved"] = self._current_timestamp()
-
-                await self.save_profile(self.default_profile)
-
-                return profile
-            raise error
+        return merged_profile
 
     async def save_profile(self, profile):
         try:
-            await self._ensure_data_dir()
-
             profile_to_save = copy.deepcopy(profile)
             profile_to_save["lastSaved"] = self._current_timestamp()
 
-            self.file_path.write_text(
-                json.dumps(profile_to_save, indent=2, ensure_ascii=False),
-                encoding='utf-8'
-            )
+            write_json_atomic(self.file_path, profile_to_save)
 
             return True
         except Exception as error:
@@ -166,6 +162,12 @@ class ProfileManager:
 
     async def _ensure_data_dir(self):
         self.file_path.parent.mkdir(parents=True, exist_ok=True)
+
+    async def _reset_to_default(self):
+        profile = copy.deepcopy(self.default_profile)
+        profile["lastSaved"] = self._current_timestamp()
+        await self.save_profile(profile)
+        return profile
 
     def _current_timestamp(self):
         return int(time.time() * 1000)

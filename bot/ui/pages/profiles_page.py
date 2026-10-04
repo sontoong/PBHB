@@ -6,7 +6,6 @@ from bot.base.page import BasePage
 from bot.ui.components.profiles_page import AddProfileDialog, SettingsDialog
 from bot.ui.components.native_page import FunctionsPanel
 from bot.ui.animate import PulseAnimator
-from bot.ui.components.common import WarningDialog
 from bot.managers import ProfilePoller
 
 if TYPE_CHECKING:
@@ -29,7 +28,6 @@ class ProfilesPage(BasePage):
         self._add_dialog = AddProfileDialog(context, self._add_row)
         self._game_settings_dialog = SettingsDialog(
             context, profile_save_cb=self._profile_save_cb, profile_delete_cb=self._profile_delete_cb)
-        self._warning_dialog = WarningDialog(context)
         self._functions_panel = FunctionsPanel(context)
 
         self._poller = ProfilePoller(self._context)
@@ -189,9 +187,7 @@ class ProfilesPage(BasePage):
         token = user_data["token"]
 
         if not uid or not token:
-            self._warning_dialog.open(
-                "This profile is missing a UID or Token."
-            )
+            self._context.warn_user("This profile is missing a UID or Token.")
         else:
             self._set_loading(f"start_btn_{username}", True)
             self._context.client_service.start_client(username)
@@ -238,7 +234,7 @@ class ProfilesPage(BasePage):
             self._set_loading("start_all_btn", True)
 
         if skipped:
-            self._warning_dialog.open(
+            self._context.warn_user(
                 "The following profiles are missing a UID or Token and were not started: "
                 + ", ".join(skipped)
             )

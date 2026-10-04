@@ -8,7 +8,6 @@ import dearpygui.dearpygui as dpg
 from bot.managers import CredentialManager
 from bot.constants import DEFAULT_DATA_FOLDER
 from bot.ui.components.profiles_page import DeleteDialog
-from bot.ui.components.common import WarningDialog
 from bot.ui.theme import danger_button, primary_button
 from bot.utils import get_uid_token, validate_username
 
@@ -29,7 +28,6 @@ class ProfileTab:
         self._context = context
         self._delete_dialog = DeleteDialog(
             context, on_deleted_cb=on_deleted_cb)
-        self._warning_dialog = WarningDialog(context)
         self._on_save_cb = on_save_cb
 
     def build(self, parent: str):
@@ -73,7 +71,7 @@ class ProfileTab:
 
     def _confirm(self):
         if self._is_running():
-            self._warning_dialog.open(
+            self._context.warn_user(
                 "This profile is running. Stop it before saving changes.")
             return
 
@@ -98,7 +96,7 @@ class ProfileTab:
             try:
                 self._rename_profile_folder(old_username, new_username)
             except OSError as e:
-                self._warning_dialog.open(
+                self._context.warn_user(
                     f"Could not rename the profile folder:\n{e}")
                 return
             self._context.client_store.rekey(old_username, new_username)
@@ -133,7 +131,7 @@ class ProfileTab:
 
     def _delete_profile(self):
         if self._is_running():
-            self._warning_dialog.open(
+            self._context.warn_user(
                 "This profile is running. Stop it before deleting.")
             return
         self._delete_dialog.open(self._username)

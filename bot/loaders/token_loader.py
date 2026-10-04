@@ -21,7 +21,13 @@ class TokenLoader:
         for folder in sorted(root.iterdir()):
             if not folder.is_dir():
                 continue
-            creds = await CredentialManager(folder.name, self._context).load_credentials()
+            try:
+                creds = await CredentialManager(folder.name, self._context).load_credentials()
+            except Exception as error:
+                await self._context.logger.error(f"[{folder.name}] Failed to load credentials, skipping profile:", error)
+                self._context.warn_user(
+                    f"[{folder.name}] Could not load this profile ({type(error).__name__}: {error}). It was skipped.")
+                continue
             profiles.append(creds)
 
         return profiles

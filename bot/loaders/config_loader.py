@@ -1,7 +1,8 @@
 import json
 from pathlib import Path
+from typing import Callable
 from bot.constants import BASE_DIR
-from bot.utils import merge_deep
+from bot.utils import merge_deep, write_json_atomic, backup_corrupt_file
 
 DEFAULT_CONFIG = {
     "platform": {
@@ -29,25 +30,30 @@ DEFAULT_CONFIG = {
 
 class ConfigLoader:
     @staticmethod
-    def get_config():
+    def get_config(on_recovered: Callable[[str], None] | None = None):
         config_path = Path(BASE_DIR) / "config.json"
 
         if not config_path.exists():
-            config_path.write_text(
-                json.dumps(DEFAULT_CONFIG, indent=2),
-                encoding="utf-8"
-            )
+            write_json_atomic(config_path, DEFAULT_CONFIG)
 
-        with config_path.open("r", encoding='utf-8') as f:
-            config = json.load(f)
+        try:
+            with config_path.open("r", encoding='utf-8') as f:
+                config = json.load(f)
+        except ValueError:
+            config = None
+
+        if not isinstance(config, dict):
+            backup_path = backup_corrupt_file(config_path)
+            message = f"config.json was unreadable and has been reset to defaults. The old file was saved as {backup_path.name}."
+            print(message, flush=True)
+            if on_recovered:
+                on_recovered(message)
+            config = {}
 
         merged = merge_deep(DEFAULT_CONFIG, config)
 
         if merged != config:
-            config_path.write_text(
-                json.dumps(merged, indent=2),
-                encoding="utf-8"
-            )
+            write_json_atomic(config_path, merged)
 
         return merged
 
@@ -58,10 +64,7 @@ class ConfigLoader:
         config.setdefault("window", {})
         config["window"]["width"] = width
         config["window"]["height"] = height
-        config_path.write_text(
-            json.dumps(config, indent=2),
-            encoding="utf-8"
-        )
+        write_json_atomic(config_path, config)
 
     @staticmethod
     def save_active_tab(tab_id: str):
@@ -69,4 +72,4 @@ class ConfigLoader:
         config.setdefault("window", {})
         config["window"]["active_tab"] = tab_id
         config_path = Path(BASE_DIR) / "config.json"
-        config_path.write_text(json.dumps(config, indent=2), encoding="utf-8")
+        write_json_atomic(config_path, config)

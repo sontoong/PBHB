@@ -1,5 +1,9 @@
+import json
+import os
 import random
 import re
+import time
+from pathlib import Path
 from bot.constants import MAX_USERNAME_LENGTH, INVALID_USERNAME_CHARS, RESERVED_USERNAMES
 
 
@@ -81,3 +85,24 @@ def validate_username(username: str) -> str | None:
     if username.split(".")[0].upper() in RESERVED_USERNAMES:
         return f'"{username}" is a reserved name on Windows.'
     return None
+
+
+def write_json_atomic(path: Path, data, indent: int = 2):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_path = path.with_name(f"{path.name}.tmp")
+    with tmp_path.open("w", encoding="utf-8") as f:
+        json.dump(data, f, indent=indent, ensure_ascii=False)
+        f.flush()
+        os.fsync(f.fileno())
+    os.replace(tmp_path, path)
+
+
+def backup_corrupt_file(path: Path) -> Path:
+    stamp = time.strftime('%Y%m%d-%H%M%S')
+    backup_path = path.with_name(f"{path.name}.corrupt-{stamp}")
+    counter = 1
+    while backup_path.exists():
+        backup_path = path.with_name(f"{path.name}.corrupt-{stamp}-{counter}")
+        counter += 1
+    os.replace(path, backup_path)
+    return backup_path

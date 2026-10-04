@@ -1,5 +1,6 @@
 import os
 import asyncio
+import ctypes
 import threading
 import subprocess
 import sys
@@ -37,9 +38,16 @@ class Application:
                 await self._context.logger.initialize(self._context.config_manager.get_logging_config())
 
                 for creds in await TokenLoader(self._context).get_tokens():
-                    manager = ClientManager(
-                        creds, self._context.config, self._context)
-                    await manager.initialize()
+                    username = creds.get("username", "?")
+                    try:
+                        manager = ClientManager(
+                            creds, self._context.config, self._context)
+                        await manager.initialize()
+                    except Exception as error:
+                        await self._context.logger.error(f"[{username}] Failed to load profile, skipping:", error)
+                        self._context.warn_user(
+                            f"[{username}] Could not load this profile ({type(error).__name__}: {error}). It was skipped.")
+                        continue
                     self._context.client_store.add(manager)
 
                 await asyncio.to_thread(self._ensure_playwright_browsers, on_progress=lambda msg: self._context.queue_ui_task(lambda: self._ui.set_status(msg)))
@@ -55,6 +63,8 @@ class Application:
                     await self._context.logger.error("Application startup failed:", error)
                 else:
                     print(error, flush=True)
+                _show_fatal_error(
+                    f"Application startup failed:\n{type(error).__name__}: {error}")
                 os._exit(1)
 
         asyncio.set_event_loop(self._context.loop)
@@ -161,3 +171,13 @@ class Application:
             self._context.queue_ui_task(
                 lambda: self._ui.show_update_button(latest_version)
             )
+
+
+def _show_fatal_error(message: str):
+    try:
+        if sys.platform == "win32":
+            ctypes.windll.user32.MessageBoxW(0, message, APP_NAME, 0x10)
+        else:
+            print(message, flush=True)
+    except Exception:
+        pass

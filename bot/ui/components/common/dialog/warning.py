@@ -14,24 +14,25 @@ class WarningDialog:
 
     def __init__(self, context: AppContext):
         self._context = context
-        self._on_confirmed = None
+        self._on_dismissed = None
 
-    def open(self, message: str, on_confirmed: Callable | None = None):
-        self._on_confirmed = on_confirmed
+    def open(self, message: str, on_dismissed: Callable | None = None):
+        self._on_dismissed = on_dismissed
 
         if dpg.does_item_exist(self.TAG):
             dpg.delete_item(self.TAG)
 
-        with dpg.window(label="Warning", tag=self.TAG, modal=True, width=360, pos=center(360, 230)):
+        with dpg.window(label="Warning", tag=self.TAG, modal=True, width=360, pos=center(360, 230), on_close=self._dismiss):
             dpg.add_text(message, wrap=320)
             with dpg.group(horizontal=False):
                 dpg.add_spacer(height=1)
                 confirm_btn = dpg.add_button(
-                    label="Confirm", width=80, callback=self._confirm)
+                    label="Confirm", width=80, callback=self._dismiss)
                 dpg.bind_item_theme(confirm_btn, primary_button())
                 dpg.add_spacer(height=1)
 
-    def _confirm(self):
-        if self._on_confirmed:
-            self._on_confirmed()
-        dpg.delete_item(self.TAG)
+    def _dismiss(self):
+        if self._on_dismissed:
+            self._on_dismissed()
+        if dpg.does_item_exist(self.TAG):
+            dpg.delete_item(self.TAG)

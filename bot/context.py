@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable
 import asyncio
 import queue
 from bot.managers import ConfigManager
@@ -16,13 +16,14 @@ if TYPE_CHECKING:
 
 class AppContext:
     def __init__(self):
-        self.config = ConfigLoader.get_config()
+        self.ui_queue: queue.SimpleQueue = queue.SimpleQueue()
+        self.user_warning_handler: Callable[[str], None] | None = None
+        self.config = ConfigLoader.get_config(on_recovered=self.warn_user)
         self.config_manager: ConfigManager | None = None
         self.logger: Logger = Logger()
         self.window_manager: WindowManager | None = None
         self.client_store = ClientStore()
         self.loop = asyncio.new_event_loop()
-        self.ui_queue: queue.SimpleQueue = queue.SimpleQueue()
         self.memory_mb = MemoryUsage(0.0, 0.0, MEMORYSTATE.IDLE)
         self._client_service: ClientService | None = None
 
@@ -38,3 +39,9 @@ class AppContext:
 
     def queue_ui_task(self, fn):
         self.ui_queue.put_nowait(fn)
+
+    def warn_user(self, message: str):
+        def _show():
+            if self.user_warning_handler:
+                self.user_warning_handler(message)
+        self.queue_ui_task(_show)

@@ -5,6 +5,7 @@ import asyncio
 import dearpygui.dearpygui as dpg
 from bot.ui.theme import apply_global_theme, apply_global_font, apply_viewport_icon, primary_button
 from bot.ui.pages import ProfilesPage, NativePage
+from bot.ui.components.common import WarningDialog
 from bot.base.page import BasePage
 from bot.constants import APP_NAME, APP_VERSION
 from bot.utils import center
@@ -30,6 +31,11 @@ class MainUI:
         active_from_config = self._context.config["window"]["active_tab"]
         self._active = active_from_config if active_from_config in {
             tab.id for tab in _NAV} else default_tab
+
+        self._warning_dialog = WarningDialog(context)
+        self._warnings: list[str] = []
+        self._profiles_loaded = False
+        self._context.user_warning_handler = self.show_warning
 
     def run(self):
         dpg.create_context()
@@ -90,6 +96,13 @@ class MainUI:
             dpg.delete_item("loading_overlay")
         for page in self._pages.values():
             page.on_profiles_loaded()
+        self._profiles_loaded = True
+        self._open_warnings()
+
+    def show_warning(self, message: str):
+        self._warnings.append(message)
+        if self._profiles_loaded:
+            self._open_warnings()
 
     def show_update_button(self, version: str):
         if dpg.does_item_exist("update_btn"):
@@ -106,6 +119,11 @@ class MainUI:
         dpg.bind_item_theme(update_btn, primary_button())
 
     #   ------------------------------Helpers
+
+    def _open_warnings(self):
+        if self._warnings:
+            self._warning_dialog.open(
+                "\n\n".join(self._warnings), on_dismissed=self._warnings.clear)
 
     def _on_tab_changed(self, tag):
         tab_id = dpg.get_item_user_data(tag)

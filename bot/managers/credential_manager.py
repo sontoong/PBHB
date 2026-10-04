@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING
 import json
 from pathlib import Path
 from bot.constants import DEFAULT_DATA_FOLDER, DEFAULT_CREDENTIALS_FILE
+from bot.utils.helpers import write_json_atomic, backup_corrupt_file
 
 if TYPE_CHECKING:
     from bot.context import AppContext
@@ -23,23 +24,31 @@ class CredentialManager:
         }
 
     async def load_credentials(self) -> dict:
+        await self._ensure_data_dir()
+        default = self.get_default_credentials()
+
         try:
-            await self._ensure_data_dir()
-            return json.loads(self.file_path.read_text(encoding="utf-8"))
+            credentials = json.loads(
+                self.file_path.read_text(encoding="utf-8"))
         except FileNotFoundError:
-            default = self.get_default_credentials()
             await self.save_credentials(default)
             return default
-        except Exception as error:
-            raise error
+        except ValueError:
+            credentials = None
+
+        if not isinstance(credentials, dict):
+            backup_path = backup_corrupt_file(self.file_path)
+            message = f"[{self.username}] credentials.json was unreadable and has been reset. Re-enter the UID and token in Settings. The old file was saved as {backup_path.name}."
+            await self._context.logger.warn(message)
+            self._context.warn_user(message)
+            await self.save_credentials(default)
+            return default
+
+        return {**default, **credentials}
 
     async def save_credentials(self, credentials: dict) -> bool:
         try:
-            await self._ensure_data_dir()
-            self.file_path.write_text(
-                json.dumps(credentials, indent=2, ensure_ascii=False),
-                encoding="utf-8",
-            )
+            write_json_atomic(self.file_path, credentials)
             return True
         except Exception as error:
             await self._context.logger.error(f"[{self.username}] Error saving credentials:", error)
