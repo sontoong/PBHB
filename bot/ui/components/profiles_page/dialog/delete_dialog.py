@@ -30,17 +30,23 @@ class DeleteDialog:
                                callback=lambda: dpg.delete_item(self.TAG))
 
     def _confirm(self, username: str):
-        async def _delete_async():
-            await self._context.client_service.stop_client_async(username)
-            if manager:
-                await manager.profile_manager.delete_profile()
-
-        manager = self._context.client_store.get(username)
-        if manager:
-            manager.deleted = True
-
-        self._context.client_store.remove(username)
         dpg.delete_item(self.TAG)
         self._on_deleted_cb(username)
 
-        asyncio.run_coroutine_threadsafe(_delete_async(), self._context.loop)
+        asyncio.run_coroutine_threadsafe(
+            self._delete_async(username), self._context.loop)
+
+    async def _delete_async(self, username: str):
+        manager = self._context.client_store.get(username)
+        if not manager:
+            return
+
+        try:
+            await self._context.client_service.stop_client_async(username)
+            manager.deleted = True
+            self._context.client_store.remove(username)
+            await manager.profile_manager.delete_profile()
+        except Exception as error:
+            await self._context.logger.error(f"[{username}] Failed to delete profile:", error)
+            self._context.warn_user(
+                f"[{username}] Deleting the profile failed ({type(error).__name__}: {error}). Its files may still be on disk.")

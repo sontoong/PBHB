@@ -6,7 +6,7 @@ from pathlib import Path
 import asyncio
 import dearpygui.dearpygui as dpg
 from bot.managers import CredentialManager
-from bot.constants import DEFAULT_DATA_FOLDER
+from bot.constants import DEFAULT_DATA_FOLDER, LIFECYCLESTATUS
 from bot.ui.components.profiles_page import DeleteDialog
 from bot.ui.theme import danger_button, primary_button
 from bot.utils import get_uid_token, validate_username
@@ -188,4 +188,4 @@ class ProfileTab:
 
     def _is_running(self) -> bool:
         client = self._context.client_store.get(self._username)
-        return client is not None and client.browser is not None
+        return client is not None and client.lifecycle_manager.state not in (LIFECYCLESTATUS.IDLE, LIFECYCLESTATUS.FAILED)
