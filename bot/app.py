@@ -13,7 +13,7 @@ from bot.services import ClientService
 from bot.utils import sleep, strip_ansi, invalidate_global_cache
 from bot.ui import MainUI
 from bot.context import AppContext
-from bot.constants import APP_NAME, MEMORYSTATE
+from bot.constants import APP_NAME, MEMORYSTATE, SHUTDOWN_TIMEOUT_S
 
 
 class Application:
@@ -23,11 +23,19 @@ class Application:
         self._context.window_manager = WindowManager(APP_NAME)
         self._ui = MainUI(self._context)
 
-    async def start(self):
+    def start(self):
         threading.Thread(target=self._program_loop, daemon=True).start()
         self._ui.run()
-        asyncio.run_coroutine_threadsafe(
-            self._shutdown(), self._context.loop).result(timeout=10)
+        self._wait_for_shutdown()
+
+    def _wait_for_shutdown(self):
+        future = asyncio.run_coroutine_threadsafe(self._shutdown(), self._context.loop)
+        try:
+            future.result(timeout=SHUTDOWN_TIMEOUT_S)
+        except TimeoutError:
+            print(f"Shutdown did not finish within {SHUTDOWN_TIMEOUT_S}s, exiting anyway.", file=sys.stderr)
+        except Exception as error:
+            print(f"Shutdown failed: {type(error).__name__}: {error}", file=sys.stderr)
 
     def _program_loop(self):
         async def _start():

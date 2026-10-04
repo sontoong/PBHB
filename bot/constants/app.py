@@ -31,3 +31,5 @@ GITHUB_REPO = "sontoong/PBHB"
 DEFAULT_TOOLS_FOLDER = str(get_internal_dir() / "tools")
 DEFAULT_DEBUG_FOLDER = str(get_internal_dir() / "debug")
 DEFAULT_DATA_FOLDER = str(get_internal_dir() / "data")
+
+SHUTDOWN_TIMEOUT_S = 10
