@@ -83,9 +83,7 @@ class PlatformTab:
                 min_clamped=True,
                 step=0.5,
                 width=120,
-                enabled=not profile["platform"]["browser"]["speedMultiplier"]["enabled"],
-                callback=lambda s, v: self._patch(
-                    profile, ["platform", "browser", "speedMultiplier", "multiplier"], round(v, 2)),
+                callback=lambda s, v: self._on_multiplier_input(profile, v),
             )
 
     #   ------------------------------Helpers
@@ -101,8 +99,13 @@ class PlatformTab:
     def _on_speed_toggle(self, profile: dict, value: bool):
         self._patch(profile, ["platform", "browser",
                     "speedMultiplier", "enabled"], value)
-        dpg.configure_item(f"{self.TAG}_speed_input", enabled=not value)
         self._on_speed_change(profile)
+
+    def _on_multiplier_input(self, profile: dict, value: float):
+        self._patch(profile, ["platform", "browser",
+                    "speedMultiplier", "multiplier"], round(value, 2))
+        if profile["platform"]["browser"]["speedMultiplier"]["enabled"]:
+            self._on_speed_change(profile)
 
     def _on_speed_change(self, profile: dict):
         client = self._context.client_store.get(self._username)
