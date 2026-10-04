@@ -41,10 +41,15 @@ class ClientManager:
         self.lifecycle_manager = LifecycleManager()
         self._refresh_profile_task = None
         self.current_task_name: str | None = None
+        self._profile_manager: ProfileManager | None = None
 
     @property
-    def profile_manager(self):
-        return ProfileManager(username=self.profile["username"], context=self.context)
+    def profile_manager(self) -> ProfileManager:
+        username = self.profile["username"]
+        if self._profile_manager is None or self._profile_manager.username != username:
+            self._profile_manager = ProfileManager(
+                username=username, context=self.context)
+        return self._profile_manager
 
     @property
     def driver(self) -> BaseDriver | None:
