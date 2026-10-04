@@ -30,8 +30,7 @@ async def find_text(driver: BaseDriver, config, logger: Logger, box: BoundingBox
 
     cropped_screenshot = screenshot[safe_top:safe_bottom, safe_left:safe_right]
 
-    templates = _load_templates(config, match_type)
-    recognized_text = _recognize_text(cropped_screenshot, templates)
+    recognized_text = await asyncio.to_thread(_read_text, cropped_screenshot, config, match_type)
     # Debug----------------
     if match_type != "number":
         try:
@@ -47,6 +46,10 @@ async def find_text(driver: BaseDriver, config, logger: Logger, box: BoundingBox
     return recognized_text
 
 #   ------------------------------Helpers
+
+
+def _read_text(image: np.ndarray, config, match_type: str) -> str:
+    return _recognize_text(image, _load_templates(config, match_type))
 
 
 def _load_templates(config, match_type: str) -> dict:

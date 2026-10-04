@@ -12,6 +12,7 @@ from bot.utils.sleep import sleep
 from bot.utils.controls import click
 from bot.utils.cache import img_scale_cache, image_path_cache
 from bot.constants import DEFAULT_CONFIDENCE, DEFAULT_GRAYSCALE, DEFAULT_RESOLUTION, DEFAULT_IMAGE_FOLDER, DEFAULT_IMAGE_TEXTURE
+from bot.models import TemplateMatch
 
 # pylint: disable=no-member
 
@@ -33,7 +34,7 @@ async def locate_image(
     async def _locate_once(screen: np.ndarray | None = None) -> tuple[tuple[int, int] | None, float]:
         if screen is None or stable_ms > 0:
             screen = await take_screenshot(driver)
-        return await _match_image(driver, image, screen, scale_range, scale_steps)
+        return await _match_image(image, screen, scale_range, scale_steps)
 
     # Stability check
     deadline = asyncio.get_running_loop().time() + stable_timeout_ms / 1000
@@ -91,7 +92,7 @@ async def locate_any(
 
         for image in images:
             try:
-                pos, score = await _match_image(driver, image, screen, scale_range, scale_steps)
+                pos, score = await _match_image(image, screen, scale_range, scale_steps)
             except FileNotFoundError:
                 continue
             if pos is not None:
@@ -160,64 +161,19 @@ async def locate_all(
 ) -> list[tuple[int, int]]:
     cache_key = str(image_path)
 
-    template = _load_template(str(image_path), grayscale)
-    if template is None:
-        raise FileNotFoundError(f"Template image not found: {image_path}")
-
     if screen is None:
         screen = await take_screenshot(driver)
     screen, ox, oy = _crop_region(screen, region)
 
-    if grayscale and screen.ndim == 3:
-        screen = cv2.cvtColor(screen, cv2.COLOR_BGR2GRAY)
+    scales = [scale] if scale is not None else _scales_to_try(
+        cache_key, scale_range, scale_steps)
+    match = await asyncio.to_thread(_find_matches, screen, cache_key, grayscale, scales, confidence)
 
-    if scale is not None:
-        scales = [scale]
-    elif cache_key in img_scale_cache:
-        scales = [img_scale_cache[cache_key]]
-    else:
-        scales = np.linspace(scale_range[0], scale_range[1], scale_steps)
-
-    best_val = -1
-    best_scale = 1.0
-    best_result = None
-    th, tw = template.shape[:2]
-    sh, sw = screen.shape[:2]
-
-    for s in scales:
-        new_w, new_h = int(tw * s), int(th * s)
-        if new_h > sh or new_w > sw or new_h < 1 or new_w < 1:
-            continue
-
-        scaled = cv2.resize(template, (new_w, new_h)) if s != 1.0 else template
-        result = cv2.matchTemplate(screen, scaled, cv2.TM_CCOEFF_NORMED)
-        _, max_val, _, _ = cv2.minMaxLoc(result)
-
-        if max_val > best_val:
-            best_val = max_val
-            best_scale = s
-            best_result = result
-
-    if best_result is None or best_val < confidence:
+    if not match.points:
         return []
 
-    if cache_key not in img_scale_cache:
-        img_scale_cache[cache_key] = best_scale
-
-    locations = np.where(best_result >= confidence)
-    points = list(zip(locations[1], locations[0]))
-
-    if not points:
-        return []
-
-    points = _deduplicate(points)
-
-    new_w, new_h = int(tw * best_scale), int(th * best_scale)
-    final = [(int(x + ox), int(y + oy)) for x, y in points]
-    if center:
-        final = [(int(x + new_w // 2), int(y + new_h // 2)) for x, y in final]
-
-    return final
+    img_scale_cache.setdefault(cache_key, match.scale)
+    return [(x + ox, y + oy) for x, y in match.positions(center)]
 
 
 async def click_image(
@@ -237,8 +193,6 @@ async def click_image(
 
 
 async def save_screenshot(driver: BaseDriver, save_directory: Path, filename=None, add_timestamp=True):
-    save_directory.mkdir(parents=True, exist_ok=True)
-
     timestamp_str = f"_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}" if add_timestamp else ""
 
     if filename:
@@ -248,7 +202,7 @@ async def save_screenshot(driver: BaseDriver, save_directory: Path, filename=Non
 
     screen = await take_screenshot(driver)
     save_path = save_directory / full_filename
-    cv2.imwrite(str(save_path), screen)
+    await asyncio.to_thread(_write_image, save_path, screen)
 
 
 async def take_screenshot(
@@ -309,13 +263,16 @@ async def match_color(
     ratio: float = 0.5,
     screen: np.ndarray | None = None,
 ) -> bool:
+    # If web, this skips taking screenshot + convert img
+    is_match = await driver.match_color_in_canvas(region, color, tolerance, ratio)
+    if is_match is not None:
+        return is_match
+
+    # Normal path
     if screen is not None:
         x, y, w, h = region
         patch = screen[y:y + h, x:x + w, :3].astype(np.int16)
     else:
-        is_match = await driver.match_color_in_canvas(region, color, tolerance, ratio)
-        if is_match is not None:
-            return is_match
         patch = await take_screenshot(driver, region=region)
         patch = patch[:, :, :3].astype(np.int16)
 
@@ -331,7 +288,6 @@ async def match_color(
 
 
 async def _match_image(
-    driver: BaseDriver,
     image: Image,
     screen: np.ndarray,
     scale_range: tuple[float, float],
@@ -339,44 +295,17 @@ async def _match_image(
 ) -> tuple[tuple[int, int] | None, float]:
     cache_key = str(image.path)
 
-    template = _load_template(str(image.path), image.grayscale)
-    if template is None:
-        raise FileNotFoundError(f"Template image not found: {image.path}")
-
     sub, ox, oy = _crop_region(screen, image.region)
-    if image.grayscale and sub.ndim == 3:
-        sub = cv2.cvtColor(sub, cv2.COLOR_BGR2GRAY)
-
-    if cache_key in img_scale_cache:
-        scales = [img_scale_cache[cache_key]]
-    else:
-        scales = np.linspace(scale_range[0], scale_range[1], scale_steps)
-
-    best_val = -1.0
-    best_scale = 1.0
-    th, tw = template.shape[:2]
-    sh, sw = sub.shape[:2]
-
-    for scale in scales:
-        new_w, new_h = int(tw * scale), int(th * scale)
-        if new_h > sh or new_w > sw or new_h < 1 or new_w < 1:
-            continue
-
-        scaled = cv2.resize(template, (new_w, new_h)
-                            ) if scale != 1.0 else template
-        result = cv2.matchTemplate(sub, scaled, cv2.TM_CCOEFF_NORMED)
-        _, max_val, _, _ = cv2.minMaxLoc(result)
-
-        if max_val > best_val:
-            best_val = max_val
-            best_scale = scale
+    scales = _scales_to_try(cache_key, scale_range, scale_steps)
+    match = await asyncio.to_thread(_find_matches, sub, cache_key, image.grayscale, scales, image.confidence)
+    best_val = match.score
 
     # DEBUG
-    name = Path(cache_key).name
-    match_pct = f"{best_val * 100:.1f}%"
-    confidence_pct = f"{image.confidence * 100:.0f}%"
-    status = "OK" if best_val >= image.confidence else "X"
-    print(f"[{driver.uid}][Vision] {status} {name}: {match_pct} (need {confidence_pct}, scale={best_scale:.2f})", flush=True)
+    # name = Path(cache_key).name
+    # match_pct = f"{best_val * 100:.1f}%"
+    # confidence_pct = f"{image.confidence * 100:.0f}%"
+    # status = "OK" if best_val >= image.confidence else "X"
+    # print(f"[{driver.uid}][Vision] {status} {name}: {match_pct} (need {confidence_pct}, scale={match.scale:.2f})", flush=True)
     # if 0.8 <= best_val < 0.9 and name not in ["auto_red.png"]:
     #     await save_screenshot(driver, save_directory=Path(DEFAULT_DEBUG_FOLDER) / "checking", filename=f"{name}_({match_pct})", add_timestamp=True)
     #     print(
@@ -385,14 +314,10 @@ async def _match_image(
     if best_val < image.confidence:
         return None, best_val
 
-    if cache_key not in img_scale_cache:
-        img_scale_cache[cache_key] = best_scale
+    img_scale_cache.setdefault(cache_key, match.scale)
 
     # This is important to filter out best match + top left priority match
-    points = await locate_all(
-        driver, image.path, confidence=image.confidence, grayscale=image.grayscale,
-        screen=sub, scale=best_scale, center=image.center,
-    )
+    points = match.positions(image.center)
 
     if not points:
         return None, best_val
@@ -402,7 +327,56 @@ async def _match_image(
         return None, best_val
 
     px, py = points[idx]
-    return (px + ox, py + oy), float(best_val)
+    return (px + ox, py + oy), best_val
+
+
+def _scales_to_try(cache_key: str, scale_range: tuple[float, float], scale_steps: int) -> list[float]:
+    if cache_key in img_scale_cache:
+        return [img_scale_cache[cache_key]]
+    return [float(s) for s in np.linspace(scale_range[0], scale_range[1], scale_steps)]
+
+
+def _find_matches(
+    screen: np.ndarray,
+    template_path: str,
+    grayscale: bool,
+    scales: list[float],
+    confidence: float,
+) -> TemplateMatch:
+    template = _load_template(template_path, grayscale)
+    if template is None:
+        raise FileNotFoundError(f"Template image not found: {template_path}")
+
+    if grayscale and screen.ndim == 3:
+        screen = cv2.cvtColor(screen, cv2.COLOR_BGR2GRAY)
+
+    best_val = -1.0
+    best_scale = 1.0
+    best_result = None
+    th, tw = template.shape[:2]
+    sh, sw = screen.shape[:2]
+
+    for scale in scales:
+        new_w, new_h = int(tw * scale), int(th * scale)
+        if new_h > sh or new_w > sw or new_h < 1 or new_w < 1:
+            continue
+
+        scaled = cv2.resize(template, (new_w, new_h)
+                            ) if scale != 1.0 else template
+        result = cv2.matchTemplate(screen, scaled, cv2.TM_CCOEFF_NORMED)
+        _, max_val, _, _ = cv2.minMaxLoc(result)
+
+        if max_val > best_val:
+            best_val = float(max_val)
+            best_scale = scale
+            best_result = result
+
+    points: list[tuple[int, int]] = []
+    if best_result is not None and best_val >= confidence:
+        ys, xs = np.where(best_result >= confidence)
+        points = [(int(x), int(y)) for x, y in _deduplicate(list(zip(xs, ys)))]
+
+    return TemplateMatch(points, best_val, best_scale, int(tw * best_scale), int(th * best_scale))
 
 
 def _crop_region(screen: np.ndarray, region: tuple[int, int, int, int] | None):
@@ -410,6 +384,11 @@ def _crop_region(screen: np.ndarray, region: tuple[int, int, int, int] | None):
         return screen, 0, 0
     x, y, w, h = region
     return screen[y:y + h, x:x + w], x, y
+
+
+def _write_image(path: Path, image: np.ndarray):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    cv2.imwrite(str(path), image)
 
 
 @lru_cache(maxsize=256)

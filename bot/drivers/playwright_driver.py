@@ -1,3 +1,4 @@
+import asyncio
 import base64
 from playwright.async_api import Page
 import numpy as np
@@ -7,6 +8,11 @@ from bot.utils import canvas_bbox_cache, CanvasError, sleep
 from bot.constants import GAME_SCREEN_ELEMENT_ID
 
 # pylint: disable=no-member
+
+
+def _decode_base64_image(encoded: str) -> np.ndarray | None:
+    data = np.frombuffer(base64.b64decode(encoded), dtype=np.uint8)
+    return cv2.imdecode(data, cv2.IMREAD_COLOR)
 
 
 class PlaywrightDriver(BaseDriver):
@@ -58,9 +64,7 @@ class PlaywrightDriver(BaseDriver):
             if result is None:
                 raise CanvasError("Canvas not found")
 
-            data = base64.b64decode(result)
-            arr = np.frombuffer(data, dtype=np.uint8)
-            img = cv2.imdecode(arr, cv2.IMREAD_COLOR)
+            img = await asyncio.to_thread(_decode_base64_image, result)
             if img is None:
                 raise CanvasError("Failed to decode canvas image")
             return img

@@ -17,3 +17,17 @@ class Image:
     def __post_init__(self):
         if not self.label:
             object.__setattr__(self, "label", Path(self.path).name)
+
+
+@dataclass(frozen=True)
+class TemplateMatch:
+    points: list[tuple[int, int]]
+    score: float
+    scale: float
+    width: int
+    height: int
+
+    def positions(self, center: bool) -> list[tuple[int, int]]:
+        if not center:
+            return self.points
+        return [(x + self.width // 2, y + self.height // 2) for x, y in self.points]
