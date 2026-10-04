@@ -25,10 +25,10 @@ jobs:
           version: "0.9.5"
 
       - name: Install dependencies
-        run: uv sync --locked --group build
+        run: uv sync --frozen --group build
 
       - name: Build PBHB.exe
-        run: uv run pyinstaller app.spec
+        run: uv run --no-sync pyinstaller app.spec
 
       - uses: actions/cache/save@v5
         with:
@@ -50,7 +50,7 @@ jobs:
           version: "0.9.5"
 
       - name: Install updater dependencies
-        run: uv sync --locked --only-group updater
+        run: uv sync --frozen --only-group updater
 
       - name: Build updater.exe
         working-directory: tools
