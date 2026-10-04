@@ -190,7 +190,8 @@ class ClientManager:
                 await sleep(REFRESH_PROFILE_INTERVAL_MS, "ms")
                 if self.deleted:
                     return
-                await self._refresh_profile()
+                if self.profile_manager.has_external_changes():
+                    await self._refresh_profile()
             except asyncio.CancelledError as error:
                 raise error
             except Exception as error:
