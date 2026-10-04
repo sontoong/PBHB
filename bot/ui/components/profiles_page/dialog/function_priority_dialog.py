@@ -23,9 +23,8 @@ FUNCTION_LABELS = {
 class FunctionPriorityDialog:
     TAG = "fn_priority_dialog"
 
-    def __init__(self, context: AppContext, username: str, profile: dict, on_saved):
+    def __init__(self, context: AppContext, profile: dict, on_saved):
         self._context = context
-        self._username = username
         self._profile = profile
         self._on_saved = on_saved
         self._functions: dict = {

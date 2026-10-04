@@ -11,6 +11,7 @@ from bot.ui.components.profiles_page.dialog.function_priority_dialog import Func
 from bot.ui.components.profiles_page.dialog.bribe_list_dialog import BribeListDialog
 from bot.ui.components.common import section, checkbox, dropdown, int_input
 from bot.ui.theme import primary_button
+from bot.ui.profile_patch import patch_profile
 
 if TYPE_CHECKING:
     from bot.context import AppContext
@@ -19,10 +20,8 @@ if TYPE_CHECKING:
 class GameTab:
     TAG = "game_tab"
 
-    def __init__(self, username: str, profile: dict, patch_fn, context: AppContext):
-        self._username = username
+    def __init__(self, profile: dict, context: AppContext):
         self._profile = profile
-        self._patch = patch_fn
         self._context = context
         self._priority_dialog: FunctionPriorityDialog | None = None
         self._bribe_list_dialog: BribeListDialog | None = None
@@ -305,6 +304,10 @@ class GameTab:
         )
 
     #   ------------------------------Helpers
+
+    def _patch(self, profile: dict, path: list[str], value):
+        patch_profile(self._context, profile, path, value)
+
     def _refresh_dungeon_texture(self, profile: dict):
         selected = profile["dungeon"]["selectedDungeon"]
 
@@ -365,14 +368,13 @@ class GameTab:
             profile["global"]["functions"] = functions
             profile["global"]["autoChangeGamemode"] = auto_change_gamemode
             asyncio.run_coroutine_threadsafe(
-                ProfileManager(username=self._username,
+                ProfileManager(username=profile["username"],
                                context=self._context).save_profile(profile),
                 self._context.loop,
             )
 
         self._priority_dialog = FunctionPriorityDialog(
             context=self._context,
-            username=self._username,
             profile=profile,
             on_saved=on_saved
         )
@@ -381,7 +383,6 @@ class GameTab:
     def _open_bribe_list_dialog(self, profile: dict):
         self._bribe_list_dialog = BribeListDialog(
             context=self._context,
-            username=self._username,
             profile=profile,
             on_saved=lambda: None,
         )

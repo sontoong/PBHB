@@ -283,7 +283,7 @@ class ProfilesPage(BasePage):
 
         self._selected_profile = username
         self._poller.start(username)
-        self._rebuild_functions_panel(username)
+        self._rebuild_functions_panel()
 
     #   ------------------------------Helpers
 
@@ -311,7 +311,7 @@ class ProfilesPage(BasePage):
 
         if renamed and was_selected:
             self._poller.start(new_username)
-            self._rebuild_functions_panel(new_username)
+            self._rebuild_functions_panel()
 
     def _profile_delete_cb(self, username: str):
         self._remove_row(username)
@@ -325,10 +325,10 @@ class ProfilesPage(BasePage):
             self._pulse.stop(tag)
             dpg.bind_item_theme(tag, 0)
 
-    def _rebuild_functions_panel(self, username: str):
+    def _rebuild_functions_panel(self):
         for child in dpg.get_item_children("profiles_functions_panel", slot=1) or []:
             dpg.delete_item(child)
-        self._functions_panel.build("profiles_functions_panel", username)
+        self._functions_panel.build("profiles_functions_panel")
         dpg.configure_item("profiles_functions_panel", show=True)
         dpg.configure_item("user_list", height=-
                            (FUNCTIONS_PANEL_HEIGHT + FUNCTIONS_PANEL_MARGIN))

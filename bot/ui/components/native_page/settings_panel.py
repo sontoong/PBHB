@@ -10,6 +10,7 @@ from bot.constants import DUNGEON_LIST_IMAGES, EXPEDITION_LIST_IMAGES, DUNGEON_I
 from bot.ui.components.profiles_page.dialog.function_priority_dialog import FunctionPriorityDialog
 from bot.ui.components.profiles_page.dialog.bribe_list_dialog import BribeListDialog
 from bot.ui.components.common import section, checkbox, dropdown, int_input
+from bot.ui.profile_patch import patch_profile
 from bot.ui.theme import primary_button
 
 if TYPE_CHECKING:
@@ -21,7 +22,6 @@ class SettingsPanel:
 
     def __init__(self, context: AppContext):
         self._context = context
-        self._username: str = ""
         self._profile: dict | None = None
         self._priority_dialog: FunctionPriorityDialog | None = None
         self._bribe_list_dialog: BribeListDialog | None = None
@@ -31,8 +31,7 @@ class SettingsPanel:
         self._last_expedition: str | None = None
         self._last_portal: str | None = None
 
-    def build(self, parent: str, username: str):
-        self._username = username
+    def build(self, parent: str):
         self._profile = None
 
         with dpg.child_window(tag=self.TAG, parent=parent, autosize_x=True, height=-1, border=False):
@@ -40,7 +39,6 @@ class SettingsPanel:
                 "Loading...", tag=f"{self.TAG}_status", color=(160, 160, 160))
 
     def close(self):
-        self._username = ""
         self._profile = None
 
     def _rebuild_with_data(self, profile: dict):
@@ -467,16 +465,7 @@ class SettingsPanel:
     # ------------------------------Helpers
 
     def _patch(self, profile: dict, path: list[str], value):
-        node = profile
-        for key in path[:-1]:
-            node = node[key]
-        node[path[-1]] = value
-
-        asyncio.run_coroutine_threadsafe(
-            ProfileManager(username=self._username,
-                           context=self._context).save_profile(profile),
-            self._context.loop,
-        )
+        patch_profile(self._context, profile, path, value)
 
     def _refresh_dungeon_texture(self, profile: dict):
         selected = profile["dungeon"]["selectedDungeon"]
@@ -539,14 +528,13 @@ class SettingsPanel:
             profile["global"]["functions"] = functions
             profile["global"]["autoChangeGamemode"] = auto_change_gamemode
             asyncio.run_coroutine_threadsafe(
-                ProfileManager(username=self._username,
+                ProfileManager(username=profile["username"],
                                context=self._context).save_profile(profile),
                 self._context.loop,
             )
 
         self._priority_dialog = FunctionPriorityDialog(
             context=self._context,
-            username=self._username,
             profile=profile,
             on_saved=on_saved
         )
@@ -555,7 +543,6 @@ class SettingsPanel:
     def _open_bribe_list_dialog(self, profile: dict):
         self._bribe_list_dialog = BribeListDialog(
             context=self._context,
-            username=self._username,
             profile=profile,
             on_saved=lambda: None,
         )

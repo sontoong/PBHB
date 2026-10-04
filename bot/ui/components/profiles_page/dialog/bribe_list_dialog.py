@@ -1,10 +1,9 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
-import asyncio
 import dearpygui.dearpygui as dpg
-from bot.managers import ProfileManager
 from bot.utils import center
 from bot.ui.theme import primary_button
+from bot.ui.profile_patch import patch_profile
 
 if TYPE_CHECKING:
     from bot.context import AppContext
@@ -14,9 +13,8 @@ class BribeListDialog:
     TAG = "bribe_list_dialog"
     _row_counter = 0
 
-    def __init__(self, context: AppContext, username: str, profile: dict, on_saved):
+    def __init__(self, context: AppContext, profile: dict, on_saved):
         self._context = context
-        self._username = username
         self._profile = profile
         self._on_saved = on_saved
         self._bribe_list: dict = dict(profile["global"]["bribeList"])
@@ -103,11 +101,6 @@ class BribeListDialog:
             if name:
                 new_bribe_list[name] = value
 
-        self._profile["global"]["bribeList"] = new_bribe_list
-        asyncio.run_coroutine_threadsafe(
-            ProfileManager(username=self._username, context=self._context).save_profile(
-                self._profile),
-            self._context.loop,
-        )
+        patch_profile(self._context, self._profile, ["global", "bribeList"], new_bribe_list)
         dpg.delete_item(self.TAG)
         self._on_saved()

@@ -12,6 +12,7 @@ from bot.managers import ProfilePoller
 
 if TYPE_CHECKING:
     from bot.context import AppContext
+    from bot.managers import ClientManager
 
 
 class NativePage(BasePage):
@@ -20,6 +21,7 @@ class NativePage(BasePage):
     def __init__(self, context: AppContext):
         super().__init__(context)
         self._selected_profile: str | None = None
+        self._selected_client: ClientManager | None = None
         self._selected_window: str | None = None
         self._last_window_refresh = float("-inf")
         self._settings_panel = SettingsPanel(self._context)
@@ -101,9 +103,10 @@ class NativePage(BasePage):
 
     def _on_profile_selected(self, username: str):
         self._selected_profile = username
+        self._selected_client = self._context.client_store.get(username)
         self._poller.start(username)
-        self._rebuild_functions_panel(username)
-        self._rebuild_settings_panel(username)
+        self._rebuild_functions_panel()
+        self._rebuild_settings_panel()
 
     def _on_window_selected(self, window_name: str):
         self._selected_window = window_name
@@ -138,6 +141,7 @@ class NativePage(BasePage):
         if not names:
             if self._selected_profile is not None:
                 self._selected_profile = None
+                self._selected_client = None
                 self._poller.stop()
                 self._clear_functions_panel()
                 self._clear_settings_panel()
@@ -146,20 +150,26 @@ class NativePage(BasePage):
 
         current_profile = dpg.get_value("native_profile_combo")
         if current_profile not in names:
-            dpg.set_value("native_profile_combo", names[0])
-            self._on_profile_selected(names[0])
+            next_profile = self._renamed_selection(clients) or names[0]
+            dpg.set_value("native_profile_combo", next_profile)
+            self._on_profile_selected(next_profile)
 
-    def _rebuild_functions_panel(self, username: str):
+    def _renamed_selection(self, clients: list[ClientManager]) -> str | None:
+        if self._selected_client in clients:
+            return self._selected_client.profile["username"]
+        return None
+
+    def _rebuild_functions_panel(self):
         for child in dpg.get_item_children("native_functions_panel", slot=1) or []:
             dpg.delete_item(child)
 
-        self._functions_panel.build("native_functions_panel", username)
+        self._functions_panel.build("native_functions_panel")
 
-    def _rebuild_settings_panel(self, username: str):
+    def _rebuild_settings_panel(self):
         for child in dpg.get_item_children("native_settings_panel", slot=1) or []:
             dpg.delete_item(child)
 
-        self._settings_panel.build("native_settings_panel", username)
+        self._settings_panel.build("native_settings_panel")
 
     def _on_start(self):
         if not self._selected_profile or not self._selected_window:

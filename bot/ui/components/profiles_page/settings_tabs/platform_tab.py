@@ -4,6 +4,7 @@ import asyncio
 import dearpygui.dearpygui as dpg
 from bot.utils import speed_apply_script
 from bot.ui.components.common import section, checkbox, dropdown
+from bot.ui.profile_patch import patch_profile
 
 if TYPE_CHECKING:
     from bot.context import AppContext
@@ -12,10 +13,8 @@ if TYPE_CHECKING:
 class PlatformTab:
     TAG = "platform_tab"
 
-    def __init__(self, username: str, profile: dict, patch_fn, context: AppContext):
-        self._username = username
+    def __init__(self, profile: dict, context: AppContext):
         self._profile = profile
-        self._patch = patch_fn
         self._context = context
 
     def build(self, parent: str):
@@ -88,6 +87,9 @@ class PlatformTab:
 
     #   ------------------------------Helpers
 
+    def _patch(self, profile: dict, path: list[str], value):
+        patch_profile(self._context, profile, path, value)
+
     def _on_preset_change(self, name: str, presets: list[dict[str, int | str]], profile: dict):
         preset = next((p for p in presets if p["name"] == name), None)
         if preset:
@@ -108,7 +110,7 @@ class PlatformTab:
             self._on_speed_change(profile)
 
     def _on_speed_change(self, profile: dict):
-        client = self._context.client_store.get(self._username)
+        client = self._context.client_store.get(profile["username"])
         if client and client.page:
             multiplier = profile["platform"]["browser"][
                 "speedMultiplier"]["multiplier"] if profile["platform"]["browser"][

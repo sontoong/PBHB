@@ -1,9 +1,8 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
-import asyncio
 import dearpygui.dearpygui as dpg
-from bot.managers import ProfileManager
 from bot.ui.components.common import checkbox, section
+from bot.ui.profile_patch import patch_profile
 
 if TYPE_CHECKING:
     from bot.context import AppContext
@@ -28,7 +27,6 @@ CONTAINER_PADDING = 16
 class FunctionsPanel:
     def __init__(self, context: AppContext):
         self._context = context
-        self._username: str = ""
         self._profile: dict | None = None
         self._container: str | None = None
         self._reflowing = False
@@ -36,8 +34,7 @@ class FunctionsPanel:
         self._last_content_height = 0
         self._tag = f"functions_panel_{id(self)}"
 
-    def build(self, parent: str, username: str):
-        self._username = username
+    def build(self, parent: str):
         self._container = parent
         self._last_width = 0
         self._last_content_height = 0
@@ -178,13 +175,4 @@ class FunctionsPanel:
             row_width += (ROW_SPACING if row_width > 0 else 0) + chk_width
 
     def _patch(self, profile: dict, path: list[str], value):
-        node = profile
-        for key in path[:-1]:
-            node = node[key]
-        node[path[-1]] = value
-
-        asyncio.run_coroutine_threadsafe(
-            ProfileManager(username=self._username,
-                           context=self._context).save_profile(profile),
-            self._context.loop,
-        )
+        patch_profile(self._context, profile, path, value)
