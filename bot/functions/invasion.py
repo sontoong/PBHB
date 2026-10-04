@@ -31,7 +31,7 @@ class Invasion(BaseTask):
             wave_pos = await self._locate_image(f"{INVASION_IMAGES}/wave_counter_box_top.png", confidence=0.9, grayscale=False)
             if wave_pos:
                 wave_number = await self._find_text(box_top=wave_pos[1]+10, box_left=wave_pos[0]+10, box_width=90, box_height=25, match_type="number")
-                if wave_number is not None:
+                if wave_number and wave_number.isdigit():
                     if self._max_wave is None:
                         self._max_wave = int(wave_number) + max_wave
                     if int(wave_number) >= self._max_wave:

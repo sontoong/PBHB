@@ -252,9 +252,9 @@ class SettingsPanel:
         )
         int_input(
             parent=parent,
-            label="Max wave",
+            label="Max wave (0 = off)",
             value=profile["invasion"]["maxWave"],
-            min_val=1,
+            min_val=0,
             tag=f"{self.TAG}_int_invasion_maxWave",
             on_change=lambda v: self._patch(
                 profile, ["invasion", "maxWave"], v),
