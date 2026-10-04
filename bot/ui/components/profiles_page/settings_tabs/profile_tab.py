@@ -10,7 +10,7 @@ from bot.constants import DEFAULT_DATA_FOLDER
 from bot.ui.components.profiles_page import DeleteDialog
 from bot.ui.components.common import WarningDialog
 from bot.ui.theme import danger_button, primary_button
-from bot.utils import get_uid_token
+from bot.utils import get_uid_token, validate_username
 
 
 if TYPE_CHECKING:
@@ -82,13 +82,15 @@ class ProfileTab:
         uid = dpg.get_value(f"{self.TAG}_edit_uid").strip()
         token = dpg.get_value(f"{self.TAG}_edit_token").strip()
 
-        if not new_username:
-            self._set_result_message("Username is required.")
+        error = validate_username(new_username)
+        if error:
+            self._set_result_message(error)
             return
 
-        existing = [client.profile["username"]
-                    for client in self._context.client_store.get_all()]
-        if new_username != old_username and new_username in existing:
+        existing = {client.profile["username"].lower()
+                    for client in self._context.client_store.get_all()
+                    if client.profile["username"] != old_username}
+        if new_username.lower() in existing:
             self._set_result_message(f'"{new_username}" already exists.')
             return
 
@@ -151,7 +153,8 @@ class ProfileTab:
     def _rename_profile_folder(self, old: str, new: str):
         old_path = _ROOT / old
         new_path = _ROOT / new
-        if new_path.exists():
+        # On Windows, a case-only rename points at the same folder
+        if new_path.exists() and old.lower() != new.lower():
             raise FileExistsError(f'Folder "{new}" already exists')
         if old_path.exists():
             old_path.rename(new_path)

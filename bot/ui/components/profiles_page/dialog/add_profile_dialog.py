@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 import asyncio
 import dearpygui.dearpygui as dpg
 from bot.managers import CredentialManager, ClientManager
-from bot.utils import center, get_uid_token
+from bot.utils import center, get_uid_token, validate_username
 from bot.ui.theme import primary_button
 
 
@@ -46,13 +46,14 @@ class AddProfileDialog:
         uid = dpg.get_value("add_uid").strip()
         token = dpg.get_value("add_token").strip()
 
-        if not username:
-            self._set_result_message("Username is required.")
+        error = validate_username(username)
+        if error:
+            self._set_result_message(error)
             return
 
-        existing = [client.profile["username"]
-                    for client in self._context.client_store.get_all()]
-        if username in existing:
+        existing = {client.profile["username"].lower()
+                    for client in self._context.client_store.get_all()}
+        if username.lower() in existing:
             self._set_result_message(f'"{username}" already exists.')
             return
 

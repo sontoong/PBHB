@@ -147,8 +147,13 @@ class ProfileManager:
             return False
 
     async def delete_profile(self):
+        folder = self.file_path.parent
+        data_root = Path(DEFAULT_DATA_FOLDER).resolve()
+        if folder.resolve().parent != data_root:
+            raise ValueError(
+                f"Refusing to delete '{folder}': it is not a profile folder inside {data_root}")
+
         try:
-            folder = self.file_path.parent
             if folder.exists():
                 shutil.rmtree(folder)
             return True

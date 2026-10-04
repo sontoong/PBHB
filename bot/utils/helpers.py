@@ -1,5 +1,6 @@
 import random
 import re
+from bot.constants import MAX_USERNAME_LENGTH, INVALID_USERNAME_CHARS, RESERVED_USERNAMES
 
 
 def random_integer(min_val, max_val):
@@ -64,3 +65,19 @@ def merge_deep(base, overlay):
         return base
 
     return overlay
+
+
+def validate_username(username: str) -> str | None:
+    if not username:
+        return "Username is required."
+    if len(username) > MAX_USERNAME_LENGTH:
+        return f"Username must be at most {MAX_USERNAME_LENGTH} characters."
+    if username in (".", ".."):
+        return "Username cannot be '.' or '..'."
+    if any(c in INVALID_USERNAME_CHARS or ord(c) < 32 for c in username):
+        return 'Username cannot contain < > : " / \\ | ? * or control characters.'
+    if username[-1] in ". ":
+        return "Username cannot end with a dot or a space."
+    if username.split(".")[0].upper() in RESERVED_USERNAMES:
+        return f'"{username}" is a reserved name on Windows.'
+    return None
