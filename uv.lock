@@ -281,7 +281,7 @@ wheels = [
 
 [[package]]
 name = "pbhb"
-version = "2.4.0"
+version = "2.5.1"
 source = { editable = "." }
 dependencies = [
     { name = "dearpygui" },
@@ -299,6 +299,11 @@ dependencies = [
 
 [package.dev-dependencies]
 build = [
+    { name = "pyinstaller" },
+]
+updater = [
+    { name = "httpx" },
+    { name = "packaging" },
     { name = "pyinstaller" },
 ]
 
@@ -319,6 +324,11 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 build = [{ name = "pyinstaller", specifier = ">=6.20.0" }]
+updater = [
+    { name = "httpx", specifier = ">=0.28.1" },
+    { name = "packaging", specifier = ">=26.2" },
+    { name = "pyinstaller", specifier = ">=6.20.0" },
+]
 
 [[package]]
 name = "pefile"
