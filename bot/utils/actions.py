@@ -7,6 +7,7 @@ from playwright._impl._errors import TargetClosedError
 from bot.utils.image import locate_image, resolve_image_path, resolve_image_path_with_warning, click_image, save_screenshot, take_screenshot
 from bot.utils.sleep import sleep
 from bot.utils.cache import invalidate_page_cache
+from bot.utils.exceptions import GameMaintenanceError
 from bot.utils.browser import speed_apply_script, inject_speed_display_script, inject_task_display_script, inject_fps_counter_script
 from bot.models import Image
 from bot.constants import GLOBAL_IMAGES, EXPEDITION_IMAGES, GVG_IMAGES, INVASION_IMAGES, DEFAULT_RESOLUTION, DEFAULT_DEBUG_FOLDER, FISHING_IMAGES
@@ -121,8 +122,8 @@ async def wait_for_game(client_manager: ClientManager, timeout_ms: int = 15 * 60
                     invalidate_page_cache(page)
                     await asyncio.wait_for(page.reload(wait_until="domcontentloaded", timeout=0), timeout=60)
                 else:
-                    await client_manager.context.client_service.stop_native_async(client_manager.profile["username"])
-                    break
+                    raise GameMaintenanceError(
+                        "Game maintenance detected in Window Mode")
 
             # Check for disconnect
             await click_image(driver, Image(path=resolve_image_path(window_config, f"{GLOBAL_IMAGES}/reconnect_button.png")))

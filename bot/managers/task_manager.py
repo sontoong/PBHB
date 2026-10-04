@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 import asyncio
 from playwright._impl._errors import TargetClosedError
 from bot.constants import STATUS, TASKTYPE
-from bot.utils import WindowError, CanvasError, sleep, check_gamemodes, inject_task_display_script
+from bot.utils import WindowError, CanvasError, GameMaintenanceError, sleep, check_gamemodes, inject_task_display_script
 from bot.base.task import BaseTask
 from bot.functions.pvp import PVP
 from bot.functions.trials_gauntlet import TrialsGauntlet
@@ -115,7 +115,7 @@ class TaskManager:
                             await self._context.logger.info(
                                 f"[{self._profile['username']}] Task {function_name} result: {result}")
 
-                    except (TargetClosedError, WindowError, CanvasError):
+                    except (TargetClosedError, WindowError, CanvasError, GameMaintenanceError):
                         raise
 
                     except Exception as error:

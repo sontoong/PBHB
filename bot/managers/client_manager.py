@@ -13,7 +13,7 @@ from bot.managers.task_manager import TaskManager
 from bot.managers.lifecycle_manager import LifecycleManager
 from bot.constants import DEFAULT_DATA_FOLDER, REFRESH_PROFILE_INTERVAL_MS, TASKTYPE, STATUS
 from bot.drivers import PlaywrightDriver
-from bot.utils import WindowError, CanvasError, MissingCredentialsError
+from bot.utils import WindowError, CanvasError, MissingCredentialsError, GameMaintenanceError
 
 
 if TYPE_CHECKING:
@@ -202,6 +202,8 @@ class ClientManager:
             username = self.profile['username']
             if isinstance(exc, WindowError):
                 await self.context.logger.warn(f"[{username}] Window closed during run, stopping...")
+            elif isinstance(exc, GameMaintenanceError):
+                await self.context.logger.warn(f"[{username}] Game maintenance detected, stopping...")
             else:
                 await self.context.logger.error(f"[{username}] Task window crashed unexpectedly:", exc)
             await self.context.client_service.stop_native_async(username)

@@ -8,3 +8,7 @@ class WindowError(RuntimeError):
 
 class MissingCredentialsError(RuntimeError):
     pass
+
+
+class GameMaintenanceError(RuntimeError):
+    pass

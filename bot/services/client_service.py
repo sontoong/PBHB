@@ -9,7 +9,7 @@ import dearpygui.dearpygui as dpg
 from packaging import version as pkg_version
 from bot.constants import GITHUB_REPO, APP_VERSION, DEFAULT_TOOLS_FOLDER, LIFECYCLESTATUS
 from bot.drivers.native_driver import NativeDriver
-from bot.utils import WindowError, MissingCredentialsError
+from bot.utils import WindowError, MissingCredentialsError, GameMaintenanceError
 
 if TYPE_CHECKING:
     from bot.context import AppContext
@@ -101,6 +101,9 @@ class ClientService:
                 await client_manager.lifecycle_manager.start(lambda: client_manager.start_task_native(driver))
             except WindowError:
                 await self._context.logger.warn(f"[{username}] Window '{driver.window_title}' not found, stopping...")
+                await self.stop_native_async(username)
+            except GameMaintenanceError:
+                await self._context.logger.warn(f"[{username}] Game maintenance detected, stopping...")
                 await self.stop_native_async(username)
             except Exception as error:
                 await self._context.logger.error(f"[{username}] Failed to start:", error)

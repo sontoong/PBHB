@@ -4,7 +4,7 @@ import asyncio
 import dataclasses
 from pathlib import Path
 from playwright._impl._errors import TargetClosedError
-from bot.utils import locate_image, click_image, locate_all, resolve_image_path, sleep, reload_and_wait, save_screenshot, click, press, CanvasError, WindowError, find_text, locate_any
+from bot.utils import locate_image, click_image, locate_all, resolve_image_path, sleep, reload_and_wait, save_screenshot, click, press, CanvasError, WindowError, GameMaintenanceError, find_text, locate_any
 from bot.constants import STATUS, DEFAULT_DEBUG_FOLDER, DEFAULT_MAX_TIME
 from bot.models import BoundingBox, Image
 
@@ -153,7 +153,7 @@ class BaseTask:
                 deadline = None
                 loop_count = 0
 
-            except (TargetClosedError, WindowError):
+            except (TargetClosedError, WindowError, GameMaintenanceError):
                 raise
             except CanvasError:
                 await self._context.logger.warn(f"[{username}] {task_name} lost canvas, reloading...")
