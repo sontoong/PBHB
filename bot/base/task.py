@@ -160,8 +160,9 @@ class BaseTask:
                 await reload_and_wait(self._client_manager)
                 deadline = None
                 loop_count = 0
-            except Exception:
-                pass
+            except Exception as error:
+                await self._context.logger.error(f"[{username}] {task_name} step failed, retrying:", error)
+                await sleep(1)
 
     async def _run(self) -> STATUS | None:
         raise NotImplementedError
