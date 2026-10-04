@@ -77,7 +77,7 @@ class MainUI:
                     break
                 except Exception as e:
                     asyncio.run_coroutine_threadsafe(
-                        self._context.logger.error(e), self._context.loop)
+                        self._context.logger.error("UI task failed:", e), self._context.loop)
 
             if self._active in self._pages:
                 self._pages[self._active].on_frame()

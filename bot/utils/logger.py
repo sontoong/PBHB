@@ -1,9 +1,7 @@
-import json
 from datetime import datetime
 import sys
 from pathlib import Path
 import traceback
-from bot.utils.helpers import error_to_json
 from bot.constants import BASE_DIR
 
 
@@ -34,7 +32,6 @@ class Logger:
                 parents=True, exist_ok=True)
 
     # Methods
-
     async def debug(self, message, data=None):
         await self._log("debug", message, data)
 
@@ -45,8 +42,7 @@ class Logger:
         await self._log("warn", message, data)
 
     async def error(self, message, data=None):
-        error_data = error_to_json(data)
-        await self._log("error", message, error_data)
+        await self._log("error", message, data)
 
     async def success(self, message, data=None):
         await self._log("success", message, data)
@@ -59,7 +55,8 @@ class Logger:
             with open(f"{BASE_DIR}/{self.config["logFile"]}", "a", encoding="utf-8") as f:
                 f.write(message + "\n")
         except Exception as error:
-            await self.error("Failed to write to log file:", error)
+            print(
+                f"Failed to write to log file: {error}", file=sys.stderr, flush=True)
 
     # -------Helpers------------------------------------------------------
 
@@ -92,42 +89,21 @@ class Logger:
         return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     def _should_log(self, level):
-        levels = {"debug": 0, "info": 1, "warn": 2, "error": 3, "success": 4}
+        levels = {"debug": 0, "info": 1, "success": 1, "warn": 2, "error": 3}
         return levels[level] >= levels[self.config["logLevel"]]
 
     def _format_message(self, level, message, data):
         timestamp = self._get_timestamp()
         level_upper = level.upper().ljust(7)
 
-        data_str = ""
-        if data:
-            data_str = " " + self._stringify_safe(data)
+        return f"[{timestamp}] [{level_upper}] {message}{self._format_data(data)}"
 
-        return f"[{timestamp}] [{level_upper}] {message}{data_str}"
-
-    def _stringify_safe(self, obj, space=2):
-        def default_serializer(o):
-            if isinstance(o, Exception):
-                return {
-                    "name": type(o).__name__,
-                    "message": str(o),
-                    "stack": self._get_exception_stack(o)
-                }
-            if callable(o):
-                return f"[Function: {getattr(o, '__name__', 'anonymous')}]"
-            if isinstance(o, set):
-                return list(o)
-
-            raise TypeError(
-                f"Object of type {type(o)} is not JSON serializable")
-
-        try:
-            return json.dumps(obj, default=default_serializer, indent=space)
-        except Exception:
-            return str(obj)
-
-    def _get_exception_stack(self, error):
-        return ''.join(traceback.format_exception(type(error), error, error.__traceback__))
+    def _format_data(self, data):
+        if data is None:
+            return ""
+        if isinstance(data, BaseException):
+            return "\n" + "".join(traceback.format_exception(data)).rstrip()
+        return f" {data}"
 
     def get_color(self, level):
         colors = {

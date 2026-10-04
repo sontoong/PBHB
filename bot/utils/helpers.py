@@ -20,21 +20,6 @@ def random_integer(min_val, max_val):
     return random.randint(min_val, max_val)
 
 
-def error_to_json(error):
-    if not error:
-        return None
-
-    if isinstance(error, Exception):
-        return {
-            "name": type(error).__name__,
-            "message": str(error),
-            "stack": getattr(error, '__traceback__', None),
-            "code": getattr(error, 'code', None)
-        }
-
-    return error
-
-
 def sort_object_by_value_length(obj, ascending=True):
     sorted_items = sorted(
         obj.items(),
