@@ -1,5 +1,37 @@
 # Changelog
 
+## [2.6.0](https://github.com/sontoong/PBHB/compare/v2.5.1...v2.6.0) (2026-10-04)
+
+
+### Features
+
+* **ui:** keep speed multiplier editable and apply changes live ([a69c42f](https://github.com/sontoong/PBHB/commit/a69c42f69ccd953993eb8b5e87b0a85869379da9))
+
+
+### Bug Fixes
+
+* correct default resolution type, press interval and misleading log messages ([b368080](https://github.com/sontoong/PBHB/commit/b368080174bc5421e497fb942e61712386c3cf54))
+* **global:** skip dialog arrows on the Bit Valley screen ([d022813](https://github.com/sontoong/PBHB/commit/d02281335d4d4aa13fe4d3c8e7f5a1a3afb10f6f))
+* **invasion:** allow disabling max wave and ignore unreadable wave numbers ([eb09033](https://github.com/sontoong/PBHB/commit/eb090332c00463d019358f387edc8d599ce63a81))
+* **lifecycle:** allow restarting failed clients and stop every active client on shutdown ([2cafd1f](https://github.com/sontoong/PBHB/commit/2cafd1ffdc9f32ef5932a1f67262d6afce09d1a7))
+* **logger:** log full tracebacks, avoid recursive write failures, rank success as info ([236a66a](https://github.com/sontoong/PBHB/commit/236a66aee8cb92d479bd1b09a9bb7f51cd2f7cca))
+* **profiles:** reload profile only when the file changes on disk ([a3b9ed8](https://github.com/sontoong/PBHB/commit/a3b9ed8445f677069f5e1f29c453182f22cdf4d1))
+* **profiles:** stop the client before deleting and block edits while running in any mode ([769be10](https://github.com/sontoong/PBHB/commit/769be1086f45b1a9add1c1e161137e18a149b002))
+* **profiles:** validate usernames and refuse to delete outside the data folder ([6527db5](https://github.com/sontoong/PBHB/commit/6527db5cac15ffcc6764c8075e4e2ff44835e2e3))
+* **storage:** save JSON atomically and recover from corrupt files ([d8cb800](https://github.com/sontoong/PBHB/commit/d8cb80086c2f94a96e0ebc07b2b751224d0a1102))
+* **tasks:** log failed task steps instead of silently retrying ([0444cfd](https://github.com/sontoong/PBHB/commit/0444cfd4e00671ea2bbd2f1cc9f2d071181cbbad))
+* **ui:** save to the current profile name after a rename ([bac9467](https://github.com/sontoong/PBHB/commit/bac94678cbb6bf98a20d0341720a74a4d55eaaf3))
+* **updater:** wait for the app to exit before replacing the executable ([efe17b1](https://github.com/sontoong/PBHB/commit/efe17b1ed09c122c3f599f46969b9ddbc8ac0781))
+* **window-mode:** release GDI handles when screen capture fails ([98b9d8b](https://github.com/sontoong/PBHB/commit/98b9d8b30f41cf4ee6786e764a4f556333fd791b))
+* **window-mode:** stop on game maintenance without cancelling the running task ([581bf86](https://github.com/sontoong/PBHB/commit/581bf868dd00a84c12334db7c64adbcb136210cd))
+
+
+### Performance Improvements
+
+* **profiles:** reuse one ProfileManager per client ([7013975](https://github.com/sontoong/PBHB/commit/70139756a6158ae31e19737519f05aedb40dcfef))
+* **vision:** run template matching, OCR and image decoding off the event loop ([70e08fa](https://github.com/sontoong/PBHB/commit/70e08fabfc8b82762a8b5dcc7e3a594548a04898))
+* **window-mode:** refresh the window list at most once per second ([28bd4c4](https://github.com/sontoong/PBHB/commit/28bd4c4379dff722e883470c7ab5171478cf7ca0))
+
 ## [2.5.1](https://github.com/sontoong/PBHB/compare/v2.5.0...v2.5.1) (2026-09-20)
 
 
