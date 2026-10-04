@@ -17,7 +17,7 @@ def random_integer(min_val, max_val):
     if min_int > max_int:
         min_int, max_int = max_int, min_int
 
-    return random.randint(min_val, max_val)
+    return random.randint(min_int, max_int)
 
 
 def sort_object_by_value_length(obj, ascending=True):

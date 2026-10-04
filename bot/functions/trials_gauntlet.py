@@ -14,7 +14,7 @@ class TrialsGauntlet(BaseTask):
 
         # Out of tokens
         if await self._locate_image(f"{GLOBAL_IMAGES}/not_enough_tokens.png", stable_ms=300):
-            await self._press(key="Escape", presses=2, interval=2000)
+            await self._press(key="Escape", presses=2, interval_ms=2000)
             return STATUS.OOR
 
         # Exit TG

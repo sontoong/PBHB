@@ -12,8 +12,8 @@ async def click(driver: BaseDriver, x: int, y: int, clicks: int = 1):
     await driver.click(x, y, clicks)
 
 
-async def press(driver: BaseDriver, key: str, presses: int = 1, interval: int = 1000, skip_delay: bool = False):
-    await driver.press(key, presses, interval, skip_delay)
+async def press(driver: BaseDriver, key: str, presses: int = 1, interval_ms: int = 1000, skip_delay: bool = False):
+    await driver.press(key, presses, interval_ms, skip_delay)
 
 
 def shutdown(delay_seconds: int = 0):

@@ -18,7 +18,7 @@ class BaseDriver(ABC):
         """Click at (x, y) relative to the game area origin."""
 
     @abstractmethod
-    async def press(self, key: str, presses: int = 1, interval_ms: int = 100, skip_delay: bool = False) -> None:
+    async def press(self, key: str, presses: int = 1, interval_ms: int = 1000, skip_delay: bool = False) -> None:
         """Press"""
 
     async def match_color_in_canvas(

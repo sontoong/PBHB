@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from bot.base.driver import BaseDriver
 
 
-async def find_text(driver: BaseDriver, config, logger: Logger, box: BoundingBox, match_type: Literal["text", "number", "both"] = "both") -> str:
+async def find_text(driver: BaseDriver, config, logger: Logger, box: BoundingBox, match_type: Literal["char", "number", "both"] = "both") -> str:
     screenshot = await take_screenshot(driver)
     img_h, img_w = screenshot.shape[:2]
 
@@ -41,7 +41,7 @@ async def find_text(driver: BaseDriver, config, logger: Logger, box: BoundingBox
                 filename=f"{recognized_text if recognized_text != '' else f'NOT_RECOGNIZED_{timestamp_str}'}", add_timestamp=False
             ), timeout=10)
         except Exception as e:
-            await logger.error(f"Failed to save timeout screenshot: {type(e).__name__}: {e}")
+            await logger.error("Failed to save OCR debug screenshot:", e)
     # ----------------------
     return recognized_text
 

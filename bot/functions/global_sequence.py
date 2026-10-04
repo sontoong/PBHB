@@ -156,5 +156,5 @@ class GlobalSequence(BaseTask):
 
         # Case: Disabled battle
         if await self._locate_image(f"{GLOBAL_IMAGES}/disabled_battle.png", screen=screen):
-            await self._context.logger.info(f"[{self._profile['username']}] Game Maintenance.")
+            await self._context.logger.info(f"[{self._profile['username']}] Battle disabled, reloading...")
             await reload_and_wait(self._client_manager)

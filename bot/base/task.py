@@ -214,7 +214,7 @@ class BaseTask:
             return await press(self._driver, **kwargs)
 
     async def _find_text(
-        self, box_left: int, box_top: int, box_width: int, box_height: int, match_type: Literal["text", "number", "both"] = "both"
+        self, box_left: int, box_top: int, box_width: int, box_height: int, match_type: Literal["char", "number", "both"] = "both"
     ) -> str | None:
         window_config = self._client_manager.profile["platform"]["browser"]["window"]
         if self._driver and self._is_running:
