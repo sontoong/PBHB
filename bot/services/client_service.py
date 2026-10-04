@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 import asyncio
+import os
 import sys
 import subprocess
 from pathlib import Path
@@ -176,5 +177,5 @@ class ClientService:
         if sys.platform == "win32":
             flags = subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP
 
-        subprocess.Popen([str(updater)], cwd=str(
+        subprocess.Popen([str(updater), "--wait-pid", str(os.getpid())], cwd=str(
             updater.parent), creationflags=flags, close_fds=True)

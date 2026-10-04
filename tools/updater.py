@@ -1,3 +1,6 @@
+import argparse
+import ctypes
+from ctypes import wintypes
 import os
 import time
 from pathlib import Path
@@ -22,6 +25,9 @@ REQUEST_TIMEOUT = 6
 DOWNLOAD_TIMEOUT = None
 DOWNLOAD_MAX_RETRIES = 3
 DOWNLOAD_RETRY_DELAY = 2
+APP_EXIT_TIMEOUT = 30
+SWAP_MAX_RETRIES = 10
+SWAP_RETRY_DELAY = 1
 
 #   ------------------------------UI
 
@@ -134,7 +140,7 @@ class SplashWindow:
         self.root.destroy()
 
 
-def run_update_check(splash: SplashWindow):
+def run_update_check(splash: SplashWindow, wait_pid: int | None = None):
     try:
         installed = get_installed_version()
         release = fetch_latest_release()
@@ -187,6 +193,9 @@ def run_update_check(splash: SplashWindow):
                                 pass
                         raise dl_exc
                     if not cancelled:
+                        if wait_pid is not None:
+                            splash.set_status(f"Waiting for {APP_NAME} to close…")
+                            wait_for_process_exit(wait_pid, APP_EXIT_TIMEOUT)
                         swap_exe(tmp, old_exe)
                         write_version(latest)
                         splash.set_status(f"Updated to v{latest}!")
@@ -291,8 +300,43 @@ def download_file(url: str, dest: Path, progress_cb=None, cancel_event: threadin
                         progress_cb(downloaded, total)
 
 
+def wait_for_process_exit(pid: int, timeout: float) -> bool:
+    if sys.platform == "win32":
+        SYNCHRONIZE = 0x00100000
+        WAIT_OBJECT_0 = 0
+        kernel32 = ctypes.windll.kernel32
+        kernel32.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+        kernel32.OpenProcess.restype = wintypes.HANDLE
+        kernel32.WaitForSingleObject.argtypes = [wintypes.HANDLE, wintypes.DWORD]
+        kernel32.WaitForSingleObject.restype = wintypes.DWORD
+        kernel32.CloseHandle.argtypes = [wintypes.HANDLE]
+        handle = kernel32.OpenProcess(SYNCHRONIZE, False, pid)
+        if not handle:
+            return True
+        try:
+            return kernel32.WaitForSingleObject(handle, int(timeout * 1000)) == WAIT_OBJECT_0
+        finally:
+            kernel32.CloseHandle(handle)
+
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        try:
+            os.kill(pid, 0)
+        except ProcessLookupError:
+            return True
+        time.sleep(0.2)
+    return False
+
+
 def swap_exe(tmp_path: Path, target_path: Path):
-    os.replace(str(tmp_path), str(target_path))
+    for attempt in range(1, SWAP_MAX_RETRIES + 1):
+        try:
+            os.replace(str(tmp_path), str(target_path))
+            return
+        except PermissionError:
+            if attempt == SWAP_MAX_RETRIES:
+                raise
+            time.sleep(SWAP_RETRY_DELAY)
 
 
 def launch_app():
@@ -323,9 +367,18 @@ def show_error(msg: str):
 #   ------------------------------Entry
 
 
+def parse_args(argv: list[str]) -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--wait-pid", type=int, default=None)
+    args, _ = parser.parse_known_args(argv)
+    return args
+
+
 def main():
+    args = parse_args(sys.argv[1:])
     ui = SplashWindow()
-    threading.Thread(target=lambda: run_update_check(ui), daemon=True).start()
+    threading.Thread(target=lambda: run_update_check(
+        ui, args.wait_pid), daemon=True).start()
     ui.root.mainloop()
 
 
