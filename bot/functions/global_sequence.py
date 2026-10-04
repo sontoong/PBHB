@@ -128,7 +128,7 @@ class GlobalSequence(BaseTask):
             await self._click_image(f"{GLOBAL_IMAGES}/close_icon_button.png", screen=screen)
 
         # Case: Dialog popup
-        if await self._locate_image(f"{GLOBAL_IMAGES}/arrow_next.png", screen=screen) and not await self._locate_image(f"{GLOBAL_IMAGES}/arrow_back.png", screen=screen):
+        if await self._locate_image(f"{GLOBAL_IMAGES}/arrow_next.png", screen=screen) and not await self._locate_image(f"{GLOBAL_IMAGES}/arrow_back.png", screen=screen) and not await self._locate_image(f"{GLOBAL_IMAGES}/bit_valley.png", screen=screen):
             await self._click_image(f"{GLOBAL_IMAGES}/arrow_next.png", clicks=5, screen=screen)
 
     async def _handle_check_4(self):
