@@ -51,24 +51,30 @@ class NativeDriver(BaseDriver):
                     f"Window '{self.window_title}' has no visible area (minimized?)")
 
             hwnd_dc = win32gui.GetWindowDC(hwnd)
-            mfc_dc = win32ui.CreateDCFromHandle(hwnd_dc)
-            save_dc = mfc_dc.CreateCompatibleDC()
+            try:
+                mfc_dc = win32ui.CreateDCFromHandle(hwnd_dc)
+                try:
+                    save_dc = mfc_dc.CreateCompatibleDC()
+                    try:
+                        save_bitmap = win32ui.CreateBitmap()
+                        save_bitmap.CreateCompatibleBitmap(mfc_dc, win_width, win_height)
+                        try:
+                            save_dc.SelectObject(save_bitmap)
 
-            save_bitmap = win32ui.CreateBitmap()
-            save_bitmap.CreateCompatibleBitmap(mfc_dc, win_width, win_height)
-            save_dc.SelectObject(save_bitmap)
+                            result = windll.user32.PrintWindow(hwnd, save_dc.GetSafeHdc(), 2)
 
-            result = windll.user32.PrintWindow(hwnd, save_dc.GetSafeHdc(), 2)
-
-            bmpinfo = save_bitmap.GetInfo()
-            bmpstr = save_bitmap.GetBitmapBits(True)
-            img = np.frombuffer(bmpstr, dtype=np.uint8).reshape(
-                (bmpinfo["bmHeight"], bmpinfo["bmWidth"], 4))
-
-            win32gui.DeleteObject(save_bitmap.GetHandle())
-            save_dc.DeleteDC()
-            mfc_dc.DeleteDC()
-            win32gui.ReleaseDC(hwnd, hwnd_dc)
+                            bmpinfo = save_bitmap.GetInfo()
+                            bmpstr = save_bitmap.GetBitmapBits(True)
+                            img = np.frombuffer(bmpstr, dtype=np.uint8).reshape(
+                                (bmpinfo["bmHeight"], bmpinfo["bmWidth"], 4))
+                        finally:
+                            win32gui.DeleteObject(save_bitmap.GetHandle())
+                    finally:
+                        save_dc.DeleteDC()
+                finally:
+                    mfc_dc.DeleteDC()
+            finally:
+                win32gui.ReleaseDC(hwnd, hwnd_dc)
 
             if result != 1:
                 raise WindowError(
