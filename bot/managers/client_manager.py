@@ -90,7 +90,6 @@ class ClientManager:
 
             # Misc
             "--autoplay-policy=no-user-gesture-required",
-            "--no-sandbox",
             "--disable-dev-shm-usage",
             "--force-device-scale-factor=1",
             "--disable-blink-features=AutomationControlled",
@@ -101,6 +100,7 @@ class ClientManager:
             user_data_dir=user_data_dir,
             headless=headless,
             channel="chromium",
+            chromium_sandbox=False,
             args=args,
             viewport={"width": window_w, "height": window_h},
         )
